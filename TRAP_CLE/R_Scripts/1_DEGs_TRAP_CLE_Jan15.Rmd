@@ -9,54 +9,6 @@ output:
 # ICM 2024MAY15 DESeq2 Script
 # UM v IM v H
 
-
-
-```{r}
-install.packages("devtools")
-library(devtools)
-
-# install the package
-devtools::install_github("gadenbuie/rsthemes")
-
-# install all themes (including light and dark)
-rsthemes::install_rsthemes(include_base16 = TRUE)
-```
-
-
-```{r}
-library(rsthemes)
-
-# List available themes
-rsthemes::list_rsthemes()
-
-# Try a theme (e.g., pastel or cute ones)
-#rsthemes::try_rsthemes("rosepine")
-
-# Or apply directly
-#rstudioapi::applyTheme("Rose Pine {rsthemes}")
-
-alHvIMl_themes <- rsthemes::list_rsthemes()
-print(all_themes)
-
-# 4. Filter for cute/pastel-looking theme names
-cute_themes <- all_themes[grepl("Catppuccin|Fairyfloss|Rose|Latte|Blossom", all_themes)]
-print(cute_themes)
-
-# 5. Apply a cute pastel theme automatically
-# Example: Catppuccin Latte {rsthemes} (soft pink/cream palette)
-rstudioapi::applyTheme("base16 Unikitty Light {rsthemes}")
-
-library(rsthemes)
-
-# Try light themes interactively
-rsthemes::try_rsthemes("all")
-
-# Or apply one directly
-rstudioapi::applyTheme("base16 Cupcake {rsthemes}")
-
-```
-
-
 ```{r setup_clear_env}
 # Clean environment
 rm (list = ls (all.names = TRUE)) # will clear all objects including hidden objects
@@ -69,8 +21,13 @@ set.seed(123)
 
 ```{r Load_Packages}
 # Remove hashtags to install any missing packages
+#if (!requireNamespace("BiocManager", quietly = TRUE))
+#    install.packages("BiocManager")
+#BiocManager::install("readr", force = TRUE)
+
+
 #if (!require("BiocManager", quietly = TRUE))
- #   install.packages("escape")
+#    install.packages("readr")
 #Install all
 #BiocManager::install(c( "corrplot", "dendextend","readr","DESeq2", "ggrepel", "ggplot2", "pheatmap", "devtools", "ggforce","pheatmap", "gplots", "RColorBrewer", "ggdendro","enrichplot", "magrittr","dplyr","tibble", "tidyverse", "ComplexHeatmap", "escape")) 
 #install one
@@ -84,6 +41,7 @@ library(EnhancedVolcano)
   library(openxlsx)
   library(dplyr)
   library(ggplot2)
+  library(readr)
 })
 ```
 
@@ -91,9 +49,10 @@ library(EnhancedVolcano)
 ############################################
 # 1. Read data 
 ############################################
+setwd("/Users/lilicastillo/Desktop/Lab/TRAPseq")
 
 featcount <- read_table(
-  "../HvIM/Data_Repository/featcount.txt",
+  "HvIM/Data_Repository/featcount.txt",
   col_names = TRUE,
   skip = 1
 )
