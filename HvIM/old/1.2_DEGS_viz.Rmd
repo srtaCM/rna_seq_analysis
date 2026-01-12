@@ -1,0 +1,377 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+# Clean environment
+rm (list = ls (all.names = TRUE)) # will clear all objects including hidden objects
+gc () # free up memory and report the memory usage
+options (max.print = .Machine$integer.max, scipen = 0, stringsAsFactors = F, dplyr.summarise.inform = F) # avoid truncated output in R console and keep scientific notation
+```
+
+```{r}
+# Remove hashtags to install any missing packages
+#if (!require("BiocManager", quietly = TRUE))
+#    install.packages("BiocManager")
+
+#Install all
+#BiocManager::install(c( "corrplot", "dendextend","readr","DESeq2", "ggrepel", "ggplot2", "pheatmap", "devtools", "ggforce","pheatmap", "gplots", "RColorBrewer", "ggdendro","enrichplot", "magrittr","dplyr","tibble", "tidyverse", "ComplexHeatmap")) 
+
+#install one
+#BiocManager::install(c("cluster"))
+
+#remove.packages(ComplexHeatmap)
+
+#Load the packages we need
+suppressPackageStartupMessages({
+  library(DESeq2)
+  library(readr)
+  library(tidyverse) #to use distinct
+  library(enrichplot)
+  library(dplyr)
+  library(tibble)
+  library(magrittr)
+  library(gplots) 
+  library(RColorBrewer)
+  library(corrplot)
+  library(ggdendro)
+  library(dendextend)
+  library(ggplot2)
+  library(ggrepel)
+  library(pheatmap)
+  library(vsn)
+  library(factoextra)
+  library(cluster)
+  library(org.At.tair.db)
+  class(org.At.tair.db)
+  columns(org.At.tair.db)
+  organism = "org.At.tair.db"
+  library(organism, character.only = TRUE)
+  library(clusterProfiler)
+  library(pathview)
+})
+```
+
+```{r}
+#Must edit this to your work space
+setwd ("~/Desktop/Lab/Working_Projects/R_trapseq_2023") #Working Folder
+
+featcount <- read_table ("./RawData/featcount.txt", col_names = TRUE, skip = 1) #skip the first column
+
+read.count <- data.frame (featcount, row.names = featcount$Geneid ) #gene ids as row names
+read.count <- read.count [ ,-c(1:6)] #removes the columns without gene counts
+```
+
+```{r}
+#changes the data to hopefully the last change in naming 
+orig_names <- names (read.count) #saving original names 
+#print(orig_names)
+colnames (read.count) <- (c("IT-107", "IT-108", "IT-109", "IT-110", "H-107", "H-108", "H-109", "H-110", "H-111", "UT-106", "UT-108", "UT-114", "IT-206", "IT-207", "IT-208", "IT-209", "IM-206", "IM-207", "IM-208", "IM-209", "IM-210", "UT-204", "UT-208", "UT-213", "UT-214", "UM-204", "UM-208", "UM-213", "UM-214", "UM-215")) 
+#view(read.count)
+```
+
+```{r}
+#Removing the data we are not using. 
+ImvHvUM <- read.count [ ,-c(1:4,10:16,22:25)]
+
+#Variables
+sample_info <- data.frame(
+  sample = c( "H-107", "H-108", "H-109", "H-110", "H-111", "IM-206", "IM-207", "IM-208", "IM-209", "IM-210", "UM-204", "UM-208", "UM-213", "UM-214", "UM-215"),
+  groups = c( "H", "H", "H", "H", "H", "IM", "IM", "IM", "IM", "IM", "UM", "UM", "UM", "UM", "UM"),
+  condition = c("Infected", "Infected", "Infected", "Infected", "Infected", "Infected", "Infected", "Infected", "Infected", "Infected", "Uninfected", "Uninfected", "Uninfected", "Uninfected", "Uninfected"),
+  replicate = c("H-107", "H-108", "H-109", "H-110", "H-111", "IM-206", "IM-207", "IM-208", "IM-209", "IM-210", "UM-204", "UM-208", "UM-213", "UM-214", "UM-215"),
+  row.names = "sample") 
+
+sample_info$groups <- as.factor (sample_info$groups)
+all (rownames (sample_info) %in% colnames (ImvHvUM)) #if "false" something is wrong
+sample_info 
+```
+
+```{r pre visualization}
+{barplot (colSums (ImvHvUM > 5), 
+          ylab = "# of detected genes",
+          xlab="samples", 
+          density=c(5,10,20,30,7), 
+          angle=c(0,45,90,11,36),
+          main="Library Sizes (Normalized)",
+          las = 2, 
+          col=c("#E6598F", "#E6598F","#E6598F","#E6598F","#E6598F",
+                "black","black","black","black","black",
+                "purple", "purple", "purple","purple","purple"),
+          space=c(0.1,0.1,0.1,0.1,0.1,.3,0.1,.1,.1,.1, 0.3))
+abline (h = median (colSums (ImvHvUM > 5)))
+}
+#dev.copy2pdf(file="./SumData/1.2_test_IMvHvUM_v1.pdf")
+```
+
+
+```{r pre vis}
+#And a similar plot for detection rate across genes.
+{ barplot (rowSums (ImvHvUM > 5), xlab = "Genes", ylab = "Number of samples", las = 2, names.arg = "" )
+abline (h = median (rowSums (ImvHvUM > 5))) }
+
+#Genes can be discarded if genes are not detected across most samples.
+boxplot (log10 (as.matrix (ImvHvUM) + 1), ylab = expression ( 'Log' [10] ~ 'Read counts'), las = 2,
+main = "Raw data")
+```
+
+```{r}
+dds <- DESeqDataSetFromMatrix (countData = ImvHvUM, 
+                               colData = sample_info, 
+                               design = ~groups) 
+#print (dds)
+dds <- (dds[ rowSums ( counts (dds) ) > 10, ]) #prefiltering, removing genes with less than 10 counts
+dds$groups <- relevel (dds$groups, ref = "UM") #set comparison against control/mock
+```
+
+```{r}
+#For exploratory analysis such as MDS, PCA, clustering etc, VST is recommended. 
+vsd <- vst (dds)
+colnames (vsd) <- sample_info$replicate
+norm.counts <- as.data.frame (assay (vsd, blind = T))
+boxplot(log10 (as.matrix (norm.counts) + 1), 
+        ylab = expression('Log' [10] ~ 'Read counts'), 
+        las = 2, 
+        main = "VST", 
+        col=c("#E5751F","#E5751F","#E5751F","#E5751F","#E5751F",
+              "#861F41", "#861F41", "#861F41","#861F41","#861F41",
+              "#E6598F","#E6598F","#E6598F","#E6598F","#E6598F"))
+#dev.copy2pdf(file="./SumData/1.2_test_vst_IMvHvUM_v1.pdf")
+```
+
+```{r}
+#plotPCA (vsd,intgroup="groups")
+pcaobj <- prcomp (x = t (norm.counts))
+
+{ barplot (round (pcaobj$sdev^2 / sum (pcaobj$sdev^2) * 100, 2), 
+           las = 2,
+           names.arg = colnames (pcaobj$x), 
+           col=c("#E6598F"),
+           ylab = "% Variance explained",
+           xlab = "PCA principal components")
+abline(h = 2, lty = 2) }
+#dev.copy2pdf(file="./SumData/1.2_test_pval_IMvHvUM_v1.pdf")
+```
+
+
+```{r}
+# PCA principle component analysis, visualize the similarities and differences between *samples*
+pcadata <- plotPCA (vsd, intgroup = c( "replicate" , "groups" ), returnData = TRUE) 
+#summary(pcadata)
+
+percentVar <- round (100 * attr (pcadata, "percentVar" ))
+
+p <- ggplot (pcadata, aes(PC1, PC2, label = replicate, colour = groups)) +
+  geom_point (aes (shape = groups), size = 3) + scale_color_manual (values = c( "#FF1BB3", "#E5751F", "#861F41" )) +
+   theme_classic()
+
+p2 <- p + geom_text_repel (box.padding = 0.5, cex = 8, max.overlaps = 15, segment.linetype = 2) + labs (title = "PCA of Normalized Gene Counts" ) +
+  xlab(paste0 ( "PC1: ", percentVar[1], "% variance" )) +
+  ylab(paste0 ( "PC2: ", percentVar[2], "% variance" ))
+p2
+#ggsave("./SumData/1.2_PCA_v1.pdf")  #edit and uncheck to save graph to your chosen spot
+```
+
+```{r}
+library(dendextend)
+library(pheatmap)
+set.seed(123)
+#RNA-Seq samples generally have very high correlation (R^2 > 0.9). 
+#R^2 values below 0.8 may be an indication of an outlier sample. 
+#We use the function cor() for computing sample-to-sample Spearman correlation. Note that the input matrix has genes as rows and samples as columns. This generates a sample-to-sample pairwise correlation matrix. 
+
+#This matrix can be plotted as a heatmap using the pheatmap() function from the pheatmap R package.#In the matrix, red colour denotes higher correlation (higher similarity) and blue denotes lower correlation (lower similarity). pheatmap() also hierarchically clusters rows and columns based on correlation values
+
+dmat <- as.matrix (cor (norm.counts, method = "spearman"))
+
+#norm.counts <- norm.counts [complete.cases (dmat), ]
+
+distance.m <- as.dist (1 - dmat)
+
+# Hierarchical clustering
+hc <- hclust (distance.m, method = "complete" )
+hcd <- as.dendrogram (hc)
+
+#color to make it look nice
+hcd <- hcd %>% 
+  color_branches (k = 2)
+#nleaves(hcd)
+#nnodes(hcd)
+
+#plot the dendogram #pdf("./SumData/1_Dendogram_v2.pdf")
+plot (hcd,
+     type = "rectangle", ylab = "Height",
+    main = "vst read counts \n distance : Spearman correlation" ) 
+
+
+#make it pretty
+colors <- colorRampPalette (rev (brewer.pal (9, "Blues"))) (255) #color scheme
+#OrRd for orange n red
+
+pheatmap(dmat, border_color = NA, annotation_col = sample_info [, "groups", drop = F],
+         annotation_row = sample_info [, "groups", drop = F], annotation_legend = T, col = colors)
+
+#Hierarchically clustered sample-to-sample euclidean distance matrix. Larger distances mean lower similarity and vice-versa. In the matrix, red color denotes larger distance (lower similarity) and blue denotes small distance (higher similarity). Annotation colors denote Time groups. The dendrogram helps to visualize sample clustering. 
+# Try to run the PCA using one of the other normalisation methods, say logCPM and/or DESeq2 normalized counts.
+
+rlogTissue <- rlog(dds)
+rlogMatrix <- assay(rlogTissue)
+
+sampleCor <- cor (rlogMatrix)
+sampleCor
+sampleDists <- as.dist (1 - cor (rlogMatrix))
+sampleDistMatrix <- as.matrix (sampleDists)
+
+pheatmap (sampleDistMatrix, clustering_distance_rows = sampleDists, clustering_distance_cols = sampleDists)
+
+plot(1:255, rep(1, 255), col = colors, pch = 20, cex = 20, ann = FALSE, yaxt = "n")
+pheatmap(sampleDistMatrix, clustering_distance_rows = sampleDists, clustering_distance_cols = sampleDists,
+    color = colors)
+annoCol <- as.data.frame(colData(dds))
+pheatmap(sampleDistMatrix, clustering_distance_rows = sampleDists, clustering_distance_cols = sampleDists,
+    color = colors, annotation_col = annoCol)
+
+```
+
+
+
+```{r}
+#the first step is estimating size factors. The data is normalised for sequencing depth and compositional bias as done for the VST step. DESeq2 uses a method called median-of-ratios for this step.
+#d <- DESeq2::estimateSizeFactors (d, type = "ratio")
+
+#4.2 Gene dispersion
+#When it comes to comparing values between groups, some measure of variation is needed to estimate the variability in gene counts within groups. Dispersion is a measure of variation in a data set. Variance and standard deviation are not a good measure to estimate variability because it correlates with the mean.
+#DESeq2 computes it’s own version of dispersion in a more robust manner taking into account low count values. The DESeq2 dispersion estimates are inversely related to the mean and directly related to variance. The dispersion estimate is a good measure of the variation in gene expression for a certain mean value.
+#Now, the variance or dispersion estimate for genes with low counts is unreliable when there are too few replicates. To overcome this, DESeq2 borrows information from other genes. DESeq2 assumes that genes with similar expression levels have similar dispersion values. Dispersion estimates are computed for each gene separately using maximum likelihood estimate. A curve is fitted to these gene-wise dispersion estimates. The gene-wise estimates are then ‘shrunk’ to the fitted curve.
+#Gene-wide dispersions, fitted curve and shrinkage can be visualised using the plotDispEsts() function.
+
+#d <- DESeq2::estimateDispersions (d)
+#plotDispEsts (d)
+
+#he black points denote the maximum likelihood dispersion estimate for each gene. The red curve denote the fitted curve. The blue points denote the new gene dispersion estimates after shrunk towards the curve. The circled blue points denote estimates that are not shrunk as they are too far away from the curve. Thus, shrinkage method is important to reduce false positives in DGE analysis involving too few replicates.
+# It is a good idea to visually check the dispersion shrinkage plot to verify that the modelling works for your data set.
+```
+
+
+```{r}
+dds2 <- DESeq(dds, test = "LRT", reduced = ~1)
+acrossGroups <- results(dds2)
+acrossGroups <- acrossGroups[order(acrossGroups$pvalue), ]
+
+sigChanges <- rownames (acrossGroups) [acrossGroups$padj < 0.01 & !is.na (acrossGroups$padj)]
+sigMat <- rlogMatrix [rownames (rlogMatrix) %in% sigChanges, ]
+nrow (rlogMatrix)
+
+
+pheatmap (sigMat, scale = "row", show_rownames = FALSE)
+
+
+k <- pheatmap (sigMat, scale = "row", kmeans_k = 7)
+clusterDF <- as.data.frame (factor (k$kmeans$cluster))
+colnames (clusterDF) <- "Cluster"
+clusterDF [1:10, , drop = FALSE]
+
+OrderByCluster <- sigMat [order (clusterDF$Cluster), ]
+pheatmap (OrderByCluster, scale = "row", annotation_row = clusterDF, show_rownames = FALSE,
+    cluster_rows = FALSE)
+
+
+library (NbClust)
+rowScaledMat <- t(scale (t(sigMat)))
+clusterNum <- NbClust (rowScaledMat, distance = "euclidean", min.nc = 2, max.nc = 12,
+    method = "kmeans", index = "silhouette")
+clusterNum$Best.nc
+clusterNum$Best.partition[1:10]
+orderedCluster <- sort(clusterNum$Best.partition)
+sigMat <- sigMat [match(names(orderedCluster), rownames(sigMat)), ]
+pheatmap(sigMat, scale = "row", annotation_row = clusterDF, show_rownames = FALSE,
+    cluster_rows = FALSE)
+```
+
+
+
+
+```{r}
+dds$groups <- relevel (dds$groups, ref = "UM" ) #make sure groups are ok
+dds.ds <- DESeq (dds) #Run DESeq
+res <- results (dds.ds, alpha = 0.05)
+#write.csv(res, file= "./DerivedData/1_DEG_ImvH_v1.csv", quote=F, row.names=TRUE)
+```
+
+```{r}
+set.seed(123)
+#Extract genes with LFC +- 1 and p.value of 0.05
+Diff_genes_res = res %>%
+   as.data.frame() %>%
+   filter (padj < 0.05) %>%
+  filter (abs (log2FoldChange) >= 1)
+
+l2fc<- Diff_genes_res$log2FoldChange
+
+names(l2fc)<- rownames(Diff_genes_res)
+
+gene_list<-na.omit(l2fc)
+
+#gene_list <- as.data.frame(gene_list)
+
+gene_sort <- sort(gene_list, decreasing = TRUE)
+
+organism = "org.At.tair.db"
+
+library(organism, character.only = TRUE)
+library(clusterProfiler)
+library(pathview)
+library(enrichplot)
+library(ggplot2)
+
+gse<-gseGO( geneList = gene_sort,
+            ont = "All",
+            keyType = "TAIR",
+            nPerm = 1000,
+            minGSSize = 3,
+            maxGSSize = 800,
+            pvalueCutoff = 0.05,
+            verbose = TRUE,
+            OrgDb = organism,
+            pAdjustMethod = "none")
+
+require(DOSE)
+dotplot(gse, showCategory = 7, split = ".sign") + facet_grid (.~.sign)
+ggsave("./SumData/1.2_gse_go_v1.pdf")
+```
+
+
+```{r}
+#Order genes by p.value
+DGE.results.sorted <- Diff_genes_res [order (Diff_genes_res$padj), ]
+# Extract Gene Names with the desired adjusted p-value cut-off
+DGEgenes <- rownames (subset (DGE.results.sorted , padj < 0.05))
+# extract the normalized read counts for DE genes into a matrix
+hm.mat_DGEgenes <- norm.counts [DGEgenes , ]
+
+Havg<- as.data.frame(hm.mat_DGEgenes [,c("H-107", "H-108", "H-109", "H-110", "H-111")])
+IMavg<- as.data.frame(hm.mat_DGEgenes [,c("IM-206", "IM-207", "IM-208", "IM-209", "IM-210")])
+UMavg<- as.data.frame(hm.mat_DGEgenes [,c("UM-204", "UM-208", "UM-213", "UM-214", "UM-215")])
+H_means <-rowMeans(Havg)
+IM_means<- rowMeans(IMavg)
+UM_means<-rowMeans(UMavg)
+
+mlist <- cbind(H_means, IM_means, UM_means) %>% as.data.frame()
+
+set.seed(123)
+pheatmap::pheatmap(mlist, show_rownames = TRUE, angle_col = c( "45" ), color = colorRampPalette (rev (brewer.pal (n = 7, name = "RdYlBu")))(100), 
+            cluster_rows = TRUE,
+            clustering_distance_rows = "correlation", 
+            cluster_cols = TRUE,
+            clustering_distance_cols = "correlation", 
+            clustering_method = "complete", 
+            scale = "row", 
+         # cutree_cols = 3, 
+            #cutree_rows = 2, 
+            kmeans_k = 4
+         )
+#dev.copy2pdf(file="./SumData/1_hmap_av_clustering_IMvHvUM_v2.pdf")
+```
+

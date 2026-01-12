@@ -1,0 +1,349 @@
+---
+title: "Complete book"
+output: html_notebook
+---
+
+
+```{r}
+setwd("~/Desktop/Lab/TRAP_Stats_08302023/Scripts")
+```
+
+
+```{r}
+library(readr)
+featcount <- read_table("featcount.txt", 
+                        col_names = TRUE, skip = 1)
+read.count <- data.frame(featcount,row.names = featcount$Geneid ) #gene ids stored as row names
+geneID<- featcount$Geneid
+
+read.count <- read.count [ ,-c(1:6)] #removes the columns without gene counts not the same as bottom row code
+
+orig_names <- names (read.count)
+```
+
+```{r}
+
+#ut1
+
+colnames(read.count) <- (c("IT2", "IT3", "IT4", "H1", "H3", "H4", "H5", "UT1", "UT2", "UT3", "IT5", "IT6", "IT7", "IT8", "IM1", "IM2", "IM3", "IM4", "IM5", "UT4", "UT5", "UT6", "UT7", "UM1", "UM2", "UM3", "UM4", "UM5")) 
+#view(read.count)
+
+sample_info <- data.frame(
+   sample = c("IT2", "IT3", "IT4", "H1", "H3", "H4", "H5", "UT1", "UT2", "UT3", "IT5", "IT6", "IT7", "IT8", "IM1", "IM2", "IM3", "IM4", "IM5", "UT4", "UT5", "UT6", "UT7", "UM1", "UM2", "UM3", "UM4", "UM5"),
+   condition = c("infected","infected","infected","infected","infected","infected","infected","mock","mock","mock","infected","infected","infected","infected","infected","infected","infected","infected","infected","mock","mock","mock","mock","mock","mock","mock","mock","mock"),
+   treatment=c("IT", "IT", "IT", "H", "H", "H", "H", "UT", "UT", "UT", "IT", "IT", "IT", "IT", "IM", "IM", "IM", "IM", "IM", "UT", "UT", "UT", "UT", "UM", "UM", "UM", "UM", "UM"),
+   replicate= c("IT2", "IT3", "IT4", "H1", "H3", "H4", "H5", "UT1", "UT2", "UT3", "IT5", "IT6", "IT7", "IT8", "IM1", "IM2", "IM3", "IM4", "IM5", "UT4", "UT5", "UT6", "UT7", "UM1", "UM2", "UM3", "UM4", "UM5"),
+    row.names = "sample") #add rna type and total vs trap column  RNA_Type_Collected= , RNAvTRAP= 
+sample_info$treatment<- as.factor(sample_info$treatment)
+sample_info$condition<- as.factor(sample_info$condition)
+all(rownames(sample_info) %in% colnames(read.count)) #if false something is wrong
+sample_info 
+
+```
+
+
+
+
+```{r}
+library(DESeq2)
+
+dds <- DESeqDataSetFromMatrix(countData = read.count,
+                              colData = sample_info,
+                              design = ~ condition)
+print(dds)
+```
+
+```{r}
+library(magrittr)
+library(vsn)
+#prefiltering
+
+#dds1<- dds[,-c(8)] #uti
+#dds<- dds[,-c(10,22,23,26,27)] #kasia
+#sample_info<-sample_info[-c(10,22,23,26,27),]
+
+dds <- (dds[ rowSums( counts(dds) ) > 10 , ])
+dds$condition<-relevel(dds$condition, ref = "mock")
+summary(dds$condition)
+```
+
+```{r}
+
+
+dds <- DESeq(dds)
+res <- results(dds, 
+                       independentFiltering = TRUE, 
+                       alpha = 0.05 )
+                       
+
+summary(res)
+print(res)
+
+
+
+```
+
+
+```{r}
+#resultsNames(dds)
+#mcols(res, use.names=TRUE)
+
+
+plotMA(res)
+
+
+```
+
+
+```{r}
+library(dplyr)
+
+res<-as.data.frame(res)
+#ordering results by increasing p value
+res_ordered<-res[order(res$pvalue),]
+print(res_ordered)
+
+
+#filter based on p adj value
+filtered.05 <- res_ordered %>% filter(res_ordered$padj >0.05)
+
+#filter based on forl changes 
+filtered <-filtered.05 %>% filter(abs(filtered.05$log2FoldChange) >1)
+
+#get the list of genes of interest
+genesOfInterest <-rownames(filtered)
+
+#calculate enriched GO terms
+#goResults <-gprofiler(query =genesOfInterest,organism ='hsapiens',src_filter ='GO',hier_filtering ='moderate')
+
+#save images and normalized counts
+write.csv(res, 'desq_results_all.csv')
+#write.csv(filtered, 'des_results_filtered.csv')
+```
+
+
+
+```{r}
+#smallest pvalue 
+
+
+#idx <- which.min(res$pvalue) # i think this part is redundant
+#counts(dds)[idx,]
+#counts(dds, normalized=TRUE)[idx,]
+#plotMA( res, ylim = c(-3, 3) )
+#plotDispEsts( dds, ylim = c(1e-6, 1e1) )
+#hist(res$pvalue, breaks=20, col="pink")
+
+#multipule testing
+#sum(res$padj < 0.05, na.rm=TRUE)
+```
+
+
+```{r}
+
+rld <- rlog( dds, blind = FALSE )
+assay(rld)#[ 1:3, 1:3]
+Dists <- dist( t( assay(rld) ) )
+as.matrix(Dists )#[ 1:3, 1:3 ]
+options(repr.plot.height=3, repr.plot.width=5)
+
+head(assay(dds))
+par(mfrow=c(1,2))
+meanSdPlot(assay(dds), ranks=FALSE)
+
+
+head(assay(rld), 3)
+meanSdPlot(assay(rld), ranks=FALSE)
+
+
+```
+
+
+
+
+```{r}
+ddsESF <- estimateSizeFactors(dds)
+df1 <- data.frame(log2(counts(ddsESF, normalized=TRUE)[, 1:2] + 1))
+df1$transformation <- "log2(x + 1)"
+df2 <- data.frame(assay(rld)[, 1:2])
+df2$transformation <- "rld"
+#df3<-data.frame(assay(vsd)[, 1:2])
+#df3$transformation<-"vsd"
+df <- rbind(df1, df2)
+colnames(df)[1:2] <- c("x", "y")
+head(df)
+table(df$transformation)
+
+options(repr.plot.width=6, repr.plot.height=2.5)
+library(ggplot2)
+ggplot(df, aes(x = x, y = y)) + geom_hex(bins = 80) +
+  coord_fixed() + facet_grid( . ~ transformation)
+```
+
+
+
+
+```{r}
+dds$condition <-relevel(dds$condition, ref = "mock")
+```
+
+
+
+
+```{r Transformed Distribution}
+par(mfrow=c(1,1))
+boxplot(log2(assay(ddsESF)+1), las=2, main="log2(x+1)")
+boxplot(assay(rld),
+         notch = TRUE, 
+         col= "blue",
+          main = "rlog - transformed read counts ",
+         xlab = "Samples",
+          ylab = " rlog ( read counts )")
+
+```
+
+
+```{r SAMPLE TO SAMPLE DISTANCE MATRIX}
+library(vsn)
+library(ggplot2)
+library(pheatmap)
+library(RColorBrewer)
+
+#making distance matrix
+Dists <- dist(t( assay(rld) ) )
+
+DistMatrix <- as.matrix( Dists )
+#rownames(DistMatrix) <- paste( rld$replicate, sep="-" )
+colnames(DistMatrix) 
+
+#color scheme
+colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
+
+#generate heat map
+pheatmap(DistMatrix,
+ clustering_distance_rows=Dists,
+ clustering_distance_cols=Dists,
+ col=colors)
+```
+
+
+
+
+```{r HEAT MAP}
+#top ten genes for heat map
+
+top_hits<-res[order(res$padj),][1:25,]
+top_hits<-row.names(top_hits)
+top_hits
+
+#pheatmap(assay(rld)[top_hits,], cluster_rows = FALSE, show_rownames = TRUE, cluster_cols = FALSE) #disables clustering
+#pheatmap(assay(rld)[top_hits,], )
+
+#annot_info <- as.data.frame(colData(dds)[,c('condition','replicate')])
+#pheatmap(assay(rld)[top_hits,], 
+#         annotation_col = annot_info)
+
+library(NMF)
+#scale the read counts per gene to emphasize the sample -type - specific differences
+
+aheatmap(assay(rld)[top_hits,],
+          Rowv = TRUE , Colv = TRUE ,
+          distfun = 'euclidean', hclustfun = 'average',
+          scale = 'row') # values are transformed into distances from the center of the row - specific average : ( actual value - mean of the group )/standard deviation
+```
+
+
+```{r Corr MAP}
+rlogMatrix <- assay(rld)
+Cor <- cor(rlogMatrix)
+Cor
+sampleDists <- as.dist(1 - cor(rlogMatrix))
+sampleDistMatrix <- as.matrix(sampleDists)
+
+summary(sampleDistMatrix)
+```
+
+
+```{r}
+#vendiagram of mine v kasia
+library(VennDiagram)
+
+KGENES_all <- c("AT4G15610", "AT1G68620", "AT1G09932", "AT4G16260", "AT3G01420", "AT4G10500", "AT3G22600", "AT1G15520", "AT2G45220", "AT1G21240", "AT3G13950", "AT3G28510", "AT1G26390", "AT2G35980", "AT1G51860", "AT1G19250", "AT3G15536", "AT2G19190", "AT2G44240", "AT4G14630", "AT5G66690", "AT2G41850", "AT2G19500", "AT2G29350", "AT2G43570", "AT3G44300", "AT1G73260", "AT1G14880", "AT2G14610", "AT1G07050", "AT4G33980", "AT2G40080", "AT3G20810", "AT3G07650", "AT1G68050")
+
+KGENES_TOP25<-c("AT1G09932", "AT4G16260","AT3G01420","AT3G55970","AT4G15610","AT2G45220","AT1G68620","AT3G13950","AT4G11650","AT2G35980","AT4G10500","AT3G28510","AT2G19190","AT2G44240","AT3G15536","AT1G19250","AT4G14630","AT5G66690","AT3G60140","AT2G41850","AT2G19500","AT5G06850","AT1G19480","AT2G36690","AT5G43350","AT2G19800","AT1G15520","AT3G22600","AT2G43570","AT3G44300","AT1G73260","AT5G35200","AT1G14880","AT2G14610","AT2G29350")
+
+top_hits<-res[order(res$padj),][1:25,]
+top_hits<-row.names(top_hits)
+top_hits
+
+intersect(KGENES_TOP25 ,top_hits)
+
+
+```
+
+
+```{r}
+library(PoiClaClu)
+poisd <- PoissonDistance(t(counts(rld)))
+options(repr.plot.height=3, repr.plot.width=5)
+PoisDistMatrix <- as.matrix( poisd$dd )
+rownames(PoisDistMatrix) <- paste( rld$replicate, rld$condition, sep=" - " )
+colnames(PoisDistMatrix) <- NULL
+pheatmap(PoisDistMatrix,
+         clustering_distance_rows = poisd$dd,
+         clustering_distance_cols = poisd$dd,
+         col = colors)
+```
+
+
+```{r}
+# PCA
+library(ggfortify)
+library(ggrepel)
+library (ggplot2)
+library(pheatmap)
+
+
+plotPCA(rld, 
+             ntop=500, intgroup="condition") + geom_text_repel(aes(x=PC1, y=PC2, label=sample_info$replicate ), box.padding = 0.3)  +theme_bw () + ggtitle (" Rlog transformed counts ")
+
+
+```
+
+
+
+
+
+```{r}
+library(dendextend)
+library(ggplot2)
+library(stats)
+
+
+all_gene_tree <- hclust(Dists, method = "complete")
+
+dend_allg<-as.dendrogram(all_gene_tree)
+
+nleaves(dend_allg) # # of genes we clustered
+nnodes(dend_allg) # # of nodes (leaves+joins) in tree
+
+allg_clusters <- cutree(dend_allg, k=4, order_clusters_as_data = FALSE)
+table(allg_clusters)
+allg_clusters[1:6]
+
+plot(color_branches(dend_allg, k=4, leaflab="none"),
+     main = "complete",
+     xlab = NULL, ylab ="Height")
+
+allgenecluster.df <-data.frame(Condition=names(allg_clusters), cluster = allg_clusters)
+
+# Get various attributes
+dend_allg %>% get_nodes_attr("height") # node's height
+
+#https://bio723-class.github.io/Bio723-book/clustering-in-r.html
+
+
+```
+
+
+

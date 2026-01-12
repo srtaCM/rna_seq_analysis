@@ -1,0 +1,770 @@
+---
+title: "3.1_Functional_Analysis"
+output: html_notebook
+---
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+### INSTALLING PACKAGES ###
+#if (!require("BiocManager", quietly = TRUE))
+#    install.packages("BiocManager")
+
+#BiocManager::install(c("readr", "enrichplot", "DOSE", "clusterProfiler", "AnnotationHub", "ensembldb", "tidyverse", "AnnotationDbi", "org.At.tair.db", "pathview", "gageData", "ggupset", "GOCompare", "UpSetR"))
+
+
+setwd("~/Desktop/Lab/Working_Projects/trapseq_2023")
+# Clean environment
+rm(list = ls(all.names = TRUE)) # will clear all objects including hidden objects
+gc() # free up memory and report the memory usage
+options(max.print = .Machine$integer.max, scipen = 0, stringsAsFactors = F, dplyr.summarise.inform = F) # avoid truncated output in R console and scientific notation
+
+###Loading Library
+suppressPackageStartupMessages(library("org.At.tair.db"))
+
+#suppressPackageStartupMessages(library(pathview)) #calls specific pathway
+library(clusterProfiler) #A universal enrichment tool for interpreting omics data #prettydoc
+library(GOSemSim)
+library(readr)
+library(tidyverse) # includes ggplot2, for data visualisation. dplyr, for data manipulation.
+#class(org.At.tair.db)
+#columns(org.At.tair.db)
+#library(VennDiagram)
+#library(ggvenn)
+
+```
+
+```{r read in all diff genes}
+df <- read.csv(paste0(file = "deg_analysis_DESeq_all.csv"), row.names = 1)
+ALL_DEG <- data.frame(df, row.names = df$row )
+geneID<- ALL_DEG$row
+```
+
+```{r}
+## Prepare deg results -----------------------------------------------
+ALL_DEG <- ALL_DEG %>% mutate(diffexpressed = case_when(
+  log2FoldChange > 1 & padj < 0.01 ~ 'UP',
+  log2FoldChange < 1 & padj < 0.01 ~ 'DOWN',
+  padj > 0.01 ~ 'NO'
+))
+
+# Remove non-significant genes
+ALL_DEG_table <- ALL_DEG[ALL_DEG$diffexpressed != 'NO', ]
+
+# Substitute names so they are annotated nicely in the heatmap later
+unique(ALL_DEG_table$diffexpressed)
+
+# Split the dataframe into a list of sub-dataframes: upregulated, downregulated genes
+deg_results_list <- split(ALL_DEG_table, ALL_DEG_table$diffexpressed)
+
+colnames(ALL_DEG_table)
+
+###add information to table
+ALL_DEG_table$symbol = mapIds(org.At.tair.db, 
+                    keys= row.names(ALL_DEG_table), 
+                    keytype= "TAIR" , 
+                    column= "SYMBOL", 
+                    multiVals= "first")
+
+ALL_DEG_table$entrez = mapIds(org.At.tair.db, 
+                    keys=row.names(ALL_DEG_table), 
+                    keytype="TAIR", 
+                    column="ENTREZID", 
+                    multiVals="first")
+
+
+```
+
+```{r}
+library(GOSemSim)
+atGO <- godata('org.At.tair.db', ont="BP")
+library(clusterProfiler)
+```
+
+```{r}
+eGO <- enrichGO(gene         = ALL_DEG_table$entrez,
+                OrgDb         = org.At.tair.db,
+                keyType       = 'ENTREZID',
+                ont           = "BP",
+                pAdjustMethod = "BH",
+                qvalueCutoff  = 0.01)
+head(eGO, 10)
+#goplot(eGO)
+#barplot(eGO)
+##dotplot(eGO, showCategory=10, color = "p.adjust") + ggtitle("Dotplot for ORA")
+
+### Output results from GO analysis to a table
+#cluster_summary <- data.frame(eGO_dwnIM)
+#write.csv(cluster_summary, "eGO_dwnIMclusterProfiler_oe.csv")
+```
+
+```{r}
+gGO <- groupGO(gene     = ALL_DEG_table$entrez,
+               OrgDb    = 'org.At.tair.db',
+               ont      = "BP",
+               level    = 3,
+               readable = TRUE)
+
+head(gGO)
+```
+
+```{r DOWN REGULATED INFECTED MESOPHYLL}
+library(readr)
+IMdwn<- read_table("dwnLFC1_01_IM.csv", col_names = TRUE) 
+IMdwn_tb <- data.frame(IMdwn, row.names = IMdwn$Row.names) 
+
+###add information to table
+IMdwn_tb$symbol = mapIds(org.At.tair.db, 
+                    keys= IMdwn_tb$Row.names, 
+                    keytype= "TAIR" , 
+                    column= "SYMBOL", 
+                    multiVals= "first")
+IMdwn_tb$entrez = mapIds(org.At.tair.db, 
+                    keys=IMdwn_tb$Row.names, 
+                    keytype="TAIR", 
+                    column="ENTREZID", 
+                    multiVals="first")
+
+
+###clean up table: remove columns, add column names, remove all genes with na values, and duplicate genes
+IMdwn_tb <- IMdwn_tb[ ,-c(4:5)] %>% 
+  data.frame()  %>% 
+  as_tibble() %>% 
+  na.omit() %>%
+  arrange(desc(UMVsIM_log2FoldChange))
+
+dwnIM_genes<- IMdwn_tb$entrez
+```
+
+
+```{r GO enriched INFECTED MESOPHYLL}
+#GO enrichment refers specifically to gene ontology. GO provides the framework and set of concepts for describing the functions of gene products from all organisms.GO integrates information about gene product function in the context of three domains:
+eGO1 <- enrichGO(gene         = dwnIM_genes,
+                OrgDb         = org.At.tair.db,
+                keyType       = 'ENTREZID',
+                ont           = "BP",
+                pAdjustMethod = "BH",
+                qvalueCutoff  = 0.01)
+eGO1 # 243 enriched terms found
+
+#dotplot(eGO1, x = "GeneRatio", showCategory = 10,label_format = 30 , color = "p.adjust")+ ggtitle("Dotplot for eGO")
+#goplot(eGO1 , color = "p.adjust")
+
+### Output results from GO analysis to a table
+#cluster_summary <- data.frame(eGO_dwnIM)
+#write.csv(cluster_summary, "eGO_dwnIMclusterProfiler_oe.csv")
+
+
+###Reduce redundancy
+#Bc the nature of GO, it is organized as a directed acyclic graph, parent terms can show enrichment due to over rep child terms. 
+# to fix use simplify() function 
+s_eGO1<-clusterProfiler::simplify(eGO1)
+s_eGO1 #89 terms
+dotplot(s_eGO1,showCategory=20,font.size=10,label_format=70)+
+scale_size_continuous(range=c(1, 7))+
+theme_minimal() +
+ggtitle("GO Enrichment of down im-regulated genes")
+```
+
+```{r IM DWN CNET Plot (in progress)}
+# color genes by log2 fold changes; create named vector
+foldchanges <- IMdwn_tb$UMVsIM_log2FoldChange
+names(foldchanges) <- IMdwn_tb$symbol
+## by default cnetplot gives the top 5 significant terms
+#if we want to focus on specific terms we can subset our results
+s_ego1loli <- s_eGO1
+#s_ego1loli@result<-s_eGO1[c(6,15,32),]
+cnetplot(s_ego1loli, color.params = list(foldChange = foldchanges),
+color_category="purple")
+```
+
+```{r IM DOWN GROUP GO}
+ggo1 <- groupGO(gene= dwnIM_genes,
+               OrgDb= 'org.At.tair.db',
+               ont= "BP",
+               level = 3,
+               keyType = "ENTREZID",
+               readable= TRUE)
+head(ggo1)
+```
+
+
+```{r IM DWN cenet plot GROUP GO in progress}
+cnetplot(ggo1, showCategory=5,
+                      categorySize="pvalue",
+                      color.params = list(foldChange = IMdwn_tb$UMVsIM_log2FoldChange),
+                      order=TRUE)
+
+
+```
+
+```{r IM dwn KEGG}
+search_kegg_organism('ath', by='kegg_code')
+search_kegg_organism('Arabidopsis thaliana', by='scientific_name')
+
+# omit any NA values 
+kegg_gene_list<-na.omit(dwnIM_genes)
+
+# sort the list in decreasing order (required for clusterProfiler)
+kegg_gene_list = sort(dwnIM_genes, decreasing = TRUE)
+
+#ora with kegg data base
+ora_analysis_kegg <- enrichKEGG(gene = kegg_gene_list,
+                                universe =ALL_DEG_table,
+                                organism = "ath",
+                                keyType = "ncbi-geneid",
+                                minGSSize = 10,
+                                maxGSSize = 500,
+                                pAdjustMethod = "BH",
+                                qvalueCutoff = 0.01,
+                                use_internal_data = FALSE) # force to query latest KEGG db
+head(ora_analysis_kegg)
+
+ora_analysis_kegg_modules <- enrichMKEGG(gene =kegg_gene_list,
+                                         universe = ALL_DEG_table,
+                                         organism = "ath",
+                                         keyType = "ncbi-geneid",
+                                         minGSSize = 10,           # minimal size of genes annotated by Ontology term for testing.
+                                         maxGSSize = 500,          # maximal size of genes annotated for testing
+                                         pAdjustMethod = "BH",
+                                         qvalueCutoff = 0.01)
+ggplot(ora_analysis_kegg)
+#browseKEGG(ora_analysis_kegg, 'ath00195')
+library("pathview")
+#ath04145 <- pathview(gene.data  = allOE_genes, pathway.id = "ath00195", species    = "ath")
+
+# create a simple dotplot graph
+dotplot(ora_analysis_kegg, 
+    color = "qvalue", 
+    showCategory = 5, 
+    size = "Count")
+
+
+ridgeplot(ora_analysis_kegg, showCategory = 30) + labs(title = "KEGG_Pathway Analysis", x = "enrichment distribution") + scale_fill_gradient(low = "#56B1F7", high = "#132B43")
+
+```
+
+```{r GO vs KEGG}
+mlist<-list(s_eGO1,ora_analysis_kegg)
+names(mlist)<-c("GO-enrich","KEGG-enrich")
+mresult<-merge_result(mlist)
+dotplot(mresult,showCategory=5)
+
+```
+
+
+```{r UP REGULATED INFECTED MESOPHYLL}
+IMup<- read_table("upLFC1_01_IM.csv",  col_names = TRUE)
+
+###cleaning up table
+IMup_tb <- IMup[ ,-c(4:5)] %>% 
+  data.frame()  %>% 
+  as_tibble() %>% 
+  na.omit() %>%
+  arrange(desc(UMVsIM_log2FoldChange))
+
+###add information to table
+IMup_tb$symbol = mapIds(org.At.tair.db, 
+                    keys= IMup_tb$Row.names, 
+                    keytype= "TAIR" , 
+                    column= "SYMBOL", 
+                    multiVals= "first")
+
+IMup_tb$entrez = mapIds(org.At.tair.db, 
+                    keys=IMup_tb$Row.names, 
+                    keytype="TAIR", 
+                    column="ENTREZID", 
+                    multiVals="first")
+upIM_genes<- IMup_tb$entrez
+```
+
+
+```{r UP REG IM ENRICHED GO }
+eGO2 <- enrichGO(gene         = upIM_genes,
+                OrgDb         = org.At.tair.db,
+                keyType       = 'ENTREZID',
+                ont           = "BP",
+                pAdjustMethod = "BH",
+                qvalueCutoff  = 0.01)
+
+#dotplot(eGO2, x = "GeneRatio", showCategory = 10,label_format = 30 , color = "p.adjust")+ ggtitle("Dotplot for eGO")
+#goplot(eGO2, color = "p.adjust")
+#barplot(eGO2, color = "p.adjust")
+
+### Output results from GO analysis to a table
+#upIM_cluster_summary <- data.frame(eGO2)
+#write.csv(upIM_cluster_summary, "eGO2IMclusterProfiler_oe.csv")
+
+###Reduce redundancy
+s_eGO2<-clusterProfiler::simplify(eGO2)
+s_eGO2 #89 terms
+dotplot(s_eGO2,showCategory=20,font.size=10,label_format=70)+
+scale_size_continuous(range=c(1, 7))+
+theme_minimal() +
+ggtitle("GO Enrichment of up im-regulated genes")
+
+mlist<-list(s_eGO1,s_eGO2)
+names(mlist)<-c("IMdwn-GOenrich","IMUP-GOenrich")
+mresult<-merge_result(mlist)
+dotplot(mresult,showCategory=10)
+```
+
+```{r}
+search_kegg_organism('ath', by='kegg_code')
+search_kegg_organism('Arabidopsis thaliana', by='scientific_name')
+
+# omit any NA values 
+kegg_gene_list<-na.omit(upIM_genes)
+
+# sort the list in decreasing order (required for clusterProfiler)
+kegg_gene_list = sort(upIM_genes, decreasing = TRUE)
+
+
+ora_analysis_kegg <- enrichKEGG(gene = kegg_gene_list,
+                                universe =ALL_DEG_table,
+                                organism = "ath",
+                                keyType = "ncbi-geneid",
+                                minGSSize = 10,
+                                maxGSSize = 500,
+                                pAdjustMethod = "BH",
+                                qvalueCutoff = 0.01,
+                                use_internal_data = FALSE) # force to query latest KEGG db
+head(ora_analysis_kegg)
+
+ora_analysis_kegg_modules <- enrichMKEGG(gene =kegg_gene_list,
+                                         universe = ALL_DEG_table,
+                                         organism = "ath",
+                                         keyType = "ncbi-geneid",
+                                         minGSSize = 10,           # minimal size of genes annotated by Ontology term for testing.
+                                         maxGSSize = 500,          # maximal size of genes annotated for testing
+                                         pAdjustMethod = "BH",
+                                         qvalueCutoff = 0.01)
+ggplot(ora_analysis_kegg)
+#browseKEGG(ora_analysis_kegg, 'ath00195')
+library("pathview")
+#ath04145 <- pathview(gene.data  = allOE_genes, pathway.id = "ath00195", species    = "ath")
+
+# create a simple dotplot graph
+dotplot(ora_analysis_kegg, 
+    color = "qvalue", 
+    showCategory = 5, 
+    size = "Count")
+
+
+ridgeplot(ora_analysis_kegg, showCategory = 30) + labs(title = "KEGG_Pathway Analysis", x = "enrichment distribution") + scale_fill_gradient(low = "#56B1F7", high = "#132B43")
+
+```
+
+```{r}
+gGO2 <- groupGO(gene     = upIM_genes,
+               OrgDb    = 'org.At.tair.db',
+               ont      = "BP",
+               level    = 3,
+               readable = TRUE)
+
+head(gGO2)
+```
+
+
+```{r DOWN REGULATED HAUST CELLS}
+Hdwn<- read_table("downLFC1_0.01_H.csv", col_names = TRUE)
+
+###cleaning up table: remove columns, add column names, remove all genes with na values, and duplicate genes
+Hdwn_tb <- Hdwn[ ,-c(2:3)] %>% 
+  data.frame()  %>% 
+  as_tibble() %>% 
+  na.omit() %>%
+  arrange(desc(UMVsH_log2FoldChange))
+
+###add information to table
+Hdwn_tb$symbol = mapIds(org.At.tair.db, 
+                    keys= Hdwn_tb$Row.names, 
+                    keytype= "TAIR" , 
+                    column= "SYMBOL", 
+                    multiVals= "first")
+
+Hdwn_tb$entrez = mapIds(org.At.tair.db, 
+                    keys=Hdwn_tb$Row.names, 
+                    keytype="TAIR", 
+                    column="ENTREZID", 
+                    multiVals="first")
+Hdwn_genes<- Hdwn_tb$entrez
+```
+
+
+```{r DOWN REGULATED HAUST CELLS GO}
+eGO3 <- enrichGO(gene         = Hdwn_genes,
+                OrgDb         = org.At.tair.db,
+                keyType       = 'ENTREZID',
+                ont           = "BP",
+                pAdjustMethod = "BH",
+                qvalueCutoff  = 0.01)
+
+#dotplot(eGO3, x = "GeneRatio", showCategory = 10,label_format = 30 , color = "p.adjust")+ ggtitle("Dotplot for eGO")
+#goplot(eGO3, color = "p.adjust")
+#barplot(eGO3, color = "p.adjust")
+
+### Output results from GO analysis to a table
+#DwnH_cluster_summary <- data.frame(eGO3)
+#write.csv(DwnH_cluster_summary, "eGO3_dwnHclusterProfiler_oe.csv")
+
+s_eGO3<-clusterProfiler::simplify(eGO3)
+s_eGO3 #89 terms
+dotplot(s_eGO3,showCategory=20,font.size=10,label_format=70)+
+scale_size_continuous(range=c(1, 7))+
+theme_minimal() +
+ggtitle("GO Enrichment of down im-regulated genes")
+```
+
+
+```{r}
+gGO3 <- groupGO(gene     = Hdwn_genes,
+               OrgDb    = 'org.At.tair.db',
+               ont      = "BP",
+               level    = 3,
+               readable = TRUE)
+
+head(gGO3)
+```
+
+```{r}
+search_kegg_organism('ath', by='kegg_code')
+search_kegg_organism('Arabidopsis thaliana', by='scientific_name')
+
+# omit any NA values 
+kegg_gene_list<-na.omit(Hdwn_genes)
+
+# sort the list in decreasing order (required for clusterProfiler)
+kegg_gene_list = sort(Hdwn_genes, decreasing = TRUE)
+
+
+ora_analysis_kegg <- enrichKEGG(gene = kegg_gene_list,
+                                universe =ALL_DEG_table,
+                                organism = "ath",
+                                keyType = "ncbi-geneid",
+                                minGSSize = 10,
+                                maxGSSize = 500,
+                                pAdjustMethod = "BH",
+                                qvalueCutoff = 0.01,
+                                use_internal_data = FALSE) # force to query latest KEGG db
+head(ora_analysis_kegg)
+
+ora_analysis_kegg_modules <- enrichMKEGG(gene =kegg_gene_list,
+                                         universe = ALL_DEG_table,
+                                         organism = "ath",
+                                         keyType = "ncbi-geneid",
+                                         minGSSize = 10,           # minimal size of genes annotated by Ontology term for testing.
+                                         maxGSSize = 500,          # maximal size of genes annotated for testing
+                                         pAdjustMethod = "BH",
+                                         qvalueCutoff = 0.01)
+ggplot(ora_analysis_kegg)
+#browseKEGG(ora_analysis_kegg, 'ath00195')
+library("pathview")
+#ath04145 <- pathview(gene.data  = allOE_genes, pathway.id = "ath00195", species    = "ath")
+
+# create a simple dotplot graph
+dotplot(ora_analysis_kegg, 
+    color = "qvalue", 
+    showCategory = 5, 
+    size = "Count")
+
+
+ridgeplot(ora_analysis_kegg, showCategory = 30) + labs(title = "KEGG_Pathway Analysis", x = "enrichment distribution") + scale_fill_gradient(low = "#56B1F7", high = "#132B43")
+
+```
+
+```{r UP REG Haustoriated Cells}
+Hup<- read_table( "upLFC1_0.01_H.csv", col_names = TRUE)
+
+###cleaning up table
+Hup_tb <- Hup[ ,-c(2:3)] %>% 
+  data.frame()  %>% 
+  as_tibble() %>% 
+  na.omit() %>%
+  arrange(desc(UMVsH_log2FoldChange))
+
+###add information to table
+Hup_tb$symbol = mapIds(org.At.tair.db, 
+                    keys= Hup_tb$Row.names, 
+                    keytype= "TAIR" , 
+                    column= "SYMBOL", 
+                    multiVals= "first")
+Hup_tb$entrez = mapIds(org.At.tair.db, 
+                    keys=Hup_tb$Row.names, 
+                    keytype="TAIR", 
+                    column="ENTREZID", 
+                    multiVals="first")
+upH_genes<- Hup_tb$entrez
+```
+
+
+```{r UP REG Haustoriated Cells GO}
+eGO4 <- enrichGO(gene         = upH_genes,
+                OrgDb         = org.At.tair.db,
+                keyType       = 'ENTREZID',
+                ont           = "BP",
+                pAdjustMethod = "BH",
+                qvalueCutoff  = 0.01)
+
+#dotplot(eGO4, x = "GeneRatio", showCategory = 10,label_format = 30 , color = "p.adjust")+ ggtitle("Dotplot for eGO")
+#goplot(eGO4, color = "p.adjust")
+#barplot(eGO4, color = "p.adjust")
+
+### Output results from GO analysis to a table
+#upH_cluster_summary <- data.frame(eGO4)
+#write.csv(upH_cluster_summary, "eGO4_upHclusterProfiler_oe.csv")
+
+s_eGO4<-clusterProfiler::simplify(eGO4)
+s_eGO4 #89 terms
+dotplot(s_eGO4,showCategory=20,font.size=10,label_format=70)+
+scale_size_continuous(range=c(1, 7))+
+theme_minimal() +
+ggtitle("GO Enrichment of down im-regulated genes")
+               
+gGO4 <- groupGO(gene     = upH_genes,
+               OrgDb    = 'org.At.tair.db',
+               ont      = "BP",
+               level    = 3,
+               readable = TRUE)
+
+#head(gGO4)
+```
+
+```{r}
+search_kegg_organism('ath', by='kegg_code')
+search_kegg_organism('Arabidopsis thaliana', by='scientific_name')
+
+# omit any NA values 
+kegg_gene_list<-na.omit(upH_genes)
+
+# sort the list in decreasing order (required for clusterProfiler)
+kegg_gene_list = sort(upH_genes, decreasing = TRUE)
+
+
+ora_analysis_kegg <- enrichKEGG(gene = kegg_gene_list,
+                                universe =ALL_DEG_table,
+                                organism = "ath",
+                                keyType = "ncbi-geneid",
+                                minGSSize = 10,
+                                maxGSSize = 500,
+                                pAdjustMethod = "BH",
+                                qvalueCutoff = 0.01,
+                                use_internal_data = FALSE) # force to query latest KEGG db
+head(ora_analysis_kegg)
+
+ora_analysis_kegg_modules <- enrichMKEGG(gene =kegg_gene_list,
+                                         universe = ALL_DEG_table,
+                                         organism = "ath",
+                                         keyType = "ncbi-geneid",
+                                         minGSSize = 10,           # minimal size of genes annotated by Ontology term for testing.
+                                         maxGSSize = 500,          # maximal size of genes annotated for testing
+                                         pAdjustMethod = "BH",
+                                         qvalueCutoff = 0.01)
+ggplot(ora_analysis_kegg)
+#browseKEGG(ora_analysis_kegg, 'ath00195')
+library("pathview")
+#ath04145 <- pathview(gene.data  = allOE_genes, pathway.id = "ath00195", species    = "ath")
+
+# create a simple dotplot graph
+dotplot(ora_analysis_kegg, 
+    color = "qvalue", 
+    showCategory = 5, 
+    size = "Count")
+
+
+ridgeplot(ora_analysis_kegg, showCategory = 30) + labs(title = "KEGG_Pathway Analysis", x = "enrichment distribution") + scale_fill_gradient(low = "#56B1F7", high = "#132B43")
+
+```
+
+```{r}
+mlist<-list(s_eGO4,s_eGO3)
+names(mlist)<-c("upH-GOenrich","DwnH-GOenrich")
+mresult<-merge_result(mlist)
+dotplot(mresult,showCategory=10)
+```
+
+
+```{r}
+library(gplots)
+library(VennDiagram)
+library(ggvenn)
+ 
+# Create a list of sets for the Venn diagram
+venn_list <- list(
+  dwnIM = eGO1$Description,
+  upIM = eGO2$Description,
+  hdwn = eGO3$Description,
+  hUP = eGO4$Description
+)
+ggvenn(venn_list, show_elements = T, label_sep = "\n",text_size= 4,
+  stroke_size = 0.5, set_name_size = 4)
+
+list_df<- (list_to_data_frame(venn_list))
+
+library(DT)
+DT::datatable(list_df)
+```
+
+
+```{r}
+dwnIM <- c(eGO1$Description)
+upIM <- c(eGO2$Description)
+hdwn <- c(eGO3$Description)
+hUP <- c(eGO4$Description)
+draw.venn(dwnIM, hdwn, hUP,
+          title = "BioVenn",
+          t_f = "serif",
+          t_fb = 2,
+          t_s = 1.5,
+          t_c = "black",
+          subtitle = "(C) 2007-2020 Tim Hulsen",
+          st_f = "serif",
+          st_fb = 2,
+          st_s = 1.2,
+          st_c = "black",
+          xtitle = "dwnIM",
+          xt_f = "serif",
+          xt_fb = 2,
+          xt_s = 1,
+          xt_c = "black",
+          ytitle = "hdwn",
+          yt_f = "serif",
+          yt_fb = 2,
+          yt_s = 1,
+          yt_c = "black",
+          ztitle = "hUP",
+          zt_f = "serif",
+          zt_fb = 2,
+          zt_s = 1,
+          zt_c = "black",
+          nrtype = "abs",
+          nr_f = "serif",
+          nr_fb = 2,
+          nr_s = 1,
+          nr_c = "black",
+          x_c = "red",
+          y_c = "green",
+          z_c = "blue",
+          bg_c = "white",
+width = 1000,
+height = 1000,
+output = "screen",
+filename = NULL,
+map2ens = FALSE
+)
+```
+
+
+```{r}
+#Go Enriched DOWN
+mlist<-list(s_eGO1,s_eGO3)
+names(mlist)<-c("IMdwn-GOenrich","DwnH-GOenrich")
+mresult1<-merge_result(mlist)
+dotplot(mresult1,showCategory=10)
+
+mlist<-list(s_eGO4,s_eGO2)
+names(mlist)<-c("upH-GOenrich","IMup-GOenrich")
+mresult2<-merge_result(mlist)
+dotplot(mresult2,showCategory=10)
+```
+
+
+```{r ENRICHED GO BAR GRAPHs}
+library(patchwork)
+p1<-barplot(eGO1, plot_type="bar")
+p2<-barplot(eGO2, plot_type="bar", term_metric="GeneRatio", stats_metric="pvalue")
+p3<-barplot(eGO3, plot_type="bar", up_color="#E69056", down_color ="#325CAC")
+p4<-barplot(eGO4, plot_type="bar", wrap_length=25)
+p1+p2+p3+p4+plot_annotation(tag_levels = "A")
+```
+
+```{r ENRICHED GO BAR GRAPH}
+library(patchwork)
+p1<-barplot(s_eGO1, plot_type="bar")
+p2<-barplot(s_eGO2, plot_type="bar", term_metric="GeneRatio", stats_metric="pvalue")
+p3<-barplot(s_eGO3, plot_type="bar", up_color="#E69056", down_color ="#325CAC")
+p4<-barplot(s_eGO4, plot_type="bar", wrap_length=25)
+p1+p2+p3+p4+plot_annotation(tag_levels = "A")
+```
+
+
+```{r ENRICHED GO DOT PLOT}
+
+library(patchwork)
+p1<-dotplot(eGO1, showCategory = 5, size = "Count")
+p2<-dotplot(eGO2, showCategory = 5, size = "Count")
+p3<-dotplot(eGO3, showCategory = 5, size = "Count")
+p4<-dotplot(eGO4, showCategory = 5, size = "Count")
+p1+p2+p3+p4+plot_annotation(tag_levels="A")
+```
+
+```{r}
+library(patchwork)
+p1<-goplot(eGO1, showCategory = 2, size = "Count")
+p2<-goplot(eGO2, showCategory = 2, size = "Count")
+p3<-goplot(eGO3, showCategory = 2, size = "Count")
+p4<-goplot(eGO4, showCategory = 2, size = "Count")
+p1+p2+p3+p4+plot_annotation(tag_levels="A")
+```
+
+
+
+```{r}
+library(DOSE)
+#enrich go plot
+#pairwise termsim gets the similarity matrix, method of calculating the similarity between nodes, one of "Resnik", "Lin", "Rel", "Jiang" , "Wang" and "JC"(Jaccard similarity coefficient) methods
+pwt <- pairwise_termsim(ALL_DEG_table,
+                        method = "JC",
+                        semData = NULL,
+                        showCategory = 50)
+emapplot(pwt, showCategory = 10, color = "qvalue")
+p1 <- treeplot(pwt,) #The default agglomeration method in treeplot() is ward.D
+p2 <- treeplot(pwt, hclust_method = "average")
+aplot::plot_list(p1, p2, tag_levels='A')
+
+#Enrichment map organises enriched terms into a network with edges weighted by the ratio of overlapping gene sets. Mutually overlapping gene sets are tending to cluster together, making it easy to identify functional modules.
+
+p2 <- emapplot(pwt, showCategory = 10, cex_category=1.5)
+p3 <- emapplot(pwt, showCategory = 10,layout="kk")
+p4 <- emapplot(pwt, showCategory = 10, cex_category=1.5, layout="kk") 
+cowplot::plot_grid( p2, p3, p4, ncol=2, labels=LETTERS[1:4])
+```
+
+```{r n progress not working}
+library(DOSE)
+## To color genes by log2 fold changes, we need to extract the log2 fold changes 
+OE_foldchanges <- ALL_DEG_table$log2FoldChange
+names(OE_foldchanges) <- ALL_DEG_table$gene
+
+## Cnetplot details the genes associated with one or more terms
+cnetplot(ALL_DEG_table,
+         categorySize="pvalue",
+         showCategory = 5,
+         foldChange=OE_foldchanges,
+         vertex.label.font=6)
+
+
+OE_foldchanges <- ifelse(OE_foldchanges > 1, 1, OE_foldchanges)
+OE_foldchanges <- ifelse(OE_foldchanges < -1, -1, OE_foldchanges)
+cnetplot(ALL_DEG_table,
+         categorySize="pvalue",
+         showCategory = 5,
+         foldChange=OE_foldchanges,
+         vertex.label.font=6)
+heatplot(ALL_DEG_table, showCategory = 5) #relationship between selected genes and corresponding biological concepts.
+```
+
+
+```{r in prog not working}
+library(KEGGREST)
+pathways <- keggList("pathway")
+head(pathways)
+
+library(pathview)
+map <- gsub("ath04814", "", names(pathways)[2])  # remove 'path:'
+pv.out <- pathview(gene.data = ALL_DEG_table, cpd.data = ALL_DEG_table, gene.idtype = "KEGG", 
+    pathway.id = map, species = "ath", out.suffix = map, keys.align = "y", 
+    kegg.native = T, match.data = T, key.pos = "topright")
+plot.name <- paste(map, map, "png", sep = ".")
+```
+

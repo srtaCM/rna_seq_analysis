@@ -1,0 +1,701 @@
+---
+title: "1_Diagnostics_DEG_Notebook"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
+---
+# ICM 2024MAY15 DESeq2 Script
+# UM v IM v H
+
+```{r CODE CHUNK 1 CLEAR}
+# Clean environment
+rm (list = ls (all.names = TRUE)) # will clear all objects including hidden objects
+gc () # free up memory and report the memory usage
+options (max.print = .Machine$integer.max, scipen = 0, stringsAsFactors = F, dplyr.summarise.inform = F) # avoid truncated output in R console and keep scientific notation
+```
+
+
+```{r CHUNK 2 INSTALLING}
+# Remove hashtags to install any missing packages
+#if (!require("BiocManager", quietly = TRUE))
+ #   install.packages("escape")
+
+#Install all
+#BiocManager::install(c( "corrplot", "dendextend","readr","DESeq2", "ggrepel", "ggplot2", "pheatmap", "devtools", "ggforce","pheatmap", "gplots", "RColorBrewer", "ggdendro","enrichplot", "magrittr","dplyr","tibble", "tidyverse", "ComplexHeatmap", "escape")) 
+
+#install one
+#BiocManager::install(c("dendsort"))
+
+#remove.packages(ComplexHeatmap)
+
+```
+
+
+```{r CHUNK 3 Loading packages}
+#Load the packages we need
+suppressPackageStartupMessages({
+  library(DESeq2)
+  library(readr)
+  library(tidyverse) #to use distinct
+  library(enrichplot)
+  library(dplyr)
+  library(tibble)
+  library(magrittr)
+  library(gplots) 
+  library(RColorBrewer)
+  library(corrplot)
+  library(ggdendro)
+  library(dendextend)
+  library(ggplot2)
+  library(ggrepel)
+  library(pheatmap)
+  library(escape)
+  library(clusterProfiler)
+})
+```
+
+
+```{r CHUNK 4 Set Up Raw Counts}
+#Must edit this to your work space
+setwd ("~/Desktop/Lab/Working_Projects/R_trapseq_2023")
+
+#Read in information
+featcount <- read_table ("./RawData/featcount.txt", col_names = TRUE, skip = 1) #skip 1 means skip the first column so remove if unnecessary
+
+read.count <- data.frame (featcount, row.names = featcount$Geneid ) #gene ids stored as row names
+
+read.count <- read.count [ ,-c(1:6)] #removes the columns without gene counts, change this if necessary
+```
+
+
+```{r CHUNK 5 Modify Data}
+#changes the data to hopefully the last change in naming 
+orig_names <- names (read.count) #saving original names back up
+#print(orig_names)
+colnames (read.count) <- (c("IT-107", "IT-108", "IT-109", "IT-110", "H-107", "H-108", "H-109", "H-110", "H-111", "UT-106", "UT-108", "UT-114", "IT-206", "IT-207", "IT-208", "IT-209", "IM-206", "IM-207", "IM-208", "IM-209", "IM-210", "UT-204", "UT-208", "UT-213", "UT-214", "UM-204", "UM-208", "UM-213", "UM-214", "UM-215")) 
+#view(read.count)
+```
+
+
+```{r Minus Outliers CHUNK 5.1}
+######  DEFINING CONDITIONS WE WANT TO WORK WITH
+#ImvHvUM <- read.count [ ,-c(1:4,10:16,18,21,22:25)]
+#write.csv ("./DerivedData/1_deg_countMatrix.csv") #remove hashtag to save the new count data file
+
+#without IM 207 + 210
+#Match the samples to the variable. Don't need to change this unless you want to add variables.
+#sample_info <- data.frame(
+#  sample = c( "H-107", "H-108", "H-109", "H-110","H-111","IM-206", "IM-208", "IM-209", "UM-204", "UM-208", "UM-213", "UM-214", "UM-215" ),
+#  groups = c( "H", "H", "H", "H","H", "IM", "IM", "IM","UM","UM","UM","UM","UM"),
+#  condition = c ("Infected","Infected","Infected","Infected","Infected","Infected","Infected","Infected", "Uninfected","Uninfected","Uninfected","Uninfected","Uninfected"),
+#  replicate = c("H-107", "H-108", "H-109", "H-110","H-111", "IM-206",  "IM-208", "IM-209","UM-204", "UM-208", "UM-213", "UM-214", "UM-215"),
+#  row.names = "sample")
+```
+
+
+```{r CHUNK 6 Set Variables}
+#Removing the data we are not using and writing the raw count data to a new file. 
+ImvHvUM <- read.count [ ,-c(1:4,10:16,22:25)]
+
+#Variables
+sample_info <- data.frame(
+  sample = c( "H-107", "H-108", "H-109", "H-110", "H-111", "IM-206", "IM-207", "IM-208", "IM-209", "IM-210", "UM-204", "UM-208", "UM-213", "UM-214", "UM-215"),
+  groups = c( "H", "H", "H", "H", "H", "IM", "IM", "IM", "IM", "IM", "UM", "UM", "UM", "UM", "UM"),
+  condition = c("Infected", "Infected", "Infected", "Infected", "Infected", "Infected", "Infected", "Infected", "Infected", "Infected", "Uninfected", "Uninfected", "Uninfected", "Uninfected", "Uninfected"),
+  replicate = c("H-107", "H-108", "H-109", "H-110", "H-111", "IM-206", "IM-207", "IM-208", "IM-209", "IM-210", "UM-204", "UM-208", "UM-213", "UM-214", "UM-215"),
+  row.names = "sample") 
+
+sample_info$groups <- as.factor (sample_info$groups)
+all (rownames (sample_info) %in% colnames (ImvHvUM)) #if "false" something is wrong
+sample_info 
+```
+
+
+```{r CHUNK 6.1}
+ ImvH <- read.count [ ,-c(1:4,10:16,22:30)]
+
+#Variables
+sample_info <- data.frame(
+  sample = c( "H-107", "H-108", "H-109", "H-110", "H-111", "IM-206", "IM-207", "IM-208", "IM-209", "IM-210"),
+  groups = c( "H", "H", "H", "H", "H", "IM", "IM", "IM", "IM", "IM"),
+  condition = c("Infected", "Infected", "Infected", "Infected", "Infected", "Infected", "Infected", "Infected", "Infected", "Infected"),
+  replicate = c("H-107", "H-108", "H-109", "H-110", "H-111", "IM-206", "IM-207", "IM-208", "IM-209", "IM-210"),
+  row.names = "sample") 
+
+sample_info$groups <- as.factor (sample_info$groups)
+all (rownames (sample_info) %in% colnames (ImvH)) #if "false" something is wrong
+sample_info
+```
+
+
+```{r CODE CHUNK 7 Matrix}
+dds <- DESeqDataSetFromMatrix (countData = ImvHvUM, colData = sample_info, design = ~ groups) 
+#print (dds) #see the information
+
+dds <- (dds[ rowSums ( counts (dds) ) > 10, ]) #prefiltering, removing genes with less than 10 counts
+
+dds$groups <- relevel (dds$groups, ref = "UM") #set comparison against control/mock
+#dds$groups  #see levels
+#summary (dds$groups) #see how many groups
+```
+
+```{r}
+# Plot expression for single gene
+#plotCounts(dds, gene="AT5G49630", intgroup="groups") 
+# Save plotcounts to a data frame object
+d <- plotCounts(dds, gene="AT1G09380", intgroup="groups", returnData=TRUE)
+
+# Plotting the MOV10 normalized counts, using the samplenames (rownames of d as labels)
+ggplot(d, aes(x = groups, y = count, color = groups)) + 
+  geom_point(position=position_jitter(w = 0.1,h = 0)) +
+  geom_text_repel(aes(label = rownames(d))) + 
+  theme_bw() +
+  ggtitle("AT1G09380") +
+  theme(plot.title = element_text(hjust = 0.5))
+#ggsave("./SumData/1_countData_AT1G09380.pdf")
+```
+
+
+```{r CODE CHUNK 8 Normalization}
+#VST is a part of DESEQ to be used for visualization+clustering
+vsd <- vst (dds)
+colnames(vsd) <- sample_info$replicate
+norm.counts <- assay(vsd)
+```
+
+
+```{r CODE CHUNK 9 PCA}
+# PCA principle component analysis, visualize the similarities and differences between *samples*
+pcadata <- plotPCA (vsd, intgroup = c( "replicate" , "groups" ), returnData = TRUE) 
+#summary(pcadata)
+
+percentVar <- round (100 * attr (pcadata, "percentVar" ))
+
+p <- ggplot (pcadata, aes(PC1, PC2, label = replicate, colour = groups)) +
+  geom_point (aes (shape = groups), size = 3) + scale_color_manual (values = c( "#FF1BB3", "#E5751F", "#861F41" )) +
+   theme_classic()
+
+p2 <- p + geom_text_repel (box.padding = 0.5, cex = 8, max.overlaps = 15, segment.linetype = 2) + labs (title = "PCA of Normalized Gene Counts" ) +
+  xlab(paste0 ( "PC1: ", percentVar[1], "% variance" )) +
+  ylab(paste0 ( "PC2: ", percentVar[2], "% variance" ))
+p2
+#ggsave("./SumData/1_PCA_IMvH_v1.pdf")  #edit and uncheck to save graph to your chosen spot
+```
+
+
+```{r CODE CHUNK 10 Sample Distances}
+library(dendextend)
+set.seed(123)
+norm.counts <- norm.counts [complete.cases (norm.counts), ]
+# Remove any rows with NA values to ensure consistency
+
+# cor () calculates the pearson correlation and convert to a distance matrix
+normcorr <- cor (norm.counts , method = "spearman" )
+distance.m <- as.dist (1 - normcorr)
+
+# Hierarchical clustering
+hc <- hclust (distance.m, method = "complete" )
+hcd <- as.dendrogram (hc)
+#color to make it look nice
+hcd <- hcd %>% 
+  color_branches (k = 2)
+#nleaves(hcd)
+#nnodes(hcd)
+
+#plot the dendogram #pdf("./SumData/1_Dendogram_v2.pdf")
+plot (hcd,
+     type = "rectangle", ylab = "Height",
+    main = "vst read counts \n distance : Spearman correlation" ) 
+dev.off()
+
+#Create the heatmap of the distance matrix
+DistMatrix <- as.matrix (distance.m)
+rownames (DistMatrix) <- paste (vsd$replicate,  sep = "-" )
+colnames (DistMatrix) <- paste (vsd$replicate,  sep = "-" )
+
+#make it pretty
+colors <- colorRampPalette (rev (brewer.pal (9, "Blues"))) (255) #color scheme
+#OrRd for orange n red
+
+#generate heatmap #ggsave("./SumData/1_distmatrix_v2.pdf")
+pheatmap(DistMatrix,
+         clustering_distance_rows = distance.m,
+         clustering_distance_cols = distance.m,
+        col = colors) 
+       # display_numbers = round(DistMatrix, 2), number_color = "white 
+       # dev.copy2pdf(file="./SumData/1_distmat_IMvH_v1.pdf")
+
+
+#Create a SAMPLE distance heatmap
+sampleDists <- dist (t (norm.counts))
+sampleDistMatrix <- as.matrix (sampleDists)
+rownames (sampleDistMatrix) <- paste (vsd$replicate)
+colnames (sampleDistMatrix) <- NULL
+
+
+#generate the sample heatmap
+pheatmap (sampleDistMatrix, clustering_distance_rows = sampleDists, clustering_distance_cols = sampleDists, col = colors, number_color = "white") #display_numbers = round(sampleDistMatrix, 2
+# dev.copy2pdf(file="./SumData/1_distmat_IMvH_v1.pdf")
+dev.off()
+```
+
+
+```{r CODE CHUNK 11 Run Deseq2}
+dds$groups <- relevel (dds$groups, ref = "UM" )  # Set reference group to "UM"
+dds.ds <- DESeq (dds) # Perform differential expression analysis
+res <- results (dds.ds)# Extract results
+#write.csv(res, file= "./DerivedData/1_RES_HvIMvUM_v1.csv", quote=F, row.names=TRUE)
+```
+
+```{r}
+# Load Arabidopsis annotation package
+library(org.At.tair.db)
+
+# Map TAIR IDs to ENTREZ IDs
+res$entrez <- mapIds(org.At.tair.db, keys = row.names(res), keytype = "TAIR", column = "ENTREZID", multiVals = "first")
+```
+
+```{r}
+OG_genelist<-res$log2FoldChange
+names(OG_genelist)<-res$entrez
+gene_list<- na.omit(OG_genelist)
+gene_list=sort(gene_list, decreasing = TRUE)
+
+gse<- gseGO(gene_list, 
+            ont = "ALL",
+            nPerm = 1000,
+            minGSSize = 3,
+            maxGSSize = 800,
+            pvalueCutoff = 0.05,
+            verbose = TRUE,
+            OrgDb = org.At.tair.db,
+            pAdjustMethod = "none")
+```
+
+```{r}
+# Visualization
+require(DOSE)
+dotplot(gse, showCategory = 8) + ggtitle("GO Enrichment")
+```
+
+
+```{r}
+# Calculate term similarity
+gse <- pairwise_termsim(gse)
+emapplot(gse, showCategory = 10)
+cnetplot(gse, categorySize = "pvalue", foldChange = gene_list, showCategory = 3)
+ridgeplot(gse)
+```
+
+
+```{r}
+library(clusterProfiler) #A universal enrichment tool for interpreting omics data #prettydoc?
+library(readr)
+library(tidyverse) 
+library(pathview)
+library(enrichplot)
+pad <- 0.05
+search_kegg_organism('ath', by='kegg_code')
+search_kegg_organism('Arabidopsis thaliana', by='scientific_name')
+
+# Example of local data handling (assuming you have KEGG data locally)
+local_kegg_data <- "path_to_local_kegg_data_file"  # Replace with actual path to your local KEGG data
+kegg_gene_list <- gene_list  # Use the gene list you've prepared
+
+# Perform GSEA with the local KEGG data
+kk2 <- gseKEGG(geneList = kegg_gene_list, 
+               organism = "ath", 
+               nPerm = 1000, 
+               minGSSize = 3, 
+               maxGSSize = 800, 
+               pvalueCutoff = 0.05, 
+               keyType = "ncbi-geneid", 
+               use_internal_data = FALSE)
+
+```
+
+
+
+```{r}
+require(DOSE)
+dotplot(gse, showCategory=8, split=".sign") + facet_grid(.~.sign) + ggtitle("GO Pathway Enrichment")
+```
+
+
+```{r}
+emapplot(gse, showCategory = 10)
+```
+
+
+```{r}
+cnetplot(gse, categorySize= "pvalue", foldChange = gene_list, showCategory = 3)
+
+ridgeplot(gse) + labs(x="enrichment distribution")
+```
+```{r}
+gseaplot(gse, by = "all", title = gse$Description[1], geneSetID = 1)
+
+terms<- gse$Description[1:3]
+pmcplot(terms, 2010:2018, proportion = FALSE)
+
+
+```
+```{r}
+res$entrez = mapIds (org.At.tair.db, keys = row.names(res), keytype = "TAIR", column = "ENTREZID", multiVals = "first")
+```
+
+
+```{r}
+ids<-bitr(row.names(res), fromType = "TAIR", toType = "ENTREZID", OrgDb = "org.At.tair.db")
+
+
+df_dups=ids[!duplicated(gene_list[c("ENTREZID")]),]
+
+
+df2<- gene_list[gene_list$entrez %in% df_dups$ENTREZID,]
+view(df2)
+
+
+kegg_gene_list<-df2$log2FoldChange
+names(kegg_gene_list)<-df2$entrez
+kegg_gene_list<-na.omit(kegg_gene_list)
+kegg_gene_list= sort(kegg_gene_list, decreasing = TRUE)
+view(kegg_gene_list)
+colnames(kegg_gene_list)[1]<- "ENTREZID"
+```
+
+```{r}
+#pathways.list <- keggList("pathway", "ath")
+kk2<-gseKEGG(kegg_gene_list, 
+             OrgDb = "org.At.tair.db",
+             nPerm=1000,
+             minGSSize = 3,
+             maxGSSize = 800, 
+             pvalueCutoff = 0.05,
+             pAdjustMethod = "none", 
+             keyType = "ENTREZID")
+```
+
+
+```{r}
+rankings<- sign(res$log2FoldChange)*(-log10(res$pvalue))
+names(rankings)<-rownames(res)
+head(rankings)
+rankings<- sort(rankings, decreasing = TRUE)
+plot(rankings)
+#dev.copy2pdf(file="./SumData/1_GSEA_IMvHvUM_ranking.pdf")
+
+max(rankings)
+min(rankings)
+```
+
+
+```{r}
+ggplot(data.frame(geneID=names(rankings)[1:50], ranks = rankings [1:50]),aes(geneID, ranks))+geom_point()+theme_classic()+theme(axis.text = element_text(angle = 90,vjust = 0.5, hjust = 1))
+#dev.copy2pdf(file="./SumData/1_GSEA_IMvHvUM_ranking50.pdf")
+```
+
+
+
+
+```{r}
+# Run GSEA for GO Biological Processes
+gsea_results <- gseGO(
+  geneList = rankings,
+  OrgDb = org.At.tair.db,
+  keyType = "TAIR",
+  ont = "ALL", # BP for Biological Process, you can use CC (Cellular Component) or MF (Molecular Function)
+  minGSSize = 10,
+  maxGSSize = 500,
+  pvalueCutoff = 0.05,
+  verbose = FALSE
+)
+dotplot(gsea_results) + ggtitle("GSEA GO Biological Process Enrichment")
+view(gsea_results)
+```
+
+```{r}
+head(gsea_results[order(pvalue),])
+sum(gsea_results[,p.adjust<0.01])
+sum(gsea_results[,pvalue <0.05])
+```
+
+
+
+
+```{r}
+# Load necessary libraries
+library(clusterProfiler)
+library(org.At.tair.db) # For Arabidopsis annotation
+library(enrichplot)
+library(ggplot2)
+
+# Convert the DESeq2 results into a ranked gene list for GSEA
+# Sort genes by log2 fold change, highest to lowest
+ranks <- res$log2FoldChange
+names(ranks) <- rownames(res)
+ranks <- sort(ranks, decreasing = TRUE)
+head(ranks)
+barplot(sort(ranks, decreasing = TRUE))
+```
+
+
+```{r}
+# Run GSEA for GO Biological Processes
+gsea_results <- gseGO(
+  geneList = ranks,
+  OrgDb = org.At.tair.db,
+  keyType = "TAIR",
+  ont = "ALL", # BP for Biological Process, you can use CC (Cellular Component) or MF (Molecular Function)
+  minGSSize = 10,
+  maxGSSize = 500,
+  pvalueCutoff = 0.05,
+  verbose = FALSE
+)
+
+# Visualize GSEA results using enrichplot
+dotplot(gsea_results) + ggtitle("GSEA GO Biological Process Enrichment")
+
+# Identify underrepresented terms (high p-values) from gsea_results
+underrep_terms <- subset(as.data.frame(gsea_results), pvalue > 0.05)
+
+# Create a custom ggplot2 visualization if needed
+ggplot(underrep_terms, aes(x = reorder(Description, NES), y = NES, size = -log10(pvalue), color = qvalue)) +
+  geom_point() +
+  coord_flip() +
+  labs(x = "GO Term", y = "Normalized Enrichment Score (NES)", size = "-log10(p-value)", color = "Q-value") +
+  theme_minimal() +
+  ggtitle("Underrepresented GO Biological Processes")
+
+# Alternatively, if using KEGG
+#gsea_results_kegg <- gseKEGG(
+#  geneList = gene_list,
+#  organism = 'ath', # KEGG organism code for Arabidopsis thaliana
+#  minGSSize = 10,
+#  maxGSSize = 500,
+#  pvalueCutoff = 0.05,
+#  verbose = FALSE
+#)
+
+# Visualize the top enriched pathways
+#ridgeplot(gsea_results_kegg) + ggtitle("GSEA KEGG Pathway Enrichment")
+
+# Visualize underrepresented pathways
+# underrep_terms_kegg <- subset(as.data.frame(gsea_results_kegg), pvalue > 0.05)
+# ridgeplot(underrep_terms_kegg) + ggtitle("Underrepresented KEGG Pathways")
+
+```
+
+
+```{r CODE CHUNK 12 Differentially Expressed Genes}
+set.seed(123)
+#Extract genes with LFC +- 1 and p.value of 0.05
+Diff_genes_res = res %>%
+   as.data.frame() %>%
+   filter (padj < 0.05) %>%
+  filter (abs (log2FoldChange) >= 1) #%>% write.csv("./DerivedData/1_DEG_HvIMvUM_padj05LCF1.csv") 
+
+#Order genes by p.value
+DGE.results.sorted <- Diff_genes_res [order (Diff_genes_res$padj), ]
+
+# Extract Gene Names with the desired adjusted p-value cut-off
+DGEgenes <- rownames (subset (DGE.results.sorted , padj < 0.05))
+
+
+# extract the normalized read counts for DE genes into a matrix
+hm.mat_DGEgenes <- norm.counts [DGEgenes , ]
+
+# plot the normalized read counts of DE genes sorted by the adjusted p-value
+#don't change this is final
+set.seed(123)
+k <- pheatmap (hm.mat_DGEgenes, show_rownames = FALSE, angle_col = c( "45" ), color = colorRampPalette (rev (brewer.pal (n = 7, name = "RdYlBu")))(100), 
+            cluster_rows = TRUE,
+            clustering_distance_rows = "correlation", 
+            cluster_cols = TRUE,
+            clustering_distance_cols = "correlation", 
+            clustering_method = "complete", 
+            scale = "row", cutree_cols = 2, 
+            #cutree_rows = 2, 
+          #  kmeans_k = 2
+  )
+#dev.copy2pdf(file="./SumData/1_hmap_IMvHvUM_official1.pdf")
+```
+
+```{r}
+Havg<- as.data.frame(hm.mat_DGEgenes [,c("H-107", "H-108", "H-109", "H-110", "H-111")])
+IMavg<- as.data.frame(hm.mat_DGEgenes [,c("IM-206", "IM-207", "IM-208", "IM-209", "IM-210")])
+UMavg<- as.data.frame(hm.mat_DGEgenes [,c("UM-204", "UM-208", "UM-213", "UM-214", "UM-215")])
+H_means <-rowMeans(Havg)
+IM_means<- rowMeans(IMavg)
+UM_means<-rowMeans(UMavg)
+
+mlist <- cbind(H_means, IM_means, UM_means) %>% as.data.frame()
+set.seed(123)
+pheatmap::pheatmap(mlist, show_rownames = TRUE, angle_col = c( "45" ), color = colorRampPalette (rev (brewer.pal (n = 7, name = "RdYlBu")))(100), 
+            cluster_rows = TRUE,
+            clustering_distance_rows = "correlation", 
+            cluster_cols = TRUE,
+            clustering_distance_cols = "correlation", 
+            clustering_method = "complete", 
+            scale = "row", 
+         # cutree_cols = 3, 
+            #cutree_rows = 2, 
+            kmeans_k = 4
+         )
+#dev.copy2pdf(file="./SumData/1_hmap_av_clustering_IMvHvUM_v2.pdf")
+```
+
+
+```{r}
+set.seed(123)
+names (k$kmeans)
+clusterDF <- as.data.frame (factor (k$kmeans$cluster))
+colnames (clusterDF) <- "Cluster"
+clusterDF [1:10, , drop=FALSE]
+OrderByCluster <- clusterDF %>% arrange (clusterDF$Cluster)
+
+```
+
+
+```{r}
+module_df <- data.frame(
+  gene_id = row.names (OrderByCluster),
+  clust = clusterDF)  %>% arrange (clusterDF$Cluster)
+#view(module_df)
+#write.csv(module_df, file= "./DerivedData/1_IMvH2Kclusters_test1.csv", quote=F, row.names=FALSE)
+```
+
+
+```{r CODE CHUNK 9 DEG NUmbers}
+plotMA (dds.ds, alpha = 0.01)
+plotMA (dds.ds, alpha = 0.05)
+
+#to see how many genes are < to 0.05
+table (res$padj < 0.05) 
+print (res)
+
+#to see how many genes are < to 0.001
+table (res$padj < 0.01) 
+print (res)
+```
+
+
+```{r CODE CHUNK 10 VENN DIAGRAM SET UP}
+#library(VennDiagram)
+#dds.ds$groups
+#resultsNames(dds.ds)
+library(org.At.tair.db)
+class(org.At.tair.db)
+columns(org.At.tair.db)
+
+dds$groups <- relevel (dds$groups, ref = "UM" ) #make sure groups are ok
+dds.ds <- DESeq (dds) #Run DESeq
+res <- results (dds.ds, alpha = 0.05)
+#write.csv(res, file= "./DerivedData/1_DEG_ImvH_v1.csv", quote=F, row.names=TRUE)
+pad <- 0.05
+```
+
+
+
+
+```{r CODE CHUNK 10 VENN DIAGRAM SET UP}
+#H vs UM
+UMvsH <- results (dds.ds, c( "groups", "H", "UM" ))
+
+UMvsH$symbol = mapIds (org.At.tair.db, keys = row.names (UMvsH), keytype = "TAIR" , column = "SYMBOL", multiVals = "first" )
+UMvsH$entrez = mapIds (org.At.tair.db, keys = row.names(UMvsH), keytype = "TAIR", column = "ENTREZID", multiVals = "first")
+
+H_DF <- UMvsH %>%  
+  as.data.frame() %>%
+  rownames_to_column (., var = "rowname") %>% 
+  as_tibble() %>% 
+  na.omit()
+
+H_DEG_table <- H_DF %>% mutate (diffexpressed = case_when (log2FoldChange > 1 & padj < pad ~ 'H_UP',
+                                                           log2FoldChange < 1 & padj < pad ~ 'H_DOWN',
+                                                           padj > pad ~ 'NO' ))
+
+H_DEG_table <- H_DEG_table [H_DEG_table$diffexpressed != 'NO', ]
+unique (H_DEG_table$diffexpressed)
+H_results_split <- split (H_DEG_table, H_DEG_table$diffexpressed)
+
+H_UP_DF <- H_results_split$H_UP [, c("rowname", "entrez", "log2FoldChange", "padj", "symbol" )] #%>% write.csv("./DerivedData/1_DEG_HvUM_HUP_pad05_LFC1_v1.csv") 
+
+H_DWN_DF <- H_results_split$H_DOWN [, c("rowname", "entrez", "log2FoldChange", "padj", "symbol" )] #%>% write.csv("./DerivedData/1_DEG_HvUM_HDWN_pad05_LFC1_v1.csv") 
+```
+
+
+
+```{r UNK 11 }
+#extract separate results
+#IM vs UM
+UMVsIM <- results (dds.ds, c('groups', 'IM', 'UM'))
+
+UMVsIM$symbol = mapIds (org.At.tair.db, keys = row.names (UMVsIM) , keytype = "TAIR" , column = "SYMBOL" , multiVals = "first" )
+UMVsIM$entrez = mapIds (org.At.tair.db, keys = row.names (UMVsIM) , keytype = "TAIR" , column = "ENTREZID" , multiVals = "first" )
+
+library(clusterProfiler)
+IM_DF <- UMVsIM %>% 
+  as.data.frame() %>%
+  rownames_to_column (., var = "rowname") %>%
+  as_tibble() %>% 
+  na.omit()
+
+IM_DEG_table <- IM_DF %>% mutate (diffexpressed = case_when (
+  log2FoldChange > 1 &   padj < pad ~ 'IM_UP',
+  log2FoldChange < 1 &   padj < pad ~ 'IM_DOWN',
+  padj > pad ~ 'NO' ))
+
+IM_DEG_table <- IM_DEG_table [IM_DEG_table$diffexpressed != 'NO', ] # Remove non-significant genes
+# Substitute names so they are annotated nicely in the heatmap later
+unique (IM_DEG_table$diffexpressed)
+
+# Split the data frame into a list of sub-data frames: up-regulated, down regulated genes
+IM_results_split <- split (IM_DEG_table,IM_DEG_table$diffexpressed)
+
+IM_UP_DF <- IM_results_split$IM_UP [, c("rowname", "symbol", "entrez", "log2FoldChange", "padj" )] #%>% write.csv("./DerivedData/1_DEG_IMvUM_IMUP_pad05_LFC1_v1.csv") 
+
+IM_DWN_DF <- IM_results_split$IM_DOWN [, c("rowname", "symbol", "entrez", "log2FoldChange", "padj" )] #%>% write.csv("./DerivedData/1_DEG_IMvUM_IMDWN_pad05_LFC1_v1.csv")
+
+```
+
+
+
+
+
+```{r}
+library(clusterProfiler)
+HVsIM <- results (dds.ds, c('groups', 'H', 'IM'))
+
+HVsIM$symbol = mapIds (org.At.tair.db, keys = row.names (HVsIM) , keytype = "TAIR" , column = "SYMBOL" , multiVals = "first" )
+HVsIM$entrez = mapIds (org.At.tair.db, keys = row.names (HVsIM) , keytype = "TAIR" , column = "ENTREZID" , multiVals = "first" )
+
+DF <- HVsIM %>% 
+  as.data.frame() %>%
+  rownames_to_column (., var = "rowname") %>%
+  as_tibble() %>% 
+  na.omit() 
+
+DEG_table <- DF %>% mutate (diffexpressed = case_when (
+  log2FoldChange > 1 &   padj < pad ~ 'UP',
+  log2FoldChange < 1 &   padj < pad ~ 'DOWN',
+  padj > pad ~ 'NO' ))
+
+DEG_table <- DEG_table [DEG_table$diffexpressed != 'NO', ] # Remove non-significant genes
+
+# Substitute names so they are annotated nicely in the heatmap later
+unique (DEG_table$diffexpressed)
+
+# Split the data frame into a list of sub-data frames: up-regulated, down regulated genes
+DEG_table_split <- split (DEG_table, DEG_table$diffexpressed)
+
+
+HvIM_UP_DF <- DEG_table_split$UP [, c("rowname", "entrez", "log2FoldChange", "padj", "symbol" )] #%>% write.csv("./DerivedData/1_DEG_HvIMUP_pad05_LFC1_v1.csv") 
+
+HvIM_DWN_DF <- DEG_table_split$DOWN [, c("rowname", "entrez", "log2FoldChange", "padj", "symbol" )] #%>% write.csv("./DerivedData/1_DEG_HvIMDWN_pad05_LFC1_v1.csv") 
+
+
+```
+

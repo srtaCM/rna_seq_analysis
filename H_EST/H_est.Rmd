@@ -1,0 +1,558 @@
+```{r}
+# ============================================================================
+# SPLIT-GFP TRAP ANALYSIS + HAUSTORIAL ESTIMATION
+# From Bowtie2 mapping summaries, featureCounts, and DESeq2
+# ============================================================================
+
+# 0. CLEAN SESSION AND SET OPTIONS -------------------------------------------
+
+rm(list = ls(all.names = TRUE))          # Remove all objects from the workspace
+gc()                                     # Garbage collection to free memory
+
+options(
+  max.print = .Machine$integer.max,      # Avoid truncation of large outputs
+  scipen = 0,                            # Use standard scientific notation
+  stringsAsFactors = FALSE,             # Do not auto-convert strings to factors
+  dplyr.summarise.inform = FALSE,       # Suppress dplyr's summarise messages
+  digits = 3                             # Number of digits when printing numbers
+)
+
+cat("\n")
+cat(strrep("=", 80), "\n")
+cat("SPLIT-GFP TRAP ANALYSIS + HAUSTORIAL ESTIMATION\n")
+cat(strrep("=", 80), "\n")
+cat("R Version:", R.version$version.string, "\n")
+cat("Initial working directory:", getwd(), "\n")
+cat("Timestamp:", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "\n\n")
+```
+
+
+```{r}
+# 1. LOAD LIBRARIES ----------------------------------------------------------
+
+library(readr)      # read_table, read_csv
+library(tidyverse)  # dplyr, ggplot2, tidyr, purrr, etc.
+library(ggplot2)
+library(gridExtra)
+library(readxl)     # read_excel for DESeq2 summary
+library(dplyr)
+library(purrr)
+
+# 2. SET WORKING DIRECTORY AND OUTPUT FOLDER ---------------------------------
+
+setwd("~/Desktop/Lab/TRAPseq/H_EST")    # Project directory for H-estimation
+if (!dir.exists("results")) dir.create("results")  # Folder for all outputs
+
+cat("Working directory:", getwd(), "\n")
+cat("Output directory: ./results\n\n")
+```
+
+
+```{r}
+# 3. LOAD BOWTIE2 MAPPING SUMMARIES -----------------------------------------
+# These files contain per-library mapping stats for GFP1-9 and GFP10-11
+
+gfp1_9_summary <- read.table(
+  "data_repository/GFP1_9_mapping_summary.tsv",
+  header = TRUE, sep = "\t", stringsAsFactors = FALSE
+)
+
+gfp10_11_summary <- read.table(
+  "data_repository/GFP10_11_mapping_summary.tsv",
+  header = TRUE, sep = "\t", stringsAsFactors = FALSE
+)
+
+cat("\n=== GFP1-9 summary (first 6 rows) ===\n")
+print(head(gfp1_9_summary, 6))
+cat("\n=== GFP10-11 summary (first 6 rows) ===\n")
+print(head(gfp10_11_summary, 6))
+
+cat("\nUnique Bowtie sample IDs (GFP1-9):\n")
+print(unique(gfp1_9_summary$sample_id))
+```
+
+```{r}
+# 3a. RECALCULATE PERCENT MAPPED AND FLAG LOW-QUALITY SAMPLES ----------------
+library(dplyr)
+library(ggplot2)
+
+# Recalculate percentages correctly (numeric)
+gfp1_9_summary <- gfp1_9_summary %>%
+  mutate(mapped_pct_correct = (GFP1_9_mapped_reads / total_reads) * 100)
+
+gfp10_11_summary <- gfp10_11_summary %>%
+  mutate(mapped_pct_correct = (GFP10_11_mapped_reads / total_reads) * 100)
+
+# Flag samples with very low mapping (<0.01%)
+low_quality_gfp1_9 <- gfp1_9_summary %>% filter(mapped_pct_correct < 0.01)
+low_quality_gfp10_11 <- gfp10_11_summary %>% filter(mapped_pct_correct < 0.01)
+
+cat("Low-quality GFP1-9 samples:\n"); print(low_quality_gfp1_9$sample_id)
+cat("\nLow-quality GFP10-11 samples:\n"); print(low_quality_gfp10_11$sample_id)
+
+# Optional: visualize mapped percentages
+gfp_summary_long <- bind_rows(
+  gfp1_9_summary %>% select(sample_id, mapped_pct_correct) %>% mutate(Construct = "GFP1-9"),
+  gfp10_11_summary %>% select(sample_id, mapped_pct_correct) %>% mutate(Construct = "GFP10-11")
+)
+
+ggplot(gfp_summary_long, aes(x = Construct, y = mapped_pct_correct)) +
+  geom_boxplot(alpha = 0.6, fill = "lightblue") +
+  geom_jitter(width = 0.2, alpha = 0.5, color = "gray30") +
+  scale_y_continuous(trans = "log10") +
+  theme_minimal() +
+  labs(title = "Mapped percentages per construct", y = "Mapped % (log10 scale)", x = "Construct")
+
+```
+
+
+```{r}
+# 4. CLEAN AND MERGE GFP1-9 AND GFP10-11 COUNTS ------------------------------
+# Rename columns to consistent names and compute GFP10-11 / GFP1-9 ratio
+
+gfp1_9_clean <- gfp1_9_summary %>%
+  rename(
+    GFP1_9_mapped     = GFP1_9_mapped_reads,  # mapped GFP1-9 reads
+    GFP1_9_total      = total_reads,          # total reads in library
+    GFP1_9_pct_mapped = mapped_pct            # % of reads mapping to GFP1-9
+  ) %>%
+ dplyr::select(sample_id, GFP1_9_mapped, GFP1_9_total, GFP1_9_pct_mapped)
+
+gfp10_11_clean <- gfp10_11_summary %>%
+  rename(
+    GFP10_11_mapped     = GFP10_11_mapped_reads, # mapped GFP10-11 reads
+    GFP10_11_total      = total_reads,           # total reads in library
+    GFP10_11_pct_mapped = mapped_pct             # % of reads mapping to GFP10-11
+  ) %>%
+  dplyr::select(sample_id, GFP10_11_mapped, GFP10_11_total, GFP10_11_pct_mapped)
+
+gfp_combined <- gfp1_9_clean %>%
+  inner_join(gfp10_11_clean, by = "sample_id") %>%
+  mutate(
+    GFP10_11_GFP1_9_ratio = GFP10_11_mapped / pmax(GFP1_9_mapped, 1)
+  )
+
+
+cat("\n=== Combined GFP counts (first 8 rows) ===\n")
+print(head(gfp_combined, 8))
+cat("\nTotal Bowtie samples:", nrow(gfp_combined), "\n\n")
+```
+
+
+```{r}
+# 5. MAP sample_id -> Original name -> NewName -------------------------------
+# Bowtie sample_id looks like DIC1_S22_L002; we keep DIC1 and map to IT-107, etc.
+
+name_map <- data.frame(
+  Original = c(
+    "DIC1","DIC2","DIC3","DIC4","DIC5",
+    "DIT1","DIT2","DIT3","DIT4","DIT5",
+    "DMC1","DMC2","DMC3",
+    "PIC1","PIC2","PIC3","PIC4","PIC5",
+    "PIT1","PIT2","PIT3","PIT4","PIT5",
+    "PMC1","PMC2","PMC3","PMC4","PMC5",
+    "PMT1","PMT2","PMT3","PMT4","PMT5"
+  ),
+  NewName = c(
+    "IT-107","IT-108","IT-109","IT-110","IT-111",
+    "H-107","H-108","H-109","H-110","H-111",
+    "UT-106","UT-108","UT-114",
+    "IT-206","IT-207","IT-208","IT-209","IT-210",
+    "IM-206","IM-207","IM-208","IM-209","IM-210",
+    "UT-204","UT-208","UT-213","UT-214","UT-215",
+    "UM-204","UM-208","UM-213","UM-214","UM-215"
+  ),
+  stringsAsFactors = FALSE
+)
+
+# Strip lane/index suffix from sample_id (e.g. "DIC1_S22_L002" -> "DIC1")
+gfp_combined <- gfp_combined %>%
+  mutate(Original = sub("_S.*$", "", sample_id)) %>%   # keep prefix before "_S"
+  inner_join(name_map, by = "Original") %>%            # attach NewName
+  rename(Sample = NewName)                             # final biological sample ID
+
+cat("\n=== gfp_combined with Sample names (first 8 rows) ===\n")
+print(head(gfp_combined, 8))
+
+# 6. DEFINE SAMPLE METADATA (sample_info1) -----------------------------------
+# Sample -> Group (IT/H/IM/UT/UM), Condition (Infected/Uninfected), Replicate
+
+sample_info1 <- data.frame(
+  Sample = c(
+    "IT-107","IT-108","IT-109","IT-110",
+    "H-107","H-108","H-109","H-110","H-111",
+    "UT-106","UT-108","UT-114",
+    "IT-206","IT-207","IT-208","IT-209",
+    "IM-206","IM-207","IM-208","IM-209","IM-210",
+    "UT-204","UT-208","UT-213","UT-214",
+    "UM-204","UM-208","UM-213","UM-214","UM-215"
+  ),
+  Groups = c(
+    "IT","IT","IT","IT",
+    "H","H","H","H","H",
+    "UT","UT","UT",
+    "IT","IT","IT","IT",
+    "IM","IM","IM","IM","IM",
+    "UT","UT","UT","UT",
+    "UM","UM","UM","UM","UM"
+  ),
+  Condition = c(
+    "Infected","Infected","Infected","Infected",
+    "Infected","Infected","Infected","Infected","Infected",
+    "Uninfected","Uninfected","Uninfected",
+    "Infected","Infected","Infected","Infected",
+    "Infected","Infected","Infected","Infected","Infected",
+    "Uninfected","Uninfected","Uninfected","Uninfected",
+    "Uninfected","Uninfected","Uninfected","Uninfected","Uninfected"
+  ),
+  Replicate = c(
+    "IT-107","IT-108","IT-109","IT-110",
+    "H-107","H-108","H-109","H-110","H-111",
+    "UT-106","UT-108","UT-114",
+    "IT-206","IT-207","IT-208","IT-209",
+    "IM-206","IM-207","IM-208","IM-209","IM-210",
+    "UT-204","UT-208","UT-213","UT-214",
+    "UM-204","UM-208","UM-213","UM-214","UM-215"
+  ),
+  stringsAsFactors = FALSE
+)
+
+sample_info1$Groups    <- factor(sample_info1$Groups,
+                                 levels = c("IT","H","IM","UT","UM"))
+sample_info1$Condition <- factor(sample_info1$Condition,
+                                 levels = c("Uninfected","Infected"))
+
+cat("\n=== sample_info1 (first 15 rows) ===\n")
+print(head(sample_info1, 15))
+cat("\nSummary of Groups:\n");    print(table(sample_info1$Groups))
+cat("\nSummary of Condition:\n"); print(table(sample_info1$Condition))
+```
+
+
+```{r}
+# 7. BUILD gfp_df (MAPPING STATS + METADATA) ---------------------------------
+# Join mapping stats and sample metadata by Sample ID
+
+gfp_df <- gfp_combined %>%
+  full_join(sample_info1, by = "Sample")
+
+cat("\n=== gfp_df (first 8 rows) ===\n")
+print(head(gfp_df, 8))
+cat("\nCondition counts in gfp_df:\n")
+print(table(gfp_df$Condition))
+
+
+setdiff(sample_info1$Sample, gfp_combined$Sample)
+
+```
+
+
+```{r}
+# 8. BASIC TESTS ON MAPPED READS --------------------------------------------
+
+cat(strrep("=", 80), "\n")
+cat("T-TESTS: Infected vs Uninfected (GFP-mapped reads)\n")
+cat(strrep("=", 80), "\n")
+
+cat("\nGFP1-9: Infected vs Uninfected\n")
+print(t.test(GFP1_9_mapped ~ Condition, data = gfp_df))
+
+cat("\nGFP10-11: Infected vs Uninfected\n")
+print(t.test(GFP10_11_mapped ~ Condition, data = gfp_df))
+
+wilcox.test(GFP1_9_mapped ~ Condition, data = gfp_df)
+wilcox.test(GFP10_11_mapped ~ Condition, data = gfp_df)
+
+```
+
+
+```{r}
+# 9. PLOTS: MAPPED READ DISTRIBUTIONS ---------------------------------------
+
+cat(strrep("=", 80), "\n")
+cat("PLOTS\n")
+cat(strrep("=", 80), "\n")
+
+# Boxplot of GFP1-9 mapped reads by Condition and Group
+p1 <- ggplot(gfp_df, aes(x = Condition, y = GFP1_9_mapped, fill = Groups)) +
+  geom_boxplot(alpha = 0.7, outlier.shape = NA) +
+  geom_jitter(width = 0.2, alpha = 0.5, size = 2, color = "gray30") +
+  theme_minimal() +
+  labs(
+    title = "GFP1-9 mapped reads by Condition and Group",
+    x = "Condition",
+    y = "GFP1-9 mapped reads",
+    fill = "Group"
+  )
+
+# Boxplot of GFP10-11 mapped reads
+p2 <- ggplot(gfp_df, aes(x = Condition, y = GFP10_11_mapped, fill = Groups)) +
+  geom_boxplot(alpha = 0.7, outlier.shape = NA) +
+  geom_jitter(width = 0.2, alpha = 0.5, size = 2, color = "gray30") +
+  theme_minimal() +
+  labs(
+    title = "GFP10-11 mapped reads by Condition and Group",
+    x = "Condition",
+    y = "GFP10-11 mapped reads",
+    fill = "Group"
+  )
+
+# Scatter: GFP1-9 vs GFP10-11 per sample
+p3 <- ggplot(gfp_df, aes(x = GFP1_9_mapped, y = GFP10_11_mapped,
+                         color = Condition, shape = Groups)) +
+  geom_point(size = 3, alpha = 0.6) +
+  theme_minimal() +
+  labs(
+    title = "GFP1-9 vs GFP10-11 mapped reads",
+    x = "GFP1-9 mapped reads",
+    y = "GFP10-11 mapped reads"
+  )
+
+# Percent mapped to each GFP construct, faceted by Group
+p4 <- gfp_df %>%
+  dplyr::select(Sample, GFP1_9_pct_mapped, GFP10_11_pct_mapped, Condition, Groups) %>%
+  pivot_longer(cols = c(GFP1_9_pct_mapped, GFP10_11_pct_mapped),
+               names_to = "Construct", values_to = "pct_mapped") %>%
+  mutate(Construct = ifelse(Construct == "GFP1_9_pct_mapped", "GFP1-9", "GFP10-11")) %>%
+  ggplot(aes(x = Condition, y = pct_mapped, fill = Construct)) +
+  geom_boxplot(alpha = 0.7, outlier.shape = NA) +
+  geom_jitter(width = 0.2, alpha = 0.3, size = 1.5) +
+  facet_wrap(~ Groups) +
+  theme_minimal() +
+  labs(
+    title = "Percent of reads mapping to split-GFP constructs",
+    x = "Condition",
+    y = "% of total reads mapped",
+    fill = "Construct"
+  )
+
+# Print to screen
+print(p1); print(p2); print(p3); print(p4)
+
+# Save each plot to PDF
+pdf("results/p1.pdf", width = 12, height = 10); print(p1); dev.off()
+pdf("results/p2.pdf", width = 12, height = 10); print(p2); dev.off()
+pdf("results/p3.pdf", width = 12, height = 10); print(p3); dev.off()
+pdf("results/p4.pdf", width = 12, height = 10); print(p4); dev.off()
+
+cat("\nIndividual plots saved to results/p1.pdf, p2.pdf, p3.pdf, p4.pdf\n")
+
+# ============================================================================
+# PART 2: HAUSTORIAL GFP1-9 ESTIMATION FROM FEATURECOUNTS + DESEQ2
+# ============================================================================
+
+cat("\n")
+cat(strrep("=", 80), "\n")
+cat("PART 2: HAUSTORIAL GFP1-9 ESTIMATION\n")
+cat(strrep("=", 80), "\n")
+
+# 10. BUILD GFP1_9 GENE-LEVEL MATRIX FROM FEATURECOUNTS ---------------------
+# featcount.txt is the featureCounts gene x sample output for all libraries
+
+fc <- read.table(
+  "~/Desktop/Lab/TRAPseq/HvIM/Data_Repository/featcount.txt",
+  header = TRUE, sep = "\t", stringsAsFactors = FALSE
+)
+
+# Identify IM and H columns by BAM name patterns (IM: DMC*, H: DIC* with S21-24)
+im_cols <- grep("DMC|S19|S20", colnames(fc), value = TRUE)
+h_cols  <- grep("DIC|S21|S22|S23|S24", colnames(fc), value = TRUE)
+
+# Rename those columns to match biological names used in sample_info1
+colnames(fc)[colnames(fc) %in% im_cols] <- c("IM-206", "IM-207", "IM-208")
+colnames(fc)[colnames(fc) %in% h_cols]  <- c("H-107", "H-108", "H-109", "H-110")
+
+# Extract only Geneid and IM/H columns for GFP1-9 haustorial analysis
+gfp_counts <- fc[, c("Geneid", "IM-206", "IM-207", "IM-208", "H-107", "H-108", "H-109", "H-110")]
+
+# Save gene x sample GFP1-9 count matrix
+write.csv(gfp_counts, "GFP1_9_gene_counts.csv", row.names = FALSE)
+cat("Created GFP1_9_gene_counts.csv with", nrow(gfp_counts), "genes\n")
+
+# 11. ESTIMATE HAUSTORIAL GFP1-9 PER GENE (IM - scaled H) -------------------
+
+cat("\n")
+cat(strrep("-", 80), "\n")
+cat("11. Estimating haustorial GFP1-9 reads (IM minus scaled H)\n")
+cat(strrep("-", 80), "\n")
+
+# Load GFP1-9 counts; first column is gene ID
+gfp19_counts_file <- "GFP1_9_gene_counts.csv"
+gfp19_counts <- read_csv(gfp19_counts_file)
+colnames(gfp19_counts)[1] <- "gene_id"
+
+# 11.1 library sizes (total GFP1-9 counts per sample)
+lib_sizes <- gfp19_counts %>%
+  pivot_longer(-gene_id, names_to = "Sample", values_to = "counts") %>%
+  group_by(Sample) %>%
+  summarize(lib_gfp19 = sum(counts), .groups = "drop")
+
+cat("\n=== GFP1-9 library sizes (first 10 rows) ===\n")
+print(head(lib_sizes, 10))
+
+# 11.2 define IM and H sample vectors from sample_info1
+im_samples <- sample_info1 %>%
+  filter(Groups == "IM") %>%
+  arrange(Replicate) %>%
+  pull(Sample)
+
+h_samples <- sample_info1 %>%
+  filter(Groups == "H") %>%
+  arrange(Replicate) %>%
+  pull(Sample)
+
+if (length(im_samples) != length(h_samples)) {
+  stop("IM and H sample counts differ; adjust pairing logic.")
+}
+
+# Pair IM and H samples in order
+pairing <- tibble(
+  IM = im_samples,
+  H  = h_samples
+)
+
+# 11.3 add library sizes per pair; compute scaling factor s = lib(IM)/lib(H)
+pairing <- pairing %>%
+  left_join(lib_sizes %>% rename(lib_IM = lib_gfp19, IM = Sample), by = "IM") %>%
+  left_join(lib_sizes %>% rename(lib_H  = lib_gfp19, H  = Sample), by = "H") %>%
+  mutate(scale_s = lib_IM / lib_H)
+
+cat("\n=== IM-H pairing and scale factors ===\n")
+print(pairing)
+
+# 11.4 compute G_haust = G_IM - s * G_H for each gene and IM-H pair
+counts_long <- gfp19_counts %>%
+  pivot_longer(-gene_id, names_to = "Sample", values_to = "counts")
+
+haust_counts_list <- list()  # will collect per-IM haustorial counts
+
+for (i in seq_len(nrow(pairing))) {
+  im_name <- pairing$IM[i]
+  h_name  <- pairing$H[i]
+  s       <- pairing$scale_s[i]
+
+  # Extract IM counts for this IM sample
+  im_vec <- counts_long %>%
+    filter(Sample == im_name) %>%
+    dplyr::select(gene_id, counts) %>%
+    rename(im_counts = counts)
+
+  # Extract H counts for the paired H sample
+  h_vec <- counts_long %>%
+    filter(Sample == h_name) %>%
+    dplyr::select(gene_id, counts) %>%
+    rename(h_counts = counts)
+
+  # Combine, scale H counts, and compute haustorial GFP1-9
+  pair_df <- im_vec %>%
+    left_join(h_vec, by = "gene_id") %>%
+    mutate(
+      h_scaled        = s * h_counts,                 # scaled H counts
+      g_haust_raw     = im_counts - h_scaled,         # IM minus scaled H
+      g_haust_clamped = pmax(g_haust_raw, 0)          # clamp negatives to 0
+    ) %>%
+   dplyr::select(gene_id, g_haust_clamped)
+
+  # Name this haustorial column by IM sample
+  colname <- paste0("haust_", im_name)
+  colnames(pair_df)[2] <- colname
+
+  haust_counts_list[[im_name]] <- pair_df
+}
+
+# 11.5 merge haustorial counts from all IM samples and compute mean per gene
+haust_counts <- haust_counts_list %>%
+  purrr::reduce(dplyr::full_join, by = "gene_id") %>%
+  mutate(
+    haust_mean = rowMeans(dplyr::select(., starts_with("haust_")), na.rm = TRUE)
+  )
+
+cat("\n=== haustorial GFP1-9 counts (first 10 genes) ===\n")
+print(head(haust_counts, 10))
+
+# 12. LOAD DESEQ2 SUMMARY AND COMPUTE HAUSTORIA INDEX -----------------------
+
+cat("\n")
+cat(strrep("-", 80), "\n")
+cat("12. Computing per-gene haustoria index from DESeq2 contrasts\n")
+cat(strrep("-", 80), "\n")
+
+# DESeq2 summary from separate script; contains IT vs UT, IM vs UM, H vs UM, IM vs H
+deseq_file <- "~/Desktop/Lab/TRAPseq/Deseq2_all_info.xlsx"
+deseq_summary <- read_excel(deseq_file, sheet = "Sheet1")
+
+# Rename columns to simpler names (must match what you wrote out)
+deseq_summary <- deseq_summary %>%
+  rename(
+    gene_id       = GeneID,
+    lfc_IT_vs_UT  = IT_vs_UT_log2FC,
+    p_IT_vs_UT    = IT_vs_UT_padj,
+    lfc_IM_vs_UM  = IM_vs_UM_log2FC,
+    p_IM_vs_UM    = IM_vs_UM_padj,
+    lfc_H_vs_UM   = H_vs_UM_log2FC,
+    p_H_vs_UM     = H_vs_UM_padj,
+    lfc_H_vs_IM   = IM_vs_H_log2FC,
+    p_H_vs_IM     = IM_vs_H_padj
+  ) %>%
+  mutate(
+    # Haustoria index: how much more IM is enriched vs UM than H is vs UM
+    haustoria_index_LFC = lfc_IM_vs_UM - lfc_H_vs_UM
+  )
+
+cat("\n=== DESeq2 summary with haustoria_index_LFC (first 10 rows) ===\n")
+print(head(deseq_summary, 10))
+
+# 13. MERGE HAUSTORIAL COUNTS WITH DESEQ2 AND FILTER GENES ------------------
+
+# 13.1 combined haustorial table
+final_haust_table <- haust_counts %>%
+  left_join(deseq_summary, by = "gene_id") %>%
+  dplyr::select(
+    gene_id,
+    starts_with("haust_"), haust_mean,
+    lfc_IM_vs_UM, p_IM_vs_UM,
+    lfc_H_vs_UM, p_H_vs_UM,
+    haustoria_index_LFC,
+    everything()
+  )
+
+cat("\n=== final haustorial table (first 10 rows) ===\n")
+print(head(final_haust_table, 10))
+
+# 13.2 example: high-confidence haustorial genes (IM-biased by index)
+good_haust_genes <- final_haust_table %>%
+  filter(
+    lfc_IM_vs_UM > 1,
+    p_IM_vs_UM < 0.05,
+    haustoria_index_LFC > 0
+  ) %>%
+  arrange(desc(haustoria_index_LFC))
+
+cat("\n=== high-confidence haustorial genes (IM-biased; first 20) ===\n")
+print(head(good_haust_genes, 20))
+
+# 13.3 stricter list: truly haustoria-enriched vs mesophyll
+haustoria_enriched_genes <- final_haust_table %>%
+  filter(
+    haust_mean > 0,                # has haustorial GFP1-9 signal
+    lfc_H_vs_UM > 1,               # up in H vs UM
+    p_H_vs_UM < 0.05,              # significant in H vs UM
+    lfc_IM_vs_UM < lfc_H_vs_UM - 1 # H at least 2-fold more enriched than IM
+    # optional: uncomment to require IM not significantly up
+    # !(p_IM_vs_UM < 0.05 & lfc_IM_vs_UM > 0)
+  ) %>%
+  arrange(desc(haust_mean))
+
+cat("\n=== haustoria-enriched vs mesophyll genes (first 20) ===\n")
+print(head(haustoria_enriched_genes, 20))
+
+# 13.4 write outputs
+write_csv(final_haust_table,            "results/haustorial_GFP1-9_table.csv")
+write_csv(good_haust_genes,            "results/haustorial_GFP1-9_high_confidence.csv")
+write_csv(haustoria_enriched_genes,    "results/haustorial_GFP1-9_haustoria_enriched_vs_mesophyll.csv")
+
+cat("\nHaustorial GFP1-9 estimation and haustoria index computation complete.\n")
+cat("Output tables written to ./results\n")
+
+```
+

@@ -1,0 +1,1279 @@
+At1g80300,ATP/ADP exchanger (chloroplast),,AAA,The ATP:ADP Antiporter (AAA) Family,Secondary Transporter,2.A.12
+At1g15500,ATP/ADP exchanger (chloroplast),,AAA,The ATP:ADP Antiporter (AAA) Family,Secondary Transporter,2.A.12
+At1g25530,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At1g44100,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At1g47670,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At1g77690,auxin,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At1g48640,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At1g61270,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At1g08230,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At1g24400,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At1g77380,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At1g71680,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At1g10010,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At1g58360,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At1g67640,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At1g80510,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At2g39130,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At2g36590,proline?,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At2g21050,auxin,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At2g39890,proline?,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At2g38120,auxin,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At2g41190,Unclassified,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At3g01760,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At3g11900,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At3g54830,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At3g28960,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At3g30390,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At3g09340,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At3g56200,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At3g09330,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At4g35180,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At4g38250,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At5g63850,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At5g15240,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At5g02170,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At5g02180,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At5g49630,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At5g09220,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At5g40780,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At5g41800,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At5g65990,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At5g23810,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At5g38820,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At5g16740,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At2g40420,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At2g42005,amino acid,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At3g55740,proline,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At5g01240,auxin/proton symporter,,AAAP,The Amino Acid/Auxin Permease (AAAP) Family,Secondary Transporter,2.A.18
+At1g15460,anion exchange,,AE,The Anion Exchanger (AE) Family,Secondary Transporter,2.A.31
+At1g74810,anion exchange,,AE,The Anion Exchanger (AE) Family,Secondary Transporter,2.A.31
+At2g47160,boron efflux transporter for xylem loading,,AE,The Anion Exchanger (AE) Family,Secondary Transporter,2.A.31
+At3g62270,boron efflux transporter for xylem loading,,AE,The Anion Exchanger (AE) Family,Secondary Transporter,2.A.31
+At3g06450,anion exchange,,AE,The Anion Exchanger (AE) Family,Secondary Transporter,2.A.31
+At4g32510,anion exchange,,AE,The Anion Exchanger (AE) Family,Secondary Transporter,2.A.31
+At5g25430,anion exchange,,AE,The Anion Exchanger (AE) Family,Secondary Transporter,2.A.31
+At1g23080,auxin efflux,,AEC,The Auxin Efflux Carrier (AEC) Family,Secondary Transporter,2.A.69
+At1g73590,auxin efflux,,AEC,The Auxin Efflux Carrier (AEC) Family,Secondary Transporter,2.A.69
+At1g70940,auxin efflux,,AEC,The Auxin Efflux Carrier (AEC) Family,Secondary Transporter,2.A.69
+At1g77110,auxin efflux?,,AEC,The Auxin Efflux Carrier (AEC) Family,Secondary Transporter,2.A.69
+At2g01420,auxin efflux,,AEC,The Auxin Efflux Carrier (AEC) Family,Secondary Transporter,2.A.69
+At5g57090,auxin efflux,,AEC,The Auxin Efflux Carrier (AEC) Family,Secondary Transporter,2.A.69
+At5g15100,auxin efflux,,AEC,The Auxin Efflux Carrier (AEC) Family,Secondary Transporter,2.A.69
+At5g16530,auxin efflux,,AEC,The Auxin Efflux Carrier (AEC) Family,Secondary Transporter,2.A.69
+At1g20925,auxin efflux,,AEC,The Auxin Efflux Carrier (AEC) Family,Secondary Transporter,2.A.69
+At1g71090,auxin efflux,,AEC,The Auxin Efflux Carrier (AEC) Family,Secondary Transporter,2.A.69
+At1g76520,auxin efflux,,AEC,The Auxin Efflux Carrier (AEC) Family,Secondary Transporter,2.A.69
+At1g76530,auxin efflux,,AEC,The Auxin Efflux Carrier (AEC) Family,Secondary Transporter,2.A.69
+At2g17500,auxin efflux,,AEC,The Auxin Efflux Carrier (AEC) Family,Secondary Transporter,2.A.69
+At5g01990,auxin efflux,,AEC,The Auxin Efflux Carrier (AEC) Family,Secondary Transporter,2.A.69
+At5g65980,auxin efflux,,AEC,The Auxin Efflux Carrier (AEC) Family,Secondary Transporter,2.A.69
+At1g17120,cationic amino acid,,APC,The Amino Acid-Polyamine-Organocation (APC) Family,Secondary Transporter,2.A.3
+At1g05940,cationic amino acid,,APC,The Amino Acid-Polyamine-Organocation (APC) Family,Secondary Transporter,2.A.3
+At1g31830,cationic amino acid,,APC,The Amino Acid-Polyamine-Organocation (APC) Family,Secondary Transporter,2.A.3
+At2g01170,amino acid,,APC,The Amino Acid-Polyamine-Organocation (APC) Family,Secondary Transporter,2.A.3
+At2g34960,cationic amino acid,,APC,The Amino Acid-Polyamine-Organocation (APC) Family,Secondary Transporter,2.A.3
+At3g03720,cationic amino acid,,APC,The Amino Acid-Polyamine-Organocation (APC) Family,Secondary Transporter,2.A.3
+At3g13620,cationic amino acid,,APC,The Amino Acid-Polyamine-Organocation (APC) Family,Secondary Transporter,2.A.3
+At3g10600,cationic amino acid,,APC,The Amino Acid-Polyamine-Organocation (APC) Family,Secondary Transporter,2.A.3
+At4g21120,cationic amino acid,,APC,The Amino Acid-Polyamine-Organocation (APC) Family,Secondary Transporter,2.A.3
+At5g04770,cationic amino acid,,APC,The Amino Acid-Polyamine-Organocation (APC) Family,Secondary Transporter,2.A.3
+At5g36940,cationic amino acid,,APC,The Amino Acid-Polyamine-Organocation (APC) Family,Secondary Transporter,2.A.3
+At5g05630,cationic amino acid,,APC,The Amino Acid-Polyamine-Organocation (APC) Family,Secondary Transporter,2.A.3
+At1g31820,amino acid/polyamine,,APC,The Amino Acid-Polyamine-Organocation (APC) Family,Secondary Transporter,2.A.3
+At1g58030,amino acid,,APC,The Amino Acid-Polyamine-Organocation (APC) Family,Secondary Transporter,2.A.3
+At3g19553,amino acid/polyamine,,APC,The Amino Acid-Polyamine-Organocation (APC) Family,Secondary Transporter,2.A.3
+At4g17970,Unclassified,,ArAE,The Aromatic Acid Exporter (ArAE) Family,Secondary Transporter,2.A.85
+At1g68600,Unclassified,,ArAE,The Aromatic Acid Exporter (ArAE) Family,Secondary Transporter,2.A.85
+At1g25480,Unclassified,,ArAE,The Aromatic Acid Exporter (ArAE) Family,Secondary Transporter,2.A.85
+At2g17470,Unclassified,,ArAE,The Aromatic Acid Exporter (ArAE) Family,Secondary Transporter,2.A.85
+At3g18440,Unclassified,,ArAE,The Aromatic Acid Exporter (ArAE) Family,Secondary Transporter,2.A.85
+At1g18420,Unclassified,,ArAE,The Aromatic Acid Exporter (ArAE) Family,Secondary Transporter,2.A.85
+At3g11680,Unclassified,,ArAE,The Aromatic Acid Exporter (ArAE) Family,Secondary Transporter,2.A.85
+At1g08430,Unclassified,,ArAE,The Aromatic Acid Exporter (ArAE) Family,Secondary Transporter,2.A.85
+At4g00910,Unclassified,,ArAE,The Aromatic Acid Exporter (ArAE) Family,Secondary Transporter,2.A.85
+At1g08440,Unclassified,,ArAE,The Aromatic Acid Exporter (ArAE) Family,Secondary Transporter,2.A.85
+At2g27240,Unclassified,,ArAE,The Aromatic Acid Exporter (ArAE) Family,Secondary Transporter,2.A.85
+At1g03070,Unclassified,,ArAE,The Aromatic Acid Exporter (ArAE) Family,Secondary Transporter,2.A.85
+At3g63310,Unclassified,,ArAE,The Aromatic Acid Exporter (ArAE) Family,Secondary Transporter,2.A.85
+At4g02690,Unclassified,,ArAE,The Aromatic Acid Exporter (ArAE) Family,Secondary Transporter,2.A.85
+At4g14730,Unclassified,,ArAE,The Aromatic Acid Exporter (ArAE) Family,Secondary Transporter,2.A.85
+At4g15470,Unclassified,,ArAE,The Aromatic Acid Exporter (ArAE) Family,Secondary Transporter,2.A.85
+At4g17580,Unclassified,,ArAE,The Aromatic Acid Exporter (ArAE) Family,Secondary Transporter,2.A.85
+At4g17585,Unclassified,,ArAE,The Aromatic Acid Exporter (ArAE) Family,Secondary Transporter,2.A.85
+At5g46600,Unclassified,,ArAE,The Aromatic Acid Exporter (ArAE) Family,Secondary Transporter,2.A.85
+At5g46610,Unclassified,,ArAE,The Aromatic Acid Exporter (ArAE) Family,Secondary Transporter,2.A.85
+At5g47120,Unclassified,,ArAE,The Aromatic Acid Exporter (ArAE) Family,Secondary Transporter,2.A.85
+At1g02260,silicon efflux,,ArsB,The Arsenite-Antimonite (ArsB) Efflux Family,Secondary Transporter,2.A.45
+At1g78560,sodium ion:bile acid symporter,,BASS,The Bile Acid:Na+ Symporter (BASS) Family,Secondary Transporter,2.A.28
+At2g26900,sodium ion:bile acid symporter,,BASS,The Bile Acid:Na+ Symporter (BASS) Family,Secondary Transporter,2.A.28
+At3g25410,sodium ion:bile acid symporter,,BASS,The Bile Acid:Na+ Symporter (BASS) Family,Secondary Transporter,2.A.28
+At4g22840,sodium ion:bile acid symporter,,BASS,The Bile Acid:Na+ Symporter (BASS) Family,Secondary Transporter,2.A.28
+At4g12030,sodium ion:bile acid symporter,,BASS,The Bile Acid:Na+ Symporter (BASS) Family,Secondary Transporter,2.A.28
+At3g56160,sodium ion:bile acid symporter,,BASS,The Bile Acid:Na+ Symporter (BASS) Family,Secondary Transporter,2.A.28
+At1g55720,proton:calcium ion symporter,,CaCA,The Ca2+:Cation Antiporter (CaCA) Family,Secondary Transporter,2.A.19
+At1g55730,proton:calcium ion symporter,,CaCA,The Ca2+:Cation Antiporter (CaCA) Family,Secondary Transporter,2.A.19
+At1g08960,sodium ion:calcium ion symporter,,CaCA,The Ca2+:Cation Antiporter (CaCA) Family,Secondary Transporter,2.A.19
+At1g54110,sodium ion:calcium ion symporter,,CaCA,The Ca2+:Cation Antiporter (CaCA) Family,Secondary Transporter,2.A.19
+At2g38170,proton:calcium ion symporter,,CaCA,The Ca2+:Cation Antiporter (CaCA) Family,Secondary Transporter,2.A.19
+At2g47600,magnesium/zinc:proton antiporter,,CaCA,The Ca2+:Cation Antiporter (CaCA) Family,Secondary Transporter,2.A.19
+At3g13320,proton:calcium ion symporter,,CaCA,The Ca2+:Cation Antiporter (CaCA) Family,Secondary Transporter,2.A.19
+At3g14070,sodium ion:calcium ion symporter,,CaCA,The Ca2+:Cation Antiporter (CaCA) Family,Secondary Transporter,2.A.19
+At3g51860,proton:calcium ion symporter,,CaCA,The Ca2+:Cation Antiporter (CaCA) Family,Secondary Transporter,2.A.19
+At5g01490,proton:calcium ion symporter,,CaCA,The Ca2+:Cation Antiporter (CaCA) Family,Secondary Transporter,2.A.19
+At5g17850,sodium ion:calcium ion symporter,,CaCA,The Ca2+:Cation Antiporter (CaCA) Family,Secondary Transporter,2.A.19
+At5g17860,sodium ion:calcium ion symporter,,CaCA,The Ca2+:Cation Antiporter (CaCA) Family,Secondary Transporter,2.A.19
+At1g54115,sodium ion:calcium ion+potassium ion antiporter,,CaCA,The Ca2+:Cation Antiporter (CaCA) Family,Secondary Transporter,2.A.19
+At1g30450,sodium ion:calcium ion+potassium ion antiporter,,CCC,The Cation-Chloride Cotransporter (CCC) Family,Secondary Transporter,2.A.30
+At2g29410,zinc ion,,CDF,The Cation Diffusion Facilitator (CDF) Family,Secondary Transporter,2.A.4
+At2g04620,metal ion,,CDF,The Cation Diffusion Facilitator (CDF) Family,Secondary Transporter,2.A.4
+At2g46800,metal ion,,CDF,The Cation Diffusion Facilitator (CDF) Family,Secondary Transporter,2.A.4
+At2g39450,cation,,CDF,The Cation Diffusion Facilitator (CDF) Family,Secondary Transporter,2.A.4
+At2g47830,cation?,,CDF,The Cation Diffusion Facilitator (CDF) Family,Secondary Transporter,2.A.4
+At3g12100,zinc ion,,CDF,The Cation Diffusion Facilitator (CDF) Family,Secondary Transporter,2.A.4
+At3g61940,zinc ion,,CDF,The Cation Diffusion Facilitator (CDF) Family,Secondary Transporter,2.A.4
+At3g58810,zinc ion,,CDF,The Cation Diffusion Facilitator (CDF) Family,Secondary Transporter,2.A.4
+At1g16310,cation efflux,,CDF,The Cation Diffusion Facilitator (CDF) Family,Secondary Transporter,2.A.4
+At1g51610,cation efflux,,CDF,The Cation Diffusion Facilitator (CDF) Family,Secondary Transporter,2.A.4
+At1g79520,cation efflux,,CDF,The Cation Diffusion Facilitator (CDF) Family,Secondary Transporter,2.A.4
+At3g58060,cation efflux,,CDF,The Cation Diffusion Facilitator (CDF) Family,Secondary Transporter,2.A.4
+At5g38380,Golgi/secretory granule zinc ion uptake,,CDF,The Cation Diffusion Facilitator (CDF) Family,Secondary Transporter,2.A.4
+At1g55620,chloride ion channel,,ClC,The Chloride Carrier/Channel (ClC) Family,Secondary Transporter,2.A.49
+At3g27170,chloride ion channel,,ClC,The Chloride Carrier/Channel (ClC) Family,Secondary Transporter,2.A.49
+At4g35440,chloride ion channel,,ClC,The Chloride Carrier/Channel (ClC) Family,Secondary Transporter,2.A.49
+At5g40890,chloride ion channel,,ClC,The Chloride Carrier/Channel (ClC) Family,Secondary Transporter,2.A.49
+At5g33280,chloride ion channel,,ClC,The Chloride Carrier/Channel (ClC) Family,Secondary Transporter,2.A.49
+At5g49890,chloride ion channel,,ClC,The Chloride Carrier/Channel (ClC) Family,Secondary Transporter,2.A.49
+At5g26240,chloride ion channel,,ClC,The Chloride Carrier/Channel (ClC) Family,Secondary Transporter,2.A.49
+At1g54370,sodium ion:proton symporter,,CPA1,The Monovalent Cation:Proton Antiporter-1 (CPA1) Family,Secondary Transporter,2.A.36
+At1g14660,sodium ion:proton symporter,,CPA1,The Monovalent Cation:Proton Antiporter-1 (CPA1) Family,Secondary Transporter,2.A.36
+At1g79610,sodium ion:proton symporter,,CPA1,The Monovalent Cation:Proton Antiporter-1 (CPA1) Family,Secondary Transporter,2.A.36
+At2g01980,sodium ion:proton symporter,,CPA1,The Monovalent Cation:Proton Antiporter-1 (CPA1) Family,Secondary Transporter,2.A.36
+At3g05030,sodium ion:proton symporter,,CPA1,The Monovalent Cation:Proton Antiporter-1 (CPA1) Family,Secondary Transporter,2.A.36
+At3g06370,sodium ion:proton symporter,,CPA1,The Monovalent Cation:Proton Antiporter-1 (CPA1) Family,Secondary Transporter,2.A.36
+At5g27150,sodium ion:proton symporter,,CPA1,The Monovalent Cation:Proton Antiporter-1 (CPA1) Family,Secondary Transporter,2.A.36
+At5g55470,sodium ion:proton symporter,,CPA1,The Monovalent Cation:Proton Antiporter-1 (CPA1) Family,Secondary Transporter,2.A.36
+At1g64170,sodium ion:proton symporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At1g05580,sodium ion:proton symporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At1g79400,sodium ion:proton symporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At1g06970,sodium ion:proton symporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At1g08150,sodium ion:proton symporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At1g01790,potassium ion:proton antiporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At1g16380,sodium ion:proton symporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At2g19600,potassium ion:proton antiporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At2g28180,potassium ion:proton antiporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At2g13620,sodium ion:proton symporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At2g30240,sodium ion:proton symporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At2g31910,sodium ion:proton symporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At2g28170,potassium ion:proton antiporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At3g44900,sodium ion:proton symporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At3g52080,sodium ion:proton symporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At3g44910,sodium ion:proton symporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At3g44920,sodium ion:proton symporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At3g53720,sodium ion:proton symporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At3g44930,sodium ion:proton symporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At3g17630,sodium ion:proton symporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At4g00630,potassium ion:proton antiporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At4g23700,sodium ion:proton symporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At4g04850,potassium ion:proton antiporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At5g37060,sodium ion:proton symporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At5g01690,sodium ion:proton symporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At5g58460,sodium ion:proton symporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At5g51710,potassium ion:proton antiporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At5g41610,sodium ion:proton symporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At5g22900,sodium ion:proton symporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At5g22910,sodium ion:proton symporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At5g01680,sodium ion:proton symporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At5g11800,potassium ion:proton antiporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At1g08135,potassium/sodium ion:proton antiporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At1g08140,potassium/sodium ion:proton antiporter,,CPA2,The Monovalent Cation:Proton Antiporter-2 (CPA2) Family,Secondary Transporter,2.A.37
+At1g25500,sodium ion:choline symporter?,,CTL,The Choline Transporter Like (CTL) Family,Secondary Transporter,2.A.92
+At3g03700,sodium ion:choline symporter?,,CTL,The Choline Transporter Like (CTL) Family,Secondary Transporter,2.A.92
+At3g04440,sodium ion:choline symporter?,,CTL,The Choline Transporter Like (CTL) Family,Secondary Transporter,2.A.92
+At3g15380,sodium ion:choline symporter?,,CTL,The Choline Transporter Like (CTL) Family,Secondary Transporter,2.A.92
+At4g38640,sodium ion:choline symporter?,,CTL,The Choline Transporter Like (CTL) Family,Secondary Transporter,2.A.92
+At5g13760,sodium ion:choline symporter?,,CTL,The Choline Transporter Like (CTL) Family,Secondary Transporter,2.A.92
+At5g17830,sodium ion:choline symporter?,,CTL,The Choline Transporter Like (CTL) Family,Secondary Transporter,2.A.92
+At5g64280,oxogluterate/malate,,DASS,The Divalent Anion:Na+ Symporter (DASS) Family,Secondary Transporter,2.A.47
+At5g47560,oxogluterate/malate,,DASS,The Divalent Anion:Na+ Symporter (DASS) Family,Secondary Transporter,2.A.47
+At5g64290,oxogluterate/malate,,DASS,The Divalent Anion:Na+ Symporter (DASS) Family,Secondary Transporter,2.A.47
+At5g12860,oxogluterate/malate,,DASS,The Divalent Anion:Na+ Symporter (DASS) Family,Secondary Transporter,2.A.47
+At2g02590,multidrug efflux,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g61800,glucose-6-phosphate/phosphate,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g76340,phosphate/phosphoenolpyruvate,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g12500,glucose-6-phosphate/phosphate,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g21870,glucose-6-phosphate/phosphate,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g77610,glucose-6-phosphate/phosphate,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g48230,phosphate/phosphoenolpyruvate,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g53660,phosphate/phosphoenolpyruvate,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g06470,triose phosphate/phosphate,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g06890,triose phosphate/phosphate,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g76670,triose phosphate/phosphate,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g21070,Unclassified,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At2g43240,nucleoside-sugar,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At2g13650,vanadate,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At2g25520,phosphate/phosphoenolpyruvate,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At3g14410,triose phosphate/phosphate,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At3g59360,CMP-sialic acid,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At3g01550,triose phosphate/phosphate,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At3g10290,Unclassified,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At3g11320,Unclassified,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At3g17430,Unclassified,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At4g32390,glucose-6-phosphate/phosphate,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At4g03950,glucose-6-phosphate/phosphate,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At4g31600,UDP-glucuronic acid/UDP-N-acetylgalactosamine,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At4g35335,UDP-galactose,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At5g41760,UDP-galactose,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At5g55950,Unclassified,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At5g19980,triose phosphate/phosphate,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At5g17630,glucose-6-phosphate/phosphate,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At5g46110,triose phosphate/phosphate,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At5g54800,glucose-6-phosphate/phosphate,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At5g65000,Unclassified,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At5g04160,phosphate/phosphoenolpyruvate,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At5g33320,phosphate/phosphoenolpyruvate,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At5g05820,phosphate/phosphoenolpyruvate,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At5g11230,Unclassified,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At5g25400,Unclassified,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At5g57100,Unclassified,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At5g42420,Unclassified,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g28230,purines,POP,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g28220,purines,POP,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g30840,purines,POP,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g44750,purines,POP,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g19770,purines,POP,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g57980,purines,POP,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g57990,purines,POP,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g09860,purine/pyrimidine organocation uptake,POP,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At2g33750,purines,POP,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At2g24220,purines,POP,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At4g18220,purines,POP,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At4g18210,purines,POP,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At4g18200,purines,POP,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At4g18190,purines,POP,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At5g41160,purines,POP,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g47590,purines,POP,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g75470,purines,POP,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g25270,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g01070,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g11450,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g11460,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g21890,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g44800,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g68170,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g70260,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g75500,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At2g37450,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At2g37460,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At2g39510,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At2g40900,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At3g18200,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At3g28050,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At3g28060,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At3g28070,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At3g28080,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At3g28100,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At3g28130,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At3g30340,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At3g53210,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At4g01430,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At4g01440,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At4g01450,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At4g08290,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At4g08300,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At4g24980,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At4g28040,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At4g30420,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At5g07050,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At5g13670,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At5g40210,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At5g40240,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At5g47470,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At5g64700,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g60050,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At4g15540,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At5g40230,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At5g45370,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g09380,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g43650,? (nodulin MtN21 family protein),P-DME,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g12600,UDP-galactose?,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At2g05755,Unclassified,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At3g02690,Unclassified,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At3g45870,Unclassified,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At3g56620,Unclassified,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At4g16620,Unclassified,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At4g19185,Unclassified,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At3g07080,Unclassified,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g34020,glucose-6-phosphate/phosphate?,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At2g28315,glucose-6-phosphate/phosphate?,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At4g09810,glucose-6-phosphate/phosphate?,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At4g39390,glucose-6-phosphate/phosphate?,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At4g23010,UDP-galactose,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g14360,UDP-galactose/UDP-glucose,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At2g02810,UDP-galactose/UDP-glucose,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At3g46180,UDP-galactose/UDP-glucose,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At5g59740,UDP-galactose/UDP-glucose,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At2g03530,allantoin,NBUT,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At2g03590,allantoin,NBUT,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g26440,allantoin,NBUT,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At2g03520,allantoin,NBUT,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At2g03600,allantoin,NBUT,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g07290,GDP-mannose,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g43310,triose phosphate/phosphate translocator,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g57943,purine/pyrimidine organocation uptake,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At2g30460,phosphate:phosphoenolpyruvate translocator?,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At3g59310,drug/metabolite?,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At3g59340,drug/metabolite?,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At4g08700,purine/pyrimidine organocation uptake,POP,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At4g24460,drug/metabolite?,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At4g32140,drug/metabolite?,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At5g19380,drug/metabolite?,,DMT,The Drug/Metabolite Transporter (DMT) Superfamily,Secondary Transporter,2.A.7
+At1g70330,nucleoside,,ENT,The Equilibrative Nucleoside Transporter (ENT) Family,Secondary Transporter,2.A.57
+At1g02630,nucleoside,,ENT,The Equilibrative Nucleoside Transporter (ENT) Family,Secondary Transporter,2.A.57
+At1g61630,nucleoside,,ENT,The Equilibrative Nucleoside Transporter (ENT) Family,Secondary Transporter,2.A.57
+At3g09990,nucleoside,,ENT,The Equilibrative Nucleoside Transporter (ENT) Family,Secondary Transporter,2.A.57
+At4g05120,nucleoside,,ENT,The Equilibrative Nucleoside Transporter (ENT) Family,Secondary Transporter,2.A.57
+At4g05130,nucleoside,,ENT,The Equilibrative Nucleoside Transporter (ENT) Family,Secondary Transporter,2.A.57
+At4g05140,nucleoside,,ENT,The Equilibrative Nucleoside Transporter (ENT) Family,Secondary Transporter,2.A.57
+At4g05110,nucleoside,,ENT,The Equilibrative Nucleoside Transporter (ENT) Family,Secondary Transporter,2.A.57
+At2g32040,Unclassified,,FBT,The Folate-Biopterin Transporter (FBT) Family,Secondary Transporter,2.A.71
+At2g33280,Unclassified,,FBT,The Folate-Biopterin Transporter (FBT) Family,Secondary Transporter,2.A.71
+At1g79710,folate/pteridine,,FBT,The Folate-Biopterin Transporter (FBT) Family,Secondary Transporter,2.A.71
+At1g04570,folate/pteridine,,FBT,The Folate-Biopterin Transporter (FBT) Family,Secondary Transporter,2.A.71
+At1g64890,folate/pteridine,,FBT,The Folate-Biopterin Transporter (FBT) Family,Secondary Transporter,2.A.71
+At5g25050,folate/pteridine?,,FBT,The Folate-Biopterin Transporter (FBT) Family,Secondary Transporter,2.A.71
+At5g25040,folate/pteridine?,,FBT,The Folate-Biopterin Transporter (FBT) Family,Secondary Transporter,2.A.71
+At5g54860,folate/pteridine?,,FBT,The Folate-Biopterin Transporter (FBT) Family,Secondary Transporter,2.A.71
+At5g10820,folate/pteridine?,,FBT,The Folate-Biopterin Transporter (FBT) Family,Secondary Transporter,2.A.71
+At1g71880,sucrose,,GPH,The Glycoside-Pentoside-Hexuronide (GPH):Cation Symporter Family,Secondary Transporter,2.A.2
+At1g71890,sucrose,,GPH,The Glycoside-Pentoside-Hexuronide (GPH):Cation Symporter Family,Secondary Transporter,2.A.2
+At1g22710,sucrose,,GPH,The Glycoside-Pentoside-Hexuronide (GPH):Cation Symporter Family,Secondary Transporter,2.A.2
+At1g66570,sucrose,,GPH,The Glycoside-Pentoside-Hexuronide (GPH):Cation Symporter Family,Secondary Transporter,2.A.2
+At1g09960,sucrose,,GPH,The Glycoside-Pentoside-Hexuronide (GPH):Cation Symporter Family,Secondary Transporter,2.A.2
+At2g14670,sucrose,,GPH,The Glycoside-Pentoside-Hexuronide (GPH):Cation Symporter Family,Secondary Transporter,2.A.2
+At2g02860,sucrose,,GPH,The Glycoside-Pentoside-Hexuronide (GPH):Cation Symporter Family,Secondary Transporter,2.A.2
+At5g43610,sucrose,,GPH,The Glycoside-Pentoside-Hexuronide (GPH):Cation Symporter Family,Secondary Transporter,2.A.2
+At5g06170,sucrose,,GPH,The Glycoside-Pentoside-Hexuronide (GPH):Cation Symporter Family,Secondary Transporter,2.A.2
+At3g60070,lactose,,GPH,The Glycoside-Pentoside-Hexuronide (GPH):Cation Symporter Family,Secondary Transporter,2.A.2
+At1g57600,glycerol:proton symporter,,GUP,The Glycerol Uptake (GUP) Family,Secondary Transporter,2.A.50
+At2g33260,tyrosine,,HAAAP,The Hydroxy/Aromatic Amino Acid Permease (HAAAP) Family,Secondary Transporter,2.A.42
+At5g19500,tryptophan/tyrosine,,HAAAP,The Hydroxy/Aromatic Amino Acid Permease (HAAAP) Family,Secondary Transporter,2.A.42
+At1g31120,potassium ion,,KUP,The K+ Uptake Permease (KUP) Family,Secondary Transporter,2.A.72
+At1g70300,potassium ion,,KUP,The K+ Uptake Permease (KUP) Family,Secondary Transporter,2.A.72
+At1g60160,potassium ion,,KUP,The K+ Uptake Permease (KUP) Family,Secondary Transporter,2.A.72
+At2g35060,potassium ion,,KUP,The K+ Uptake Permease (KUP) Family,Secondary Transporter,2.A.72
+At2g40540,potassium ion,,KUP,The K+ Uptake Permease (KUP) Family,Secondary Transporter,2.A.72
+At2g30070,potassium ion,,KUP,The K+ Uptake Permease (KUP) Family,Secondary Transporter,2.A.72
+At3g02050,potassium ion,,KUP,The K+ Uptake Permease (KUP) Family,Secondary Transporter,2.A.72
+At4g23640,potassium ion,,KUP,The K+ Uptake Permease (KUP) Family,Secondary Transporter,2.A.72
+At4g13420,potassium ion,,KUP,The K+ Uptake Permease (KUP) Family,Secondary Transporter,2.A.72
+At4g19960,potassium ion,,KUP,The K+ Uptake Permease (KUP) Family,Secondary Transporter,2.A.72
+At4g33530,potassium ion,,KUP,The K+ Uptake Permease (KUP) Family,Secondary Transporter,2.A.72
+At5g14880,potassium ion,,KUP,The K+ Uptake Permease (KUP) Family,Secondary Transporter,2.A.72
+At5g09400,potassium ion,,KUP,The K+ Uptake Permease (KUP) Family,Secondary Transporter,2.A.72
+At4g07390,Mannose-P-dolichol utilization defect 1 protein homolog,,LCT,The Lysosomal Cystine Transporter (LCT) Family,Secondary Transporter,2.A.43
+At5g40670,lysosomal cystine transporter,,LCT,The Lysosomal Cystine Transporter (LCT) Family,Secondary Transporter,2.A.43
+At5g59470,Mannose-P-dolichol utilization defect 1 protein homolog,,LCT,The Lysosomal Cystine Transporter (LCT) Family,Secondary Transporter,2.A.43
+At1g14560,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At1g14140,uncoupling protein,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At1g74240,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At1g25380,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At1g79900,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At1g72820,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At1g07020,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At1g78180,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At1g07030,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At2g33820,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At2g35800,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At2g22500,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At2g46320,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At2g47490,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At2g37890,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At2g17270,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At3g55640,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At3g54110,uncoupling protein,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At3g51870,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At3g20240,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At3g05290,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At3g53940,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At3g48850,phosphate,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At4g11440,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At4g26180,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At4g24570,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At4g32400,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At4g01100,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At4g39460,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At4g27940,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At4g28390,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At5g17400,ATP/ADP,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At5g26200,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At5g01500,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At5g15640,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At5g56450,ATP/ADP,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At5g13490,ATP/ADP,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At5g48970,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At5g09470,dicarboxylate,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At5g46800,carnitine,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At5g19760,dicarboxylate,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At5g58970,uncoupling protein,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At5g07320,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At5g61810,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At5g01340,tricarboxylate,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At5g42130,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At5g14040,phosphate,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At5g51050,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At5g66380,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At5g27520,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At5g64970,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At1g07025,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At1g34065,S-adenosylmethionine,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At2g26360,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At2g30160,iron import carrier (MRS3/4),,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At2g39970,peroxisomal membrane carrier,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At3g08580,ADP:ATP antiporter,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At3g21390,deoxynucleotide,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At4g03115,uncoupling protein,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At4g15010,Unclassified,,MC,The Mitochondrial Carrier (MC) Family,Secondary Transporter,2.A.29
+At5g17520,chloroplast maltose,,MEX,The Chloroplast Maltose Exporter (MEX) Family,Secondary Transporter,2.A.84
+At1g30560,glycerol-3-phosphate,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g07340,hexose,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g16370,organic cations,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g79360,organic cations,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g16390,organic cations,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g73220,organic cations,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g76430,phosphate,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g67300,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g30220,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g50310,hexose,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g08930,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g11260,glucose,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g05030,hexose,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g34580,hexose,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g75220,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g79820,glucose,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g08920,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g19450,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g08900,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g77210,hexose,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g08890,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g54730,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g20860,phosphate,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g20840,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g79410,organic cations,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g74780,carboxylate?,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At2g22730,drug efflux?,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At2g20780,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At2g43330,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At2g18480,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At2g35740,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At2g16990,tetracycline?,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At2g16120,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At2g16130,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At2g16970,tetracycline?,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At2g16980,tetracycline?,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At2g48020,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At2g32830,phosphate,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At2g38940,phosphate,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At2g29650,sodium ion/phosphate,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At3g05150,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At3g05160,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At3g20660,organic cations,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At3g03090,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At3g51490,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At3g18830,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At3g05960,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At3g19930,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At3g43790,Unclassified,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At3g19940,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At3g20460,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At3g54700,phosphate,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At3g13050,Unclassified,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At3g01930,Unclassified,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At3g05400,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At3g46980,phosphate,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At3g47420,glycerol-3-phosphate,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At4g35300,sugar?,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At4g36670,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At4g21480,glucose,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At4g16480,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At4g04760,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At4g02050,hexose,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At4g04750,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At4g11810,efflux?,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At4g36790,drug efflux?,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At4g22990,Unclassified,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At4g17550,glycerol-3-phosphate,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At4g00370,sodium ion/phosphate,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At4g25220,glycerol-3-phosphate,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At5g59250,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At5g50520,carboxylate?,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At5g64500,Unclassified,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At5g13750,Unclassified,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At5g23270,hexose,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At5g27350,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At5g26250,hexose,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At5g27360,sugar?,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At5g43340,phosphate,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At5g43350,phosphate,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At5g61520,hexose,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At5g17010,sugar?,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At5g16150,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At5g10190,Unclassified,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At5g43360,phosphate,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At5g43370,phosphate,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At5g26340,glucose/hexose,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At5g20380,sodium ion:anion symporter (phosphate/glutamate?),,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At5g44370,phosphate,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g08090,nitrate,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g08100,nitrate,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g12940,nitrate,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g18940,Nodule-specific protein,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g31470,Nodule-specific protein,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g63010,Unclassified,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g64650,Unclassified,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g78130,Unclassified,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g80530,Nodule-specific protein,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At2g13100,glycerol-3-phosphate,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At2g16660,Nodule-specific protein,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At2g18590,Unclassified,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At2g23093,Unclassified,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At2g28120,Nodule-specific protein,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At2g30300,Nodule-specific protein,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At2g34350,Nodule-specific protein,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At2g34355,Nodule-specific protein,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At2g38060,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At2g39210,Nodule-specific protein,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At3g01630,Nodule-specific protein,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At3g05155,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At3g05165,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At3g45060,nitrate,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At3g49310,Unclassified,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At4g08878,phosphate,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At4g08895,phosphate,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At4g19450,Nodule-specific protein,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At4g27720,Unclassified,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At4g34950,Nodule-specific protein,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At5g13740,multidrug efflux?,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At5g14120,Nodule-specific protein,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At5g14570,nitrate,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At5g18840,sugar,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At5g42210,tetracycline?,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At5g45275,Nodule-specific protein,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At5g50630,Nodule-specific protein,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At5g60770,nitrate,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At5g60780,nitrate,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At5g65687,Unclassified,,MFS,The Major Facilitator Superfamily (MFS),Secondary Transporter,2.A.1
+At1g73700,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At1g71140,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At1g64820,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At1g11670,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At1g71870,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At1g33080,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At1g33090,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At1g33100,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At1g15150,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At1g33110,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At1g15160,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At1g15170,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At1g15180,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At1g61890,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At1g58340,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At1g12950,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At1g47530,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At1g23300,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At1g66780,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At1g66760,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At1g51340,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At2g04080,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At2g04040,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At2g38510,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At2g38330,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At2g34360,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At2g04070,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At2g04090,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At2g04050,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At2g04100,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At2g21340,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At3g59030,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At3g21690,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At3g26590,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At3g03620,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At3g23550,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At3g23560,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At3g08040,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At4g21910,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At4g23030,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At4g21900,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At4g00350,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At4g29140,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At4g38380,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At4g39030,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At4g25640,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At4g22790,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At5g52450,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At5g52050,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At5g38030,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At5g65380,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At5g44050,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At5g10420,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At5g17700,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At5g19700,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At5g49130,multidrug efflux?,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At2g04066,multidrug efflux,MATE,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At5g07630,nuclear division RFT1 homolog (OLF subfamily),OLF,MOP,The Multidrug/Oligosaccharidyl-lipid/Polysaccharide (MOP) Flippase Superfamily,Secondary Transporter,2.A.66
+At5g03560,uracil?,,NCS1,The Nucleobase:Cation Symporter-1 (NCS1) Family,Secondary Transporter,2.A.39
+At5g03555,cytosine/purines/uracil/thiamine/allantoin,,NCS1,The Nucleobase:Cation Symporter-1 (NCS1) Family,Secondary Transporter,2.A.39
+At1g10540,sodium ion/?,,NCS2,The Nucleobase:Cation Symporter-2 (NCS2) Family,Secondary Transporter,2.A.40
+At1g60030,sodium ion/?,,NCS2,The Nucleobase:Cation Symporter-2 (NCS2) Family,Secondary Transporter,2.A.40
+At1g49960,sodium ion/?,,NCS2,The Nucleobase:Cation Symporter-2 (NCS2) Family,Secondary Transporter,2.A.40
+At1g65550,sodium ion/?,,NCS2,The Nucleobase:Cation Symporter-2 (NCS2) Family,Secondary Transporter,2.A.40
+At2g27810,sodium ion/ascorbic acid?,,NCS2,The Nucleobase:Cation Symporter-2 (NCS2) Family,Secondary Transporter,2.A.40
+At2g26510,sodium ion/ascorbic acid?,,NCS2,The Nucleobase:Cation Symporter-2 (NCS2) Family,Secondary Transporter,2.A.40
+At2g34190,sodium ion/ascorbic acid?,,NCS2,The Nucleobase:Cation Symporter-2 (NCS2) Family,Secondary Transporter,2.A.40
+At2g05760,sodium ion/?,,NCS2,The Nucleobase:Cation Symporter-2 (NCS2) Family,Secondary Transporter,2.A.40
+At4g38050,nucleobase?,,NCS2,The Nucleobase:Cation Symporter-2 (NCS2) Family,Secondary Transporter,2.A.40
+At5g25420,Unclassified,,NCS2,The Nucleobase:Cation Symporter-2 (NCS2) Family,Secondary Transporter,2.A.40
+At5g62890,Unclassified,,NCS2,The Nucleobase:Cation Symporter-2 (NCS2) Family,Secondary Transporter,2.A.40
+At5g49990,Unclassified,,NCS2,The Nucleobase:Cation Symporter-2 (NCS2) Family,Secondary Transporter,2.A.40
+At3g10960,purine (hypoxanthine/adenine/guanine),,NCS2,The Nucleobase:Cation Symporter-2 (NCS2) Family,Secondary Transporter,2.A.40
+At5g50300,purine (hypoxanthine/adenine/guanine),,NCS2,The Nucleobase:Cation Symporter-2 (NCS2) Family,Secondary Transporter,2.A.40
+At1g49810,sodium ion/proton,,NhaD,The NhaD Na+:H+ Antiporter (NhaD) Family,Secondary Transporter,2.A.62
+At3g19490,sodium ion/proton,,NhaD,The NhaD Na+:H+ Antiporter (NhaD) Family,Secondary Transporter,2.A.62
+At4g35080,nickel ion,,NiCoT,The Ni2+-Co2+ Transporter (NiCoT) Family,Secondary Transporter,2.A.52
+At2g16800,nickel ion,,NiCoT,The Ni2+-Co2+ Transporter (NiCoT) Family,Secondary Transporter,2.A.52
+At1g47240,metal ion,,Nramp,The Metal Ion (Mn2+-iron) Transporter (Nramp) Family,Secondary Transporter,2.A.55
+At1g80830,metal ion,,Nramp,The Metal Ion (Mn2+-iron) Transporter (Nramp) Family,Secondary Transporter,2.A.55
+At1g15960,metal ion,,Nramp,The Metal Ion (Mn2+-iron) Transporter (Nramp) Family,Secondary Transporter,2.A.55
+At2g23150,metal ion,,Nramp,The Metal Ion (Mn2+-iron) Transporter (Nramp) Family,Secondary Transporter,2.A.55
+At4g18790,metal ion,,Nramp,The Metal Ion (Mn2+-iron) Transporter (Nramp) Family,Secondary Transporter,2.A.55
+At5g03280,metal ion,,Nramp,The Metal Ion (Mn2+-iron) Transporter (Nramp) Family,Secondary Transporter,2.A.55
+At5g67330,metal ion,,Nramp,The Metal Ion (Mn2+-iron) Transporter (Nramp) Family,Secondary Transporter,2.A.55
+At1g09930,oligopeptide,,OPT,The Oligopeptide Transporter (OPT) Family,Secondary Transporter,2.A.67
+At1g48370,oligopeptide,,OPT,The Oligopeptide Transporter (OPT) Family,Secondary Transporter,2.A.67
+At1g65730,oligopeptide,,OPT,The Oligopeptide Transporter (OPT) Family,Secondary Transporter,2.A.67
+At4g10770,oligopeptide,,OPT,The Oligopeptide Transporter (OPT) Family,Secondary Transporter,2.A.67
+At4g27730,oligopeptide,,OPT,The Oligopeptide Transporter (OPT) Family,Secondary Transporter,2.A.67
+At4g16370,ISP4-like protein,,OPT,The Oligopeptide Transporter (OPT) Family,Secondary Transporter,2.A.67
+At4g26590,ISP4-like protein,,OPT,The Oligopeptide Transporter (OPT) Family,Secondary Transporter,2.A.67
+At5g53510,oligopeptide,,OPT,The Oligopeptide Transporter (OPT) Family,Secondary Transporter,2.A.67
+At5g53520,oligopeptide,,OPT,The Oligopeptide Transporter (OPT) Family,Secondary Transporter,2.A.67
+At5g64410,oligopeptide,,OPT,The Oligopeptide Transporter (OPT) Family,Secondary Transporter,2.A.67
+At5g45450,oligopeptide,,OPT,The Oligopeptide Transporter (OPT) Family,Secondary Transporter,2.A.67
+At5g53550,oligopeptide,,OPT,The Oligopeptide Transporter (OPT) Family,Secondary Transporter,2.A.67
+At5g55930,oligopeptide,,OPT,The Oligopeptide Transporter (OPT) Family,Secondary Transporter,2.A.67
+At5g41000,oligopeptide,,OPT,The Oligopeptide Transporter (OPT) Family,Secondary Transporter,2.A.67
+At5g24380,oligopeptide,,OPT,The Oligopeptide Transporter (OPT) Family,Secondary Transporter,2.A.67
+At3g17650,metal ion-siderophore/nicotianamine,,OPT,The Oligopeptide Transporter (OPT) Family,Secondary Transporter,2.A.67
+At3g27020,metal ion-siderophore/nicotianamine,,OPT,The Oligopeptide Transporter (OPT) Family,Secondary Transporter,2.A.67
+At4g24120,metal ion-siderophore/nicotianamine,,OPT,The Oligopeptide Transporter (OPT) Family,Secondary Transporter,2.A.67
+At2g28800,chloroplast membrane protein (ALBINO3),,Oxa1,The Cytochrome Oxidase Biogenesis (Oxa1) Family,Secondary Transporter,2.A.9
+At1g24490,60 kDa inner membrane family protein,,Oxa1,The Cytochrome Oxidase Biogenesis (Oxa1) Family,Secondary Transporter,2.A.9
+At2g46470,60 kDa inner membrane family protein,,Oxa1,The Cytochrome Oxidase Biogenesis (Oxa1) Family,Secondary Transporter,2.A.9
+At1g65080,60 kDa inner membrane family protein,,Oxa1,The Cytochrome Oxidase Biogenesis (Oxa1) Family,Secondary Transporter,2.A.9
+At3g44360,60 KD inner membrane protein ALBINO3 homolog,,Oxa1,The Cytochrome Oxidase Biogenesis (Oxa1) Family,Secondary Transporter,2.A.9
+At3g44370,60 KD inner membrane protein ALBINO3 homolog,,Oxa1,The Cytochrome Oxidase Biogenesis (Oxa1) Family,Secondary Transporter,2.A.9
+At5g62050,60 KD inner membrane protein OxaA homolog,,Oxa1,The Cytochrome Oxidase Biogenesis (Oxa1) Family,Secondary Transporter,2.A.9
+At3g26570,phosphate,,PiT,The Inorganic Phosphate Transporter (PiT) Family,Secondary Transporter,2.A.20
+At1g22540,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At1g12110,nitrate,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At1g72120,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At1g52190,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At1g27040,nitrate,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At1g72130,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At1g69870,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At1g72140,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At1g69860,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At1g32450,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At1g68570,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At1g59740,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At1g18880,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At1g27080,nitrate,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At1g33440,nitrate,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At1g62200,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At1g22570,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At1g22550,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At1g69850,nitrate,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At2g37900,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At2g26690,nitrate,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At2g40460,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At2g38100,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At2g02020,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At2g02040,histidine,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At3g54140,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At3g25260,nitrate,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At3g25280,nitrate,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At3g01350,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At3g45650,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At3g45660,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At3g21670,nitrate,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At3g45680,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At3g16180,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At3g45700,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At3g45710,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At3g47960,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At3g45720,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At3g45690,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At4g21680,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At5g46050,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At5g28470,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At5g01180,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At5g19640,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At5g62730,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At5g46040,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At5g11570,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At5g62680,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At5g13400,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At5g14940,peptide,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At3g53960,proton:peptide symporter,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At3g54450,proton:peptide symporter,,POT,The Proton-dependent Oligopeptide Transporter (POT) Family,Secondary Transporter,2.A.17
+At1g42470,drug efflux?,,RND,The Resistance-Nodulation-Cell Division (RND) Superfamily,Secondary Transporter,2.A.6
+At4g38350,drug efflux,,RND,The Resistance-Nodulation-Cell Division (RND) Superfamily,Secondary Transporter,2.A.6
+At1g76490,3-hydroxy-3-methylglutaryl(HMG)-CoA reductase,,RND,The Resistance-Nodulation-Cell Division (RND) Superfamily,Secondary Transporter,2.A.6
+At2g17370,3-hydroxy-3-methylglutaryl(HMG)-CoA reductase,,RND,The Resistance-Nodulation-Cell Division (RND) Superfamily,Secondary Transporter,2.A.6
+At5g45380,urea,,SSS,The Solute:Sodium Symporter (SSS) Family,Secondary Transporter,2.A.21
+At1g78000,sulfate,,SulP,The Sulfate Permease (SulP) Family,Secondary Transporter,2.A.53
+At1g23090,sulfate,,SulP,The Sulfate Permease (SulP) Family,Secondary Transporter,2.A.53
+At1g22150,sulfate,,SulP,The Sulfate Permease (SulP) Family,Secondary Transporter,2.A.53
+At1g77990,sulfate,,SulP,The Sulfate Permease (SulP) Family,Secondary Transporter,2.A.53
+At3g15990,sulfate,,SulP,The Sulfate Permease (SulP) Family,Secondary Transporter,2.A.53
+At3g12520,sulfate,,SulP,The Sulfate Permease (SulP) Family,Secondary Transporter,2.A.53
+At4g02700,sulfate,,SulP,The Sulfate Permease (SulP) Family,Secondary Transporter,2.A.53
+At4g08620,sulfate,,SulP,The Sulfate Permease (SulP) Family,Secondary Transporter,2.A.53
+At5g13550,sulfate,,SulP,The Sulfate Permease (SulP) Family,Secondary Transporter,2.A.53
+At5g19600,sulfate,,SulP,The Sulfate Permease (SulP) Family,Secondary Transporter,2.A.53
+At5g10180,sulfate,,SulP,The Sulfate Permease (SulP) Family,Secondary Transporter,2.A.53
+At1g80310,sulfate,,SulP,The Sulfate Permease (SulP) Family,Secondary Transporter,2.A.53
+At2g25680,sulfate,,SulP,The Sulfate Permease (SulP) Family,Secondary Transporter,2.A.53
+At3g51895,sulfate,,SulP,The Sulfate Permease (SulP) Family,Secondary Transporter,2.A.53
+At5g52440,protein export(TatC/Hcf106/Tha4),,Tat,The Twin Arginine Targeting (Tat) Family,Secondary Transporter,2.A.64
+At2g01110,protein export(TatC/Hcf106/Tha4),,Tat,The Twin Arginine Targeting (Tat) Family,Secondary Transporter,2.A.64
+At5g28750,protein export(TatC/Hcf106/Tha4),,Tat,The Twin Arginine Targeting (Tat) Family,Secondary Transporter,2.A.64
+At1g12480,tellurite?,,TDT,The Telurite-resistance/Dicarboxylate Transporter (TDT) Family,Secondary Transporter,2.A.16
+At1g62280,tellurite?,,TDT,The Telurite-resistance/Dicarboxylate Transporter (TDT) Family,Secondary Transporter,2.A.16
+At4g27970,tellurite?,,TDT,The Telurite-resistance/Dicarboxylate Transporter (TDT) Family,Secondary Transporter,2.A.16
+At5g24030,tellurite?,,TDT,The Telurite-resistance/Dicarboxylate Transporter (TDT) Family,Secondary Transporter,2.A.16
+At4g10310,potassium ion,,Trk,The K+ Transporter (Trk) Family,Secondary Transporter,2.A.38
+At1g21140,vacuolar ferrous ion uptake,,VIT,The Vacuolar Iron Transporter (VIT) Family,Secondary Transporter,2.A.89
+At1g76800,vacuolar ferrous ion uptake,,VIT,The Vacuolar Iron Transporter (VIT) Family,Secondary Transporter,2.A.89
+At2g01770,vacuolar ferrous ion uptake,,VIT,The Vacuolar Iron Transporter (VIT) Family,Secondary Transporter,2.A.89
+At3g25190,vacuolar ferrous ion uptake,,VIT,The Vacuolar Iron Transporter (VIT) Family,Secondary Transporter,2.A.89
+At3g43630,vacuolar ferrous ion uptake,,VIT,The Vacuolar Iron Transporter (VIT) Family,Secondary Transporter,2.A.89
+At3g43660,vacuolar ferrous ion uptake,,VIT,The Vacuolar Iron Transporter (VIT) Family,Secondary Transporter,2.A.89
+At4g27860,vacuolar ferrous ion uptake,,VIT,The Vacuolar Iron Transporter (VIT) Family,Secondary Transporter,2.A.89
+At4g27870,vacuolar ferrous ion uptake,,VIT,The Vacuolar Iron Transporter (VIT) Family,Secondary Transporter,2.A.89
+At5g24290,vacuolar ferrous ion uptake,,VIT,The Vacuolar Iron Transporter (VIT) Family,Secondary Transporter,2.A.89
+At1g05300,iron/zinc ion,,ZIP,The Zinc (Zn2+)-Iron (Fe2+) Permease (ZIP) Family,Secondary Transporter,2.A.5
+At1g31260,iron/zinc ion,,ZIP,The Zinc (Zn2+)-Iron (Fe2+) Permease (ZIP) Family,Secondary Transporter,2.A.5
+At1g55910,iron/zinc ion,,ZIP,The Zinc (Zn2+)-Iron (Fe2+) Permease (ZIP) Family,Secondary Transporter,2.A.5
+At1g60960,iron/zinc ion,,ZIP,The Zinc (Zn2+)-Iron (Fe2+) Permease (ZIP) Family,Secondary Transporter,2.A.5
+At1g10970,iron/zinc ion,,ZIP,The Zinc (Zn2+)-Iron (Fe2+) Permease (ZIP) Family,Secondary Transporter,2.A.5
+At2g32270,iron/zinc ion,,ZIP,The Zinc (Zn2+)-Iron (Fe2+) Permease (ZIP) Family,Secondary Transporter,2.A.5
+At2g30080,iron/zinc ion,,ZIP,The Zinc (Zn2+)-Iron (Fe2+) Permease (ZIP) Family,Secondary Transporter,2.A.5
+At3g12750,zinc ion,,ZIP,The Zinc (Zn2+)-Iron (Fe2+) Permease (ZIP) Family,Secondary Transporter,2.A.5
+At4g33020,iron/zinc ion,,ZIP,The Zinc (Zn2+)-Iron (Fe2+) Permease (ZIP) Family,Secondary Transporter,2.A.5
+At4g19680,iron/zinc ion,,ZIP,The Zinc (Zn2+)-Iron (Fe2+) Permease (ZIP) Family,Secondary Transporter,2.A.5
+At4g19690,iron/zinc ion,,ZIP,The Zinc (Zn2+)-Iron (Fe2+) Permease (ZIP) Family,Secondary Transporter,2.A.5
+At5g59520,iron/zinc ion,,ZIP,The Zinc (Zn2+)-Iron (Fe2+) Permease (ZIP) Family,Secondary Transporter,2.A.5
+At5g62160,iron/zinc ion,,ZIP,The Zinc (Zn2+)-Iron (Fe2+) Permease (ZIP) Family,Secondary Transporter,2.A.5
+At1g68100,zinc ion (indole acetic acid-alanine resistance protein),,ZIP,The Zinc (Zn2+)-Iron (Fe2+) Permease (ZIP) Family,Secondary Transporter,2.A.5
+At2g04032,zinc/iron ion,,ZIP,The Zinc (Zn2+)-Iron (Fe2+) Permease (ZIP) Family,Secondary Transporter,2.A.5
+At3g08650,zinc/iron ion,,ZIP,The Zinc (Zn2+)-Iron (Fe2+) Permease (ZIP) Family,Secondary Transporter,2.A.5
+At3g20870,zinc ion,,ZIP,The Zinc (Zn2+)-Iron (Fe2+) Permease (ZIP) Family,Secondary Transporter,2.A.5
+At5g45105,zinc/iron ion,,ZIP,The Zinc (Zn2+)-Iron (Fe2+) Permease (ZIP) Family,Secondary Transporter,2.A.5
+At1g19800,toluene tolerance,membrane,ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g20320,toluene tolerance,binding protein,ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g65410,toluene tolerance,ABC,ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At2g37330,drug efflux?,membrane,ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g67940,drug efflux?,ABC,ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At5g44110,iron(III)/sulfate?,ABC,ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At5g02270,iron(III)/sulfate?,ABC,ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g03905,iron(III)/sulfate?,ABC,ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At5g44316,? (Fe-S assembly/SufBCD system),membrane(SufB/SufD),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At4g04770,? (Fe-S assembly/SufBCD system),membrane(SufB),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g10670,? (Fe-S assembly/SufBCD system),ABC(SufC),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g32500,? (Fe-S assembly/SufBCD system),membrane(SufD),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At4g33460,cobalt ion,ABC,ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g21580,cobalt ion,membrane,ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At5g14100,cobalt ion,ABC,ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At2g07771,heme,membrane,ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At2g07681,heme,membrane,ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g63270,heme,ABC,ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At2g41700,Unclassified,ABCA,ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g47730,Unclassified,ABCA,ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g47740,Unclassified,ABCA,ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g47750,Unclassified,ABCA,ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g47760,Unclassified,ABCA,ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g47770,Unclassified,ABCA,ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g47780,Unclassified,ABCA,ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g47790,Unclassified,ABCA,ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At5g61690,Unclassified,ABCA,ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At5g61700,Unclassified,ABCA,ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At5g61730,Unclassified,ABCA,ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At5g61740,Unclassified,ABCA,ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At4g28620,Unclassified,ABCB(HMT),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At4g28630,Unclassified,ABCB(HMT),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At5g58270,Unclassified,ABCB(HMT),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At5g03910,Unclassified,ABCB(LLP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g02520,multidrug (P-glycoprotein homolog) (ABCB),ABCB(p-gP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g02530,multidrug (P-glycoprotein homolog) (ABCB),ABCB(p-gP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g10680,multidrug (P-glycoprotein homolog) (ABCB),ABCB(p-gP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g27940,multidrug (P-glycoprotein homolog) (ABCB),ABCB(p-gP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g28010,multidrug (P-glycoprotein homolog) (ABCB),ABCB(p-gP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At2g36910,multidrug (P-glycoprotein homolog) (ABCB),ABCB(p-gP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At2g39480,multidrug (P-glycoprotein homolog) (ABCB),ABCB(p-gP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At2g47000,multidrug (P-glycoprotein homolog) (ABCB),ABCB(p-gP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g28345,multidrug (P-glycoprotein homolog) (ABCB),ABCB(p-gP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g28360,multidrug (P-glycoprotein homolog) (ABCB),ABCB(p-gP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g28380,multidrug (P-glycoprotein homolog) (ABCB),ABCB(p-gP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g28390,multidrug (P-glycoprotein homolog) (ABCB),ABCB(p-gP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g28415,multidrug (P-glycoprotein homolog) (ABCB),ABCB(p-gP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g28860,multidrug (P-glycoprotein homolog) (ABCB),ABCB(p-gP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g55320,multidrug (P-glycoprotein homolog) (ABCB),ABCB(p-gP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g62150,multidrug (P-glycoprotein homolog) (ABCB),ABCB(p-gP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At4g01820,multidrug (P-glycoprotein homolog) (ABCB),ABCB(p-gP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At4g01830,multidrug (P-glycoprotein homolog) (ABCB),ABCB(p-gP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At4g18050,multidrug (P-glycoprotein homolog) (ABCB),ABCB(p-gP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At4g25960,multidrug (P-glycoprotein homolog) (ABCB),ABCB(p-gP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At5g46540,multidrug (P-glycoprotein homolog) (ABCB),ABCB(p-gP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g70610,antigen peptide,ABCB(TAP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At4g25450,antigen peptide,ABCB(TAP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At5g39040,antigen peptide,ABCB(TAP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g04120,drug efflux,ABCC(MRP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g30400,drug efflux,ABCC(MRP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g30410,drug efflux,ABCC(MRP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g30420,drug efflux,ABCC(MRP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g71330,drug efflux,ABCC(MRP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At2g07680,multidrug efflux,ABCC(MRP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At2g34660,multidrug efflux,ABCC(MRP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At2g47800,glutathione conjugate,ABCC(MRP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g13080,glutathione S-conjugate,ABCC(MRP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g13090,glutathione S-conjugate,ABCC(MRP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g13100,glutathione S-conjugate,ABCC(MRP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g21250,drug efflux,ABCC(MRP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g59140,drug efflux,ABCC(MRP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g60160,drug efflux,ABCC(MRP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g60970,drug efflux,ABCC(MRP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g62700,drug efflux,ABCC(MRP),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g54350,long-chain fatty acid (ALDP homolog),ABCD(FAE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At4g39850,long-chain fatty acid (ALDP homolog),ABCD(FAE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g15210,multidrug (ABCG),ABCG(PDR),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g15520,multidrug (ABCG),ABCG(PDR),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g59870,multidrug (ABCG),ABCG(PDR),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g66950,multidrug (ABCG),ABCG(PDR),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At2g26910,multidrug (ABCG),ABCG(PDR),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At2g29940,multidrug (ABCG),ABCG(PDR),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At2g36380,multidrug (ABCG),ABCG(PDR),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At2g37280,multidrug (ABCG),ABCG(PDR),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g16340,multidrug (ABCG),ABCG(PDR),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g30842,multidrug (ABCG),ABCG(PDR),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g53480,multidrug (ABCG),ABCG(PDR),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At4g15215,multidrug (ABCG),ABCG(PDR),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At4g15230,multidrug (ABCG),ABCG(PDR),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At4g15233,multidrug (ABCG),ABCG(PDR),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At4g15236,multidrug (ABCG),ABCG(PDR),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g17840,pigment?,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g31770,pigment?,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g51460,pigment?,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g51500,pigment?,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g53270,pigment?,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g53390,Unclassified,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g71960,Unclassified,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At2g01320,pigment,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At2g13610,pigment,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At2g28070,pigment,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At2g37010,Unclassified,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At2g37360,Unclassified,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At2g39350,pigment,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g13220,Unclassified,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g21090,pigment,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g25620,pigment,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g52310,pigment,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g53510,pigment,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g55090,Unclassified,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g55100,pigment,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g55110,pigment,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g55130,pigment,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At4g25750,pigment?,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At4g27420,pigment?,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At5g06530,pigment?,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At5g13580,pigment?,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At5g19410,pigment?,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At5g52860,pigment?,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At5g60740,pigment?,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g31410,spermidine/putrescine,binding protein,ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At3g21080,plant cuticular wax export,ABCG(WHITE),ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At5g09930,? (Uup homolog/duplicated ATPase),ABC,ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At5g64840,? (Uup homolog/duplicated ATPase),ABC,ABC,The ATP-binding Cassette (ABC) Superfamily,ATP-Dependent,3.A.1
+At1g01910,arsenite (ArsA),,ArsAB,The Arsenite-Antimonite (ArsAB) Efflux Family,ATP-Dependent,3.A.4
+At1g26090,arsenite (ArsA),,ArsAB,The Arsenite-Antimonite (ArsAB) Efflux Family,ATP-Dependent,3.A.4
+At3g10350,arsenite (ArsA),,ArsAB,The Arsenite-Antimonite (ArsAB) Efflux Family,ATP-Dependent,3.A.4
+At5g60730,arsenite (ArsA),,ArsAB,The Arsenite-Antimonite (ArsAB) Efflux Family,ATP-Dependent,3.A.4
+At1g02280,outer membrane translocase (import) Toc33,,CEPT,The Chloroplast Envelope Protein Translocase (CEPT or Tic-Toc) Family,ATP-Dependent,3.A.9
+At1g04940,inner membrane translocase (import) Tic20,,CEPT,The Chloroplast Envelope Protein Translocase (CEPT or Tic-Toc) Family,ATP-Dependent,3.A.9
+At1g08980,outer membrane translocase (import) Toc64,,CEPT,The Chloroplast Envelope Protein Translocase (CEPT or Tic-Toc) Family,ATP-Dependent,3.A.9
+At1g35860,outer membrane translocase (import) Toc75,,CEPT,The Chloroplast Envelope Protein Translocase (CEPT or Tic-Toc) Family,ATP-Dependent,3.A.9
+At2g16640,outer membrane translocase (import) Toc86,,CEPT,The Chloroplast Envelope Protein Translocase (CEPT or Tic-Toc) Family,ATP-Dependent,3.A.9
+At3g16620,outer membrane translocase (import) Toc86,,CEPT,The Chloroplast Envelope Protein Translocase (CEPT or Tic-Toc) Family,ATP-Dependent,3.A.9
+At3g17970,outer membrane translocase (import) Toc64,,CEPT,The Chloroplast Envelope Protein Translocase (CEPT or Tic-Toc) Family,ATP-Dependent,3.A.9
+At3g23710,inner membrane translocase (import) Tic22,,CEPT,The Chloroplast Envelope Protein Translocase (CEPT or Tic-Toc) Family,ATP-Dependent,3.A.9
+At3g46740,outer membrane translocase (import) Toc75,,CEPT,The Chloroplast Envelope Protein Translocase (CEPT or Tic-Toc) Family,ATP-Dependent,3.A.9
+At4g03320,inner membrane translocase (import) Tic20,,CEPT,The Chloroplast Envelope Protein Translocase (CEPT or Tic-Toc) Family,ATP-Dependent,3.A.9
+At4g09080,outer membrane translocase (import) Toc75,,CEPT,The Chloroplast Envelope Protein Translocase (CEPT or Tic-Toc) Family,ATP-Dependent,3.A.9
+At4g33350,inner membrane translocase (import) Tic22,,CEPT,The Chloroplast Envelope Protein Translocase (CEPT or Tic-Toc) Family,ATP-Dependent,3.A.9
+At5g05000,outer membrane translocase (import) Toc34,,CEPT,The Chloroplast Envelope Protein Translocase (CEPT or Tic-Toc) Family,ATP-Dependent,3.A.9
+At5g09420,outer membrane translocase (import) Toc64,,CEPT,The Chloroplast Envelope Protein Translocase (CEPT or Tic-Toc) Family,ATP-Dependent,3.A.9
+At5g20300,outer membrane translocase (import) Toc86,,CEPT,The Chloroplast Envelope Protein Translocase (CEPT or Tic-Toc) Family,ATP-Dependent,3.A.9
+At4g25950,protons (vacuolar),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At3g28715,protons (vacuolar),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At2g16510,protons (vacuolar),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At4g32530,protons (vacuolar),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At3g42050,protons (vacuolar),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At1g76030,protons (vacuolar),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At2g21410,protons (vacuolar),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At1g16820,protons (vacuolar),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At1g12840,protons (vacuolar),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At4g34720,protons (vacuolar),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At3g58730,protons (vacuolar),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At2g25610,protons (vacuolar),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At3g08560,protons (vacuolar),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At1g19910,protons (vacuolar),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At4g38510,protons (vacuolar),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At4g02620,protons (vacuolar),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At2g28520,protons (vacuolar),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At4g38920,protons (vacuolar),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At1g20260,protons (vacuolar),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At4g39080,protons (vacuolar),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At4g11150,protons (vacuolar),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At3g01390,protons (vacuolar),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At1g78900,protons (vacuolar),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At1g64200,protons (vacuolar),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At4g23710,protons (vacuolar),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At3g28710,protons (vacuolar),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At1g75630,protons (vacuolar),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At3g52300,protons (mitochondrial),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At5g55290,protons (mitochondrial),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At5g08670,protons (mitochondrial),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At1g51650,protons (mitochondrial),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At5g08680,protons (mitochondrial),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At2g07671,protons (mitochondrial),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At5g08690,protons (mitochondrial),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At2g07698,protons (mitochondrial),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At2g07741,protons (mitochondrial),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At4g26710,protons (mitochondrial),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At2g33040,protons (mitochondrial),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At5g47030,protons (mitochondrial),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At4g04640,protons (chloroplast),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At4g32260,protons (chloroplast),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At1g15700,protons (chloroplast),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At4g09650,protons (chloroplast),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At5g13450,protons (chloroplast),,F-ATPase,The H+- or Na+-translocating F-type, V-type and A-type ATPase (F-ATPase) Superfamily,ATP-Dependent,3.A.2
+At1g15690,proton,,H+-PPase,The H+-translocating Pyrophosphatase (H+-PPase) Family,ATP-Dependent,3.A.10
+At1g16780,proton,,H+-PPase,The H+-translocating Pyrophosphatase (H+-PPase) Family,ATP-Dependent,3.A.10
+At1g78920,proton,,H+-PPase,The H+-translocating Pyrophosphatase (H+-PPase) Family,ATP-Dependent,3.A.10
+At1g15310,signal recognition particle (SRP54),,IISP,The Type II (General) Secretory Pathway (IISP) Family,ATP-Dependent,3.A.5
+At1g29310,preprotein translocase Sec61 alpha subunit,,IISP,The Type II (General) Secretory Pathway (IISP) Family,ATP-Dependent,3.A.5
+At1g48160,signal recognition particle (SRP19),,IISP,The Type II (General) Secretory Pathway (IISP) Family,ATP-Dependent,3.A.5
+At1g48900,signal recognition particle (SRP54),,IISP,The Type II (General) Secretory Pathway (IISP) Family,ATP-Dependent,3.A.5
+At1g67650,signal recognition particle (SRP72),,IISP,The Type II (General) Secretory Pathway (IISP) Family,ATP-Dependent,3.A.5
+At1g67680,signal recognition particle (SRP72),,IISP,The Type II (General) Secretory Pathway (IISP) Family,ATP-Dependent,3.A.5
+At1g78720,preprotein translocase Sec61 alpha subunit,,IISP,The Type II (General) Secretory Pathway (IISP) Family,ATP-Dependent,3.A.5
+At2g18710,preprotein translocase SecY subunit,,IISP,The Type II (General) Secretory Pathway (IISP) Family,ATP-Dependent,3.A.5
+At2g18770,signal recognition particle receptor beta subunit (SR-beta),,IISP,The Type II (General) Secretory Pathway (IISP) Family,ATP-Dependent,3.A.5
+At2g31530,preprotein translocase SecY subunit,,IISP,The Type II (General) Secretory Pathway (IISP) Family,ATP-Dependent,3.A.5
+At2g34250,preprotein translocase Sec61 alpha subunit,,IISP,The Type II (General) Secretory Pathway (IISP) Family,ATP-Dependent,3.A.5
+At2g43640,signal recognition particle (SRP14),,IISP,The Type II (General) Secretory Pathway (IISP) Family,ATP-Dependent,3.A.5
+At2g45070,preprotein translocase Sec61 beta subunit,,IISP,The Type II (General) Secretory Pathway (IISP) Family,ATP-Dependent,3.A.5
+At2g45770,signal recognition particle receptor alpha subunit (SR-alpha),,IISP,The Type II (General) Secretory Pathway (IISP) Family,ATP-Dependent,3.A.5
+At3g48570,protein transport protein Sec61 gamma subunit,,IISP,The Type II (General) Secretory Pathway (IISP) Family,ATP-Dependent,3.A.5
+At3g49100,signal recognition particle (SRP9),,IISP,The Type II (General) Secretory Pathway (IISP) Family,ATP-Dependent,3.A.5
+At3g60540,preprotein translocase Sec61 beta subunit,,IISP,The Type II (General) Secretory Pathway (IISP) Family,ATP-Dependent,3.A.5
+At4g01800,preprotein translocase SecA,,IISP,The Type II (General) Secretory Pathway (IISP) Family,ATP-Dependent,3.A.5
+At4g21180,preprotein translocase Sec63 subunit,,IISP,The Type II (General) Secretory Pathway (IISP) Family,ATP-Dependent,3.A.5
+At4g24920,protein transport protein Sec61 gamma subunit,,IISP,The Type II (General) Secretory Pathway (IISP) Family,ATP-Dependent,3.A.5
+At4g30600,signal recognition particle receptor alpha subunit (SR-alpha),,IISP,The Type II (General) Secretory Pathway (IISP) Family,ATP-Dependent,3.A.5
+At5g03940,signal recognition particle (SRP54),,IISP,The Type II (General) Secretory Pathway (IISP) Family,ATP-Dependent,3.A.5
+At5g05670,signal recognition particle receptor beta subunit (SR-beta),,IISP,The Type II (General) Secretory Pathway (IISP) Family,ATP-Dependent,3.A.5
+At5g49500,signal recognition particle (SRP54),,IISP,The Type II (General) Secretory Pathway (IISP) Family,ATP-Dependent,3.A.5
+At5g50460,protein transport protein Sec61 gamma subunit,,IISP,The Type II (General) Secretory Pathway (IISP) Family,ATP-Dependent,3.A.5
+At5g60460,preprotein translocase Sec61 beta subunit,,IISP,The Type II (General) Secretory Pathway (IISP) Family,ATP-Dependent,3.A.5
+At5g61970,signal recognition particle (SRP68),,IISP,The Type II (General) Secretory Pathway (IISP) Family,ATP-Dependent,3.A.5
+At5g66970,signal recognition particle (SRP54),,IISP,The Type II (General) Secretory Pathway (IISP) Family,ATP-Dependent,3.A.5
+At1g20350,inner membrane translocase (import) Tim17,,MPT,The Mitochondrial Protein Translocase (MPT) Family,ATP-Dependent,3.A.8
+At2g37410,inner membrane translocase (import) Tim17,,MPT,The Mitochondrial Protein Translocase (MPT) Family,ATP-Dependent,3.A.8
+At2g36070,inner membrane translocase (import) Tim44,,MPT,The Mitochondrial Protein Translocase (MPT) Family,ATP-Dependent,3.A.8
+At2g20510,inner membrane translocase (import) Tim44,,MPT,The Mitochondrial Protein Translocase (MPT) Family,ATP-Dependent,3.A.8
+At4g26670,inner membrane translocase (import) Tim17?,,MPT,The Mitochondrial Protein Translocase (MPT) Family,ATP-Dependent,3.A.8
+At1g17530,inner membrane translocase (import) Tim23,,MPT,The Mitochondrial Protein Translocase (MPT) Family,ATP-Dependent,3.A.8
+At1g18320,inner membrane translocase (import) Tim22,,MPT,The Mitochondrial Protein Translocase (MPT) Family,ATP-Dependent,3.A.8
+At1g36390,Mge1 homolog (motor component),,MPT,The Mitochondrial Protein Translocase (MPT) Family,ATP-Dependent,3.A.8
+At1g50400,outer membrane translocase (import) Tom40,,MPT,The Mitochondrial Protein Translocase (MPT) Family,ATP-Dependent,3.A.8
+At1g64220,outer membrane translocase (import) Tom7,,MPT,The Mitochondrial Protein Translocase (MPT) Family,ATP-Dependent,3.A.8
+At1g72750,inner membrane translocase (import) Tim23,,MPT,The Mitochondrial Protein Translocase (MPT) Family,ATP-Dependent,3.A.8
+At2g42210,inner membrane translocase (import) Tim17?,,MPT,The Mitochondrial Protein Translocase (MPT) Family,ATP-Dependent,3.A.8
+At3g04800,inner membrane translocase (import) Tim23,,MPT,The Mitochondrial Protein Translocase (MPT) Family,ATP-Dependent,3.A.8
+At3g10110,inner membrane translocase (import) Tim22,,MPT,The Mitochondrial Protein Translocase (MPT) Family,ATP-Dependent,3.A.8
+At3g20000,outer membrane translocase (import) Tom40,,MPT,The Mitochondrial Protein Translocase (MPT) Family,ATP-Dependent,3.A.8
+At3g25120,inner membrane translocase (import),,MPT,The Mitochondrial Protein Translocase (MPT) Family,ATP-Dependent,3.A.8
+At4g26780,Mge1 homolog (motor component),,MPT,The Mitochondrial Protein Translocase (MPT) Family,ATP-Dependent,3.A.8
+At5g11690,inner membrane translocase (import) Tim17,,MPT,The Mitochondrial Protein Translocase (MPT) Family,ATP-Dependent,3.A.8
+At5g17710,Mge1 homolog (motor component),,MPT,The Mitochondrial Protein Translocase (MPT) Family,ATP-Dependent,3.A.8
+At5g24650,inner membrane translocase (import) Tim17,,MPT,The Mitochondrial Protein Translocase (MPT) Family,ATP-Dependent,3.A.8
+At5g27390,inner membrane translocase (import),,MPT,The Mitochondrial Protein Translocase (MPT) Family,ATP-Dependent,3.A.8
+At5g41685,outer membrane translocase (import) Tom7,,MPT,The Mitochondrial Protein Translocase (MPT) Family,ATP-Dependent,3.A.8
+At5g55200,Mge1 homolog (motor component),,MPT,The Mitochondrial Protein Translocase (MPT) Family,ATP-Dependent,3.A.8
+At5g55510,inner membrane translocase (import) Tim17,,MPT,The Mitochondrial Protein Translocase (MPT) Family,ATP-Dependent,3.A.8
+At5g61880,inner membrane translocase (import) Tim16,,MPT,The Mitochondrial Protein Translocase (MPT) Family,ATP-Dependent,3.A.8
+At1g63440,copper ion,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At1g26130,phospholipid,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At1g27770,calcium ion,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At1g59820,phospholipid,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At1g72700,phospholipid,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At1g17500,phospholipid,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At1g07670,calcium ion,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At1g17260,plasma proton,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At1g54280,phospholipid,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At1g13210,calcium ion,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At1g68710,phospholipid,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At1g10130,calcium ion,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At1g80660,plasma proton,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At1g07810,calcium ion,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At2g24520,plasma proton,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At2g22950,calcium ion,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At2g41560,calcium ion,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At2g18960,plasma proton,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At2g19110,cadmium ion,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At2g23280,cation?,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At3g13900,phospholipid,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At3g21180,calcium ion,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At3g25610,phospholipid,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At3g63380,calcium ion,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At3g47950,plasma proton,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At3g57330,calcium ion,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At3g27870,phospholipid,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At3g42640,plasma proton,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At3g60330,plasma proton,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At3g22910,calcium ion,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At4g00900,calcium ion,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At4g37640,calcium ion,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At4g30190,plasma proton,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At4g30120,cadmium ion,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At4g30110,cadmium ion,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At4g29900,calcium ion,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At4g11730,plasma proton,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At4g37270,metal ion,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At4g33520,copper ion,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At5g44790,copper ion,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At5g57350,plasma proton,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At5g44240,calcium ion,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At5g53010,calcium ion,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At5g62670,plasma proton,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At5g23630,calcium ion,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At5g57110,calcium ion,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At2g07560,plasma proton,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At3g18700,cation,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At5g04930,phospholipid,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At5g21930,copper ion,,P-ATPase,The P-type ATPase (P-ATPase) Superfamily,ATP-Dependent,3.A.3
+At1g64780,ammonium ion,,Amt,The Ammonia Transporter Channel (Amt) Family,Ion Channels,1.A.11
+At2g38290,ammonium ion,,Amt,The Ammonia Transporter Channel (Amt) Family,Ion Channels,1.A.11
+At3g24290,ammonium ion,,Amt,The Ammonia Transporter Channel (Amt) Family,Ion Channels,1.A.11
+At3g24300,ammonium ion,,Amt,The Ammonia Transporter Channel (Amt) Family,Ion Channels,1.A.11
+At4g28700,ammonium ion,,Amt,The Ammonia Transporter Channel (Amt) Family,Ion Channels,1.A.11
+At4g13510,ammonium ion,,Amt,The Ammonia Transporter Channel (Amt) Family,Ion Channels,1.A.11
+At1g35720,Annexin A1,,Annexin,The Annexin (Annexin) Family,Ion Channels,1.A.31
+At1g68090,Annexin D7,,Annexin,The Annexin (Annexin) Family,Ion Channels,1.A.31
+At2g38750,Annexin D4,,Annexin,The Annexin (Annexin) Family,Ion Channels,1.A.31
+At2g38760,Annexin D3,,Annexin,The Annexin (Annexin) Family,Ion Channels,1.A.31
+At5g10220,Annexin D7,,Annexin,The Annexin (Annexin) Family,Ion Channels,1.A.31
+At5g10230,Annexin D7,,Annexin,The Annexin (Annexin) Family,Ion Channels,1.A.31
+At5g12380,Annexin,,Annexin,The Annexin (Annexin) Family,Ion Channels,1.A.31
+At5g65020,Annexin D2,,Annexin,The Annexin (Annexin) Family,Ion Channels,1.A.31
+At1g19550,intracellular chloride channel/dehydroascorbate reductase,,CLIC,The Intracellular Chloride Channel (CLIC) Family,Ion Channels,1.A.12
+At1g19570,intracellular chloride channel/dehydroascorbate reductase,,CLIC,The Intracellular Chloride Channel (CLIC) Family,Ion Channels,1.A.12
+At1g75270,intracellular chloride channel/dehydroascorbate reductase,,CLIC,The Intracellular Chloride Channel (CLIC) Family,Ion Channels,1.A.12
+At3g55040,intracellular chloride channel/dehydroascorbate reductase,,CLIC,The Intracellular Chloride Channel (CLIC) Family,Ion Channels,1.A.12
+At5g02780,intracellular chloride channel/dehydroascorbate reductase,,CLIC,The Intracellular Chloride Channel (CLIC) Family,Ion Channels,1.A.12
+At5g02790,intracellular chloride channel/dehydroascorbate reductase,,CLIC,The Intracellular Chloride Channel (CLIC) Family,Ion Channels,1.A.12
+At5g16710,intracellular chloride channel/dehydroascorbate reductase,,CLIC,The Intracellular Chloride Channel (CLIC) Family,Ion Channels,1.A.12
+At5g36270,intracellular chloride channel/dehydroascorbate reductase,,CLIC,The Intracellular Chloride Channel (CLIC) Family,Ion Channels,1.A.12
+At3g46900,copper ion,,Ctr,The Copper Transporter (Ctr) Family,Ion Channels,1.A.56
+At5g20650,copper ion,,Ctr,The Copper Transporter (Ctr) Family,Ion Channels,1.A.56
+At5g59030,copper ion,,Ctr,The Copper Transporter (Ctr) Family,Ion Channels,1.A.56
+At5g59040,copper ion,,Ctr,The Copper Transporter (Ctr) Family,Ion Channels,1.A.56
+At2g26975,copper ion uptake,,Ctr,The Copper Transporter (Ctr) Family,Ion Channels,1.A.56
+At2g37925,copper ion uptake,,Ctr,The Copper Transporter (Ctr) Family,Ion Channels,1.A.56
+At1g05200,glutamate-gated ion channel,,GIC,The Glutamate-gated Ion Channel (GIC) Family of Neurotransmitter Receptors,Ion Channels,1.A.10
+At1g42540,glutamate-gated ion channel,,GIC,The Glutamate-gated Ion Channel (GIC) Family of Neurotransmitter Receptors,Ion Channels,1.A.10
+At2g32400,glutamate-gated ion channel,,GIC,The Glutamate-gated Ion Channel (GIC) Family of Neurotransmitter Receptors,Ion Channels,1.A.10
+At2g17260,glutamate-gated ion channel,,GIC,The Glutamate-gated Ion Channel (GIC) Family of Neurotransmitter Receptors,Ion Channels,1.A.10
+At2g24710,glutamate-gated ion channel,,GIC,The Glutamate-gated Ion Channel (GIC) Family of Neurotransmitter Receptors,Ion Channels,1.A.10
+At2g32390,glutamate-gated ion channel,,GIC,The Glutamate-gated Ion Channel (GIC) Family of Neurotransmitter Receptors,Ion Channels,1.A.10
+At2g29110,glutamate-gated ion channel,,GIC,The Glutamate-gated Ion Channel (GIC) Family of Neurotransmitter Receptors,Ion Channels,1.A.10
+At2g29100,glutamate-gated ion channel,,GIC,The Glutamate-gated Ion Channel (GIC) Family of Neurotransmitter Receptors,Ion Channels,1.A.10
+At2g29120,glutamate-gated ion channel,,GIC,The Glutamate-gated Ion Channel (GIC) Family of Neurotransmitter Receptors,Ion Channels,1.A.10
+At3g04110,glutamate-gated ion channel,,GIC,The Glutamate-gated Ion Channel (GIC) Family of Neurotransmitter Receptors,Ion Channels,1.A.10
+At3g51480,glutamate-gated ion channel,,GIC,The Glutamate-gated Ion Channel (GIC) Family of Neurotransmitter Receptors,Ion Channels,1.A.10
+At3g07520,glutamate-gated ion channel,,GIC,The Glutamate-gated Ion Channel (GIC) Family of Neurotransmitter Receptors,Ion Channels,1.A.10
+At4g35290,glutamate-gated ion channel,,GIC,The Glutamate-gated Ion Channel (GIC) Family of Neurotransmitter Receptors,Ion Channels,1.A.10
+At4g31710,glutamate-gated ion channel,,GIC,The Glutamate-gated Ion Channel (GIC) Family of Neurotransmitter Receptors,Ion Channels,1.A.10
+At5g27100,glutamate-gated ion channel,,GIC,The Glutamate-gated Ion Channel (GIC) Family of Neurotransmitter Receptors,Ion Channels,1.A.10
+At5g48400,glutamate-gated ion channel,,GIC,The Glutamate-gated Ion Channel (GIC) Family of Neurotransmitter Receptors,Ion Channels,1.A.10
+At5g48410,glutamate-gated ion channel,,GIC,The Glutamate-gated Ion Channel (GIC) Family of Neurotransmitter Receptors,Ion Channels,1.A.10
+At5g11180,glutamate-gated ion channel,,GIC,The Glutamate-gated Ion Channel (GIC) Family of Neurotransmitter Receptors,Ion Channels,1.A.10
+At5g11210,glutamate-gated ion channel,,GIC,The Glutamate-gated Ion Channel (GIC) Family of Neurotransmitter Receptors,Ion Channels,1.A.10
+At2g24720,glutamate gated ion channel,,GIC,The Glutamate-gated Ion Channel (GIC) Family of Neurotransmitter Receptors,Ion Channels,1.A.10
+At5g62290,anion,,ICln,The Nucleotide-sensitive Anion-selective Channel, ICln (ICln) Family,Ion Channels,1.A.47
+At1g01620,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At1g52180,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At1g17810,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At1g80760,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At1g73190,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At2g16850,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At2g36830,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At2g37170,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At2g37180,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At2g34390,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At2g39010,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At2g45960,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At2g21020,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At2g25810,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At2g29870,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At3g53420,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At3g54820,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At3g16240,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At3g06100,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At3g04090,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At3g61430,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At3g47440,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At3g56950,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At3g26520,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At4g01470,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At4g17340,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At4g19030,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At4g18910,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At4g10380,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At4g35100,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At4g23400,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At4g00430,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At5g37820,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At5g60660,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At5g47450,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At5g18290,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At5g37810,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At1g31885,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At2g16835,water channel,,MIP,The Major Intrinsic Protein (MIP) Family,Ion Channels,1.A.8
+At2g04305,magnesium ion,,MIT,The CorA Metal Ion Transporter (MIT) Family,Ion Channels,1.A.35
+At5g64560,magnesium ion,,MIT,The CorA Metal Ion Transporter (MIT) Family,Ion Channels,1.A.35
+At5g09690,magnesium ion,,MIT,The CorA Metal Ion Transporter (MIT) Family,Ion Channels,1.A.35
+At1g16010,magnesium ion,,MIT,The CorA Metal Ion Transporter (MIT) Family,Ion Channels,1.A.35
+At3g58970,magnesium ion,,MIT,The CorA Metal Ion Transporter (MIT) Family,Ion Channels,1.A.35
+At3g19640,magnesium ion,,MIT,The CorA Metal Ion Transporter (MIT) Family,Ion Channels,1.A.35
+At1g80900,magnesium ion,,MIT,The CorA Metal Ion Transporter (MIT) Family,Ion Channels,1.A.35
+At2g03620,magnesium ion,,MIT,The CorA Metal Ion Transporter (MIT) Family,Ion Channels,1.A.35
+At4g28580,magnesium ion,,MIT,The CorA Metal Ion Transporter (MIT) Family,Ion Channels,1.A.35
+At5g09720,magnesium ion,,MIT,The CorA Metal Ion Transporter (MIT) Family,Ion Channels,1.A.35
+At5g22830,magnesium ion,,MIT,The CorA Metal Ion Transporter (MIT) Family,Ion Channels,1.A.35
+At5g09710,magnesium ion,,MIT,The CorA Metal Ion Transporter (MIT) Family,Ion Channels,1.A.35
+At1g53470,small-conductance mechanosensitive ion channel,,MscS,The Small Conductance Mechanosensitive Ion Channel (MscS) Family,Ion Channels,1.A.23
+At1g58200,small-conductance mechanosensitive ion channel,,MscS,The Small Conductance Mechanosensitive Ion Channel (MscS) Family,Ion Channels,1.A.23
+At1g78610,small-conductance mechanosensitive ion channel,,MscS,The Small Conductance Mechanosensitive Ion Channel (MscS) Family,Ion Channels,1.A.23
+At2g17000,small-conductance mechanosensitive ion channel,,MscS,The Small Conductance Mechanosensitive Ion Channel (MscS) Family,Ion Channels,1.A.23
+At2g17010,small-conductance mechanosensitive ion channel,,MscS,The Small Conductance Mechanosensitive Ion Channel (MscS) Family,Ion Channels,1.A.23
+At3g14810,small-conductance mechanosensitive ion channel,,MscS,The Small Conductance Mechanosensitive Ion Channel (MscS) Family,Ion Channels,1.A.23
+At5g12080,small-conductance mechanosensitive ion channel,,MscS,The Small Conductance Mechanosensitive Ion Channel (MscS) Family,Ion Channels,1.A.23
+At5g19520,small-conductance mechanosensitive ion channel,,MscS,The Small Conductance Mechanosensitive Ion Channel (MscS) Family,Ion Channels,1.A.23
+At1g49260,small-conductance mechanosensitive ion channel,,MscS,The Small Conductance Mechanosensitive Ion Channel (MscS) Family,Ion Channels,1.A.23
+At4g00290,small-conductance mechanosensitive ion channel,,MscS,The Small Conductance Mechanosensitive Ion Channel (MscS) Family,Ion Channels,1.A.23
+At5g10490,small-conductance mechanosensitive ion channel,,MscS,The Small Conductance Mechanosensitive Ion Channel (MscS) Family,Ion Channels,1.A.23
+At3g20920,translocation protein Sec62 homolog,,NSCC2,The Non-selective Cation Channel-2 (NSCC2) Family,Ion Channels,1.A.15
+At1g08700,Presenilin calcium ion leak channel,,Presenilin,The Presenilin ER Ca2+ Leak Channel (Presenilin) Family,Ion Channels,1.A.54
+At2g29900,Presenilin calcium ion leak channel,,Presenilin,The Presenilin ER Ca2+ Leak Channel (Presenilin) Family,Ion Channels,1.A.54
+At1g06950,anion (Tic110 homolog),,Tic110,The Chloroplast Envelope Anion Channel-forming Tic110 (Tic110) Family,Ion Channels,1.A.18
+At1g19780,cyclic nucleotide gated ion channel,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At1g01340,cyclic nucleotide gated ion channel,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At1g15990,cyclic nucleotide gated ion channel,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At1g02510,potassium ion,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At2g46430,cyclic nucleotide gated ion channel,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At2g46440,cyclic nucleotide gated ion channel,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At2g46450,cyclic nucleotide gated ion channel,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At2g23980,cyclic nucleotide gated ion channel,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At2g24610,cyclic nucleotide gated ion channel,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At2g26650,potassium ion,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At2g28260,cyclic nucleotide gated ion channel,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At2g25600,potassium ion,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At3g17690,cyclic nucleotide gated ion channel,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At3g17700,potassium ion,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At3g02850,potassium ion,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At3g48010,cyclic nucleotide gated ion channel,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At4g03560,calcium ion,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At4g18160,potassium ion,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At4g01840,potassium ion,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At4g30360,cyclic nucleotide gated ion channel,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At4g18290,potassium ion,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At4g22200,potassium ion,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At4g30560,cyclic nucleotide gated ion channel,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At4g01010,cyclic nucleotide gated ion channel,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At4g32500,potassium ion,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At4g32650,potassium ion,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At5g57940,cyclic nucleotide gated ion channel,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At5g15410,cyclic nucleotide gated ion channel,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At5g37500,potassium ion,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At5g46370,potassium ion,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At5g55630,potassium ion,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At5g46240,potassium ion,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At5g53130,cyclic nucleotide gated ion channel,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At5g54250,cyclic nucleotide gated ion channel,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At5g14870,cyclic nucleotide gated ion channel,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At5g46360,calcium-activated outward-rectifying potassium channel,,VIC,The Voltage-gated Ion Channel (VIC) Superfamily,Ion Channels,1.A.1
+At2g38460,iron ion,,FP,The Ferroportin (FP) Family,Unclassified,9.A.23
+At5g03570,iron ion,,FP,The Ferroportin (FP) Family,Unclassified,9.A.23
+At1g03270,heavy metal ion,,HCC,The HlyC/CorC (HCC) Family,Unclassified,9.A.40
+At1g47330,heavy metal ion,,HCC,The HlyC/CorC (HCC) Family,Unclassified,9.A.40
+At1g55930,heavy metal ion,,HCC,The HlyC/CorC (HCC) Family,Unclassified,9.A.40
+At2g14520,heavy metal ion,,HCC,The HlyC/CorC (HCC) Family,Unclassified,9.A.40
+At3g13070,heavy metal ion,,HCC,The HlyC/CorC (HCC) Family,Unclassified,9.A.40
+At4g14230,heavy metal ion,,HCC,The HlyC/CorC (HCC) Family,Unclassified,9.A.40
+At4g14240,heavy metal ion,,HCC,The HlyC/CorC (HCC) Family,Unclassified,9.A.40
+At4g33700,heavy metal ion,,HCC,The HlyC/CorC (HCC) Family,Unclassified,9.A.40
+At5g52790,heavy metal ion,,HCC,The HlyC/CorC (HCC) Family,Unclassified,9.A.40
+At4g39830,iron ion,,ILT,The Iron/Lead Transporter (ILT) Superfamily,Unclassified,9.A.10
+At5g01040,iron ion,,ILT,The Iron/Lead Transporter (ILT) Superfamily,Unclassified,9.A.10
+At5g01050,iron ion,,ILT,The Iron/Lead Transporter (ILT) Superfamily,Unclassified,9.A.10
+At5g01190,iron ion,,ILT,The Iron/Lead Transporter (ILT) Superfamily,Unclassified,9.A.10
+At5g03260,iron ion,,ILT,The Iron/Lead Transporter (ILT) Superfamily,Unclassified,9.A.10
+At5g05390,iron ion,,ILT,The Iron/Lead Transporter (ILT) Superfamily,Unclassified,9.A.10
+At5g07130,iron ion,,ILT,The Iron/Lead Transporter (ILT) Superfamily,Unclassified,9.A.10
+At5g09360,iron ion,,ILT,The Iron/Lead Transporter (ILT) Superfamily,Unclassified,9.A.10
+At5g21100,iron ion,,ILT,The Iron/Lead Transporter (ILT) Superfamily,Unclassified,9.A.10
+At5g21105,iron ion,,ILT,The Iron/Lead Transporter (ILT) Superfamily,Unclassified,9.A.10
+At5g48100,iron ion,,ILT,The Iron/Lead Transporter (ILT) Superfamily,Unclassified,9.A.10
+At5g48450,iron ion,,ILT,The Iron/Lead Transporter (ILT) Superfamily,Unclassified,9.A.10
+At5g51480,iron ion,,ILT,The Iron/Lead Transporter (ILT) Superfamily,Unclassified,9.A.10
+At5g58910,iron ion,,ILT,The Iron/Lead Transporter (ILT) Superfamily,Unclassified,9.A.10
+At5g60020,iron ion,,ILT,The Iron/Lead Transporter (ILT) Superfamily,Unclassified,9.A.10
+At5g66920,iron ion,,ILT,The Iron/Lead Transporter (ILT) Superfamily,Unclassified,9.A.10
+At1g11560,magnesium ion,,MagT1,The Magnesium Transporter1 (MagT1) Family,Unclassified,9.A.45
+At1g61790,magnesium ion,,MagT1,The Magnesium Transporter1 (MagT1) Family,Unclassified,9.A.45
+At1g34470,magnesium ion uptake?,,NIPA,The NIPA Mg2+ Uptake Permease (NIPA) Family,Unclassified,9.A.35
+At1g71900,magnesium ion uptake?,,NIPA,The NIPA Mg2+ Uptake Permease (NIPA) Family,Unclassified,9.A.35
+At2g21120,magnesium ion uptake,,NIPA,The NIPA Mg2+ Uptake Permease (NIPA) Family,Unclassified,9.A.35
+At3g23870,magnesium ion uptake,,NIPA,The NIPA Mg2+ Uptake Permease (NIPA) Family,Unclassified,9.A.35
+At3g26670,magnesium ion uptake,,NIPA,The NIPA Mg2+ Uptake Permease (NIPA) Family,Unclassified,9.A.35
+At4g09640,magnesium ion uptake,,NIPA,The NIPA Mg2+ Uptake Permease (NIPA) Family,Unclassified,9.A.35
+At4g13800,magnesium ion uptake,,NIPA,The NIPA Mg2+ Uptake Permease (NIPA) Family,Unclassified,9.A.35
+At4g38730,magnesium ion uptake,,NIPA,The NIPA Mg2+ Uptake Permease (NIPA) Family,Unclassified,9.A.35
+At1g79810,peroxisomal protein import (Pex2/Pex12),,PPI,The Peroxisomal Protein Importer (PPI) Family,Unclassified,9.A.5
+At2g26350,peroxisomal protein import (Pex10),,PPI,The Peroxisomal Protein Importer (PPI) Family,Unclassified,9.A.5
+At3g04460,peroxisomal protein import (Pex12),,PPI,The Peroxisomal Protein Importer (PPI) Family,Unclassified,9.A.5
+At1g48635,peroxisomal protein import (Pex3),,PPI2,The Integral Membrane Peroxisomal Protein Importer-2 (PPI2) Family,Unclassified,9.A.17
+At2g45690,peroxisomal protein import (Pex16),,PPI2,The Integral Membrane Peroxisomal Protein Importer-2 (PPI2) Family,Unclassified,9.A.17
+At3g03490,peroxisomal protein import (Pex19),,PPI2,The Integral Membrane Peroxisomal Protein Importer-2 (PPI2) Family,Unclassified,9.A.17
+At3g18160,peroxisomal protein import (Pex3),,PPI2,The Integral Membrane Peroxisomal Protein Importer-2 (PPI2) Family,Unclassified,9.A.17
+At5g17550,peroxisomal protein import (Pex19),,PPI2,The Integral Membrane Peroxisomal Protein Importer-2 (PPI2) Family,Unclassified,9.A.17
+At5g12130,tellurium ion efflux,,TerC,The Tellurium Ion Resistance (TerC) Family,Unclassified,9.A.30
+At1g61740,Unclassified,,TSUP,The Putative 4-Toluene Sulfonate Uptake Permease (TSUP) Family,Unclassified,9.A.29
+At2g25737,Unclassified,,TSUP,The Putative 4-Toluene Sulfonate Uptake Permease (TSUP) Family,Unclassified,9.A.29
+At4g21250,Unclassified,,TSUP,The Putative 4-Toluene Sulfonate Uptake Permease (TSUP) Family,Unclassified,9.A.29
+At3g07430,potassium ion uptake?,,YggT,The YggT or Fanciful K+ Uptake-B (FkuB; YggT) Family,Unclassified,9.A.4
+At4g27990,potassium ion uptake?,,YggT,The YggT or Fanciful K+ Uptake-B (FkuB; YggT) Family,Unclassified,9.A.4
+At5g21920,potassium ion uptake?,,YggT,The YggT or Fanciful K+ Uptake-B (FkuB; YggT) Family,Unclassified,9.A.4
+At5g36120,potassium ion uptake?,,YggT,The YggT or Fanciful K+ Uptake-B (FkuB; YggT) Family,Unclassified,9.A.4

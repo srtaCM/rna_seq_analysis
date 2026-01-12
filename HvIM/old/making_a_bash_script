@@ -1,0 +1,6 @@
+#!/usr/bin/bash
+#tells terminal that im making a bash script
+# followed by “ARC” headers
+# you can create multiline command with \ trailing each line
+ mkdir data2 \ results2 \
+script2 \ rawdata2

@@ -1,0 +1,31 @@
+
+
+{
+  "version": 1,
+  "name": "Pastel Pink Custom",
+  "author": "You",
+  "description": "Soft pastel pink theme, gentle on the eyes",
+  "editor": {
+    "background": "#FFF5F8",
+    "foreground": "#4B3856",
+    "caret": "#FF66B2",
+    "selection": "#FFD6E0"
+  },
+  "syntax": {
+    "comment": "#C19EB5",
+    "string": "#FFB3C6",
+    "keyword": "#FF66B2",
+    "number": "#D6336C",
+    "function": "#D6336C",
+    "constant": "#FF99CC",
+    "operator": "#FF66B2",
+    "type": "#D6336C"
+  },
+  "console": {
+    "background": "#FFF0F5",
+    "foreground": "#4B3856",
+    "error": "#FF3399",
+    "warning": "#FF66B2",
+    "message": "#FF99CC"
+  }
+}

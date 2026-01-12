@@ -1,0 +1,167 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# ICM 2024MAY15 DESeq2 Script
+
+
+```{r CODE CHUNK 1 CLEAR}
+# Clean environment
+rm (list = ls (all.names = TRUE)) # will clear all objects including hidden objects
+gc () # free up memory and report the memory usage
+options (max.print = .Machine$integer.max, scipen = 0, stringsAsFactors = F, dplyr.summarise.inform = F) # avoid truncated output in R console and keep scientific notation
+```
+
+
+```{r CHUNK 2 INSTALLING}
+# Remove hashtags to install any missing packages
+#if (!require("BiocManager", quietly = TRUE))
+#    install.packages("BiocManager")
+
+#Install all
+#BiocManager::install(c( "corrplot", "dendextend","readr","DESeq2", "ggrepel", "ggplot2", "pheatmap", "devtools", "ggforce","pheatmap", "gplots", "RColorBrewer", "ggdendro","enrichplot", "magrittr","dplyr","tibble", "tidyverse", "ComplexHeatmap")) 
+
+#install one
+#BiocManager::install(c("dendsort"))
+
+#remove.packages(ComplexHeatmap)
+```
+
+
+```{r CHUNK 3 Loading packages}
+#Load the packages we need
+suppressPackageStartupMessages({
+  library(DESeq2)
+  library(readr)
+  library(tidyverse) #to use distinct
+  library(enrichplot)
+  library(dplyr)
+  library(tibble)
+  library(magrittr)
+  library(gplots) 
+  library(RColorBrewer)
+  library(corrplot)
+  library(ggdendro)
+  library(dendextend)
+  library(ggplot2)
+  library(ggrepel)
+  library(pheatmap)
+})
+```
+
+
+```{r CHUNK 4 Set Up Raw Counts}
+#Must edit this to your work space
+setwd ("~/Desktop/Lab/Working_Projects/R_trapseq_2023")
+
+#Read in information
+featcount <- read_table ("./RawData/featcount.txt", col_names = TRUE, skip = 1) #skip 1 means skip the first column so remove if unnecessary
+
+read.count <- data.frame (featcount, row.names = featcount$Geneid ) #gene ids stored as row names
+
+read.count <- read.count [ ,-c(1:6)] #removes the columns without gene counts, change this if necessary
+```
+
+
+```{r CHUNK 5 Modify Data}
+#changes the data to hopefully the last change in naming 
+orig_names <- names (read.count) #saving original names back up
+#print(orig_names)
+colnames (read.count) <- (c("IT-107", "IT-108", "IT-109", "IT-110", "H-107", "H-108", "H-109", "H-110", "H-111", "UT-106", "UT-108", "UT-114", "IT-206", "IT-207", "IT-208", "IT-209", "IM-206", "IM-207", "IM-208", "IM-209", "IM-210", "UT-204", "UT-208", "UT-213", "UT-214", "UM-204", "UM-208", "UM-213", "UM-214", "UM-215")) 
+#view(read.count)
+```
+
+```{r}
+#Variables
+sample_info <- data.frame(
+  sample = c( "IT-107", "IT-108", "IT-109", "IT-110", "H-107", "H-108", "H-109", "H-110", "H-111", "UT-106", "UT-108", "UT-114", "IT-206", "IT-207", "IT-208", "IT-209", "IM-206", "IM-207", "IM-208", "IM-209", "IM-210", "UT-204", "UT-208", "UT-213", "UT-214","UM-204", "UM-208", "UM-213", "UM-214", "UM-215"),
+  groups = c( "IT","IT","IT","IT","H", "H", "H", "H", "H","UT","UT","UT","IT","IT","IT","IT", "IM", "IM", "IM", "IM", "IM", "UT","UT","UT","UT","UM", "UM", "UM", "UM", "UM"),
+  condition = c("Infected", "Infected", "Infected", "Infected","Infected", "Infected", "Infected", "Infected", "Infected", "Uninfected", "Uninfected", "Uninfected", "Infected", "Infected", "Infected", "Infected","Infected","Infected","Infected","Infected","Infected", "Uninfected", "Uninfected", "Uninfected","Uninfected","Uninfected","Uninfected","Uninfected","Uninfected","Uninfected"),
+  replicate = c("IT-107", "IT-108", "IT-109", "IT-110", "H-107", "H-108", "H-109", "H-110", "H-111", "UT-106", "UT-108", "UT-114", "IT-206", "IT-207", "IT-208", "IT-209", "IM-206", "IM-207", "IM-208", "IM-209", "IM-210", "UT-204", "UT-208", "UT-213", "UT-214","UM-204", "UM-208", "UM-213", "UM-214", "UM-215"),
+  row.names = "sample") 
+
+sample_info$groups <- as.factor (sample_info$groups)
+all (rownames (sample_info) %in% colnames (read.count)) #if "false" something is wrong
+sample_info 
+```
+
+```{r}
+dds <- DESeqDataSetFromMatrix (countData = read.count, colData = sample_info, design = ~groups) 
+#print (dds) #see the information
+
+dds <- (dds[ rowSums ( counts (dds) ) > 10, ]) #prefiltering, removing genes with less than 10 counts
+
+
+dds$groups <- relevel (dds$groups, ref = "UT" ) #make sure groups are ok
+dds.ds <- DESeq (dds) #Run DESeq
+res <- results (dds.ds)
+#write.csv(res, file= "./DerivedData/1_DEG_ImvH_v1.csv", quote=F, row.names=TRUE)
+
+```
+
+```{r}
+library(org.At.tair.db)
+class(org.At.tair.db)
+columns(org.At.tair.db)
+pad <- 0.05
+
+ITvsUT <- results (dds.ds, c( "groups", "IT", "UT" ))
+
+ITvsUT$symbol = mapIds (org.At.tair.db, keys = row.names (ITvsUT), keytype = "TAIR" , column = "SYMBOL", multiVals = "first" )
+ITvsUT$entrez = mapIds (org.At.tair.db, keys = row.names(ITvsUT), keytype = "TAIR", column = "ENTREZID", multiVals = "first")
+
+ITvUT_DF <- ITvsUT %>%  
+  as.data.frame() %>%
+  rownames_to_column (., var = "rowname") %>% 
+  as_tibble() %>% 
+  na.omit()
+
+write.csv(ITvUT_DF, file = "./DerivedData/1_DEG_ITvUT_v1.csv", quote = FALSE, row.names = TRUE)
+
+
+
+H_DEG_table <- H_DF %>% mutate (diffexpressed = case_when (log2FoldChange > 1 & padj < pad ~ 'H_UP',
+                                                           log2FoldChange < 1 & padj < pad ~ 'H_DOWN',
+                                                           padj > pad ~ 'NO' ))
+
+H_DEG_table <- H_DEG_table [H_DEG_table$diffexpressed != 'NO', ]
+unique (H_DEG_table$diffexpressed)
+H_results_split <- split (H_DEG_table, H_DEG_table$diffexpressed)
+
+H_UP_DF <- H_results_split$H_UP [, c("rowname", "entrez", "log2FoldChange", "padj", "symbol" )] #%>% write.csv("./DerivedData/1_DEG_HvUM_HUP_pad05_LFC1_v1.csv") 
+
+H_DWN_DF <- H_results_split$H_DOWN [, c("rowname", "entrez", "log2FoldChange", "padj", "symbol" )] #%>% write.csv("./DerivedData/1_DEG_HvUM_HDWN_pad05_LFC1_v1.csv")
+```
+
+
+
+```{r}
+john_email_list<- c("AT1G58360", "AT5G09220","AT1G77380","AT5G63850","AT1G44100","AT5G49630","AT3G04060","AT3G04060","AT4G12490","AT1G73260","AT1G09932","AT1G14870","AT4G14630","AT5G24530","AT1G22150","AT1G77990","AT1G23090","AT1G78000","AT3G12520","AT3G15990", "AT3G51895","AT4G02700","AT4G08620","AT5G10180","AT5G13550")
+
+john_email_list<- as.data.frame(john_email_list)
+names(john_email_list)[1]="GeneID"
+
+H_DEG_table <- H_DEG_table [, c("rowname", "log2FoldChange", "padj", "symbol" )] 
+
+H_DEG_table<- H_DEG_table [john_email_list]
+
+transporter_pilot<-transporter_list1$AGI %>%
+  as_tibble() %>% 
+  na.omit() 
+DEgenes <- transporter_pilot$value
+
+test1<- H_DEG_table$rowname[john_email_list$GeneID , ] %>% 
+  na.omit() 
+pilot_counts <- pilot_counts [order (pilot_counts$log2FoldChange), ]
+
+names(pilot_counts)[1]="GeneID"
+pilot_counts<- pilot_counts[,c(-1)]
+
+library(xlsx)
+#write.xlsx(pilot_counts, "./DerivedData/6_all_transporter_DEGIMvH.xlsx")
+#pilot_counts %>% write.csv("./DerivedData/IMvH/6_PlistDEG_HvIM.csv")
+```
+
+
+
