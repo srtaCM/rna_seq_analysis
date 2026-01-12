@@ -1,0 +1,124 @@
+---
+title: "Clustering by K_means"
+output: html_notebook
+---
+```{r}
+# Clean environment
+rm (list = ls (all.names = TRUE)) # will clear all objects including hidden objects
+gc() # free up memory and report the memory usage
+#set options
+options (max.print = .Machine$integer.max, scipen = 0, stringsAsFactors = F, dplyr.summarise.inform = F) # avoid truncated output in R console and keep scientific notation
+
+#if (!require("BiocManager", quietly = TRUE))
+#    install.packages("BiocManager")
+#BiocManager::install(c("readr", "tidyverse", "org.At.tair.db", "pathview","dplyr", "flashClust", "WGCNA"))
+
+```
+
+```{r}
+suppressPackageStartupMessages ({
+  library(readr)
+  library(tibble)
+  library(clusterProfiler)
+  library(ggplot2)
+  library(org.At.tair.db)
+  class(org.At.tair.db)
+  columns(org.At.tair.db)
+})
+```
+
+
+```{r Read In Cluster Data}
+ALLcluster.df <- read_csv("./DerivedData/1_allKclusters.csv")
+cols(
+  gene_id = col_character(),
+  Cluster = col_double()
+)
+```
+
+
+```{r Extract Modules}
+# Modules
+#modules_of_interest = c("20") 
+#modules_of_interest = c("12","10","17") 
+#modules_of_interest = c("13", "2","4","8") 
+#modules_of_interest = c("5") 
+modules_of_interest = c( "18", "11", "15" ) 
+
+
+# Pull out list of genes in that module
+submod = ALLcluster.df %>%
+  subset (Cluster %in% modules_of_interest)
+
+#write.csv(submod, file= "./DerivedData/1.1_Kcluster11_15_18.csv", quote=F, row.names=FALSE)
+```
+
+
+
+```{r Symbols and Entrez ID}
+#Add Cluster Information
+cluster.df <- data.frame (submod, row.names = submod$gene_id) 
+
+cluster.df$symbol = mapIds (org.At.tair.db, keys = cluster.df$gene_id, keytype = "TAIR", column = "SYMBOL", multiVals = "first")
+
+cluster.df$entrez = mapIds (org.At.tair.db, keys = cluster.df$gene_id, keytype = "TAIR", column = "ENTREZID",  multiVals = "first")
+```
+
+```{r Extract Gene Names}
+cluster_genes <- cluster.df$entrez %>% 
+  data.frame() %>%
+  na.omit() 
+cluster_genes <- cluster_genes$.
+
+pad <- 0.05
+```
+
+
+```{r}
+#GO4 <- enrichGO (gene = cluster_genes, OrgDb = org.At.tair.db, keyType = 'ENTREZID', ont = "ALL", pAdjustMethod = "BH", qvalueCutoff = pad) 
+
+
+dotplot (GO4, x = "GeneRatio", showCategory = 10, label_format = 30, color = "p.adjust") +
+  ggtitle ("GO Dotplot Cluster")
+#ggsave("./SumData/1.1_GO_kcluster10.pdf",width=8, height =8) 
+
+
+### Output results from GO analysis to a table
+GO4 <- data.frame (GO4)
+write.csv (GO4, "./DerivedData/1.1_GO_kcluster11_15_18.csv")
+```
+
+```{r}
+mlist<-list(GO1,GO2)
+names(mlist)<-c("Cluster 10,12,17","Cluster 2,4,8,13") #"Group 3"
+mresult<-merge_result(mlist)
+dotplot(mresult,showCategory=20)
+#ggsave("./SumData/1.1_GO_Kclusters_10_2.pdf",width=12, height =12) 
+```
+
+
+```{r}
+kegg_clust <- enrichKEGG(gene = cluster_genes,
+                                organism = "ath",
+                                keyType = "ncbi-geneid",
+                                minGSSize = 10,
+                                maxGSSize = 500,
+                                pAdjustMethod = "BH",
+                                qvalueCutoff = pad,
+                                use_internal_data = FALSE) # force to query latest KEGG db
+eKEGG4 <- data.frame(kegg_clust)
+write.csv(eKEGG4, "./DerivedData/1.1_KEGG_kcluster11_15_18.csv")
+dotplot(kegg_clust, x = "GeneRatio", showCategory = 20,label_format = 30 , color = "p.adjust") + ggtitle("KEGG Cluster 11/15/18 Dotplot" )
+#ggsave("./SumData/1.1_KEGG_kcluster1.pdf",width=8, height =8)
+```
+
+
+
+```{r}
+mlist<-list(eKEGG1, eKEGG2)
+names(mlist)<-c("Cluster 10", "Cluster 2")
+mresult<-merge_result(mlist)
+dotplot(mresult,showCategory=20)
+#ggsave("./SumData/1.1_KEGG_2Kclusters.pdf",width=12, height =12) 
+```
+

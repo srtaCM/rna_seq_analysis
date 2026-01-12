@@ -1,0 +1,159 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+
+setwd("~/Desktop/Lab/TRAP_Stats_08302023/Scripts")
+```
+
+
+```{r without h2 sample}
+library(readr)
+featcount2 <- read_table("OBS2023featcount.txt", 
+                        col_names = TRUE, skip = 1)
+
+read.count2 <- data.frame(featcount2,row.names = featcount2$Geneid ) #gene ids stored as row names
+geneID<- featcount2$Geneid
+
+read.count2 <- read.count2[ ,-c(1:6)] #removes the columns without gene counts not the same as bottom row code
+
+orig_names <- names(read.count2)
+#sum(read.count2)
+```
+
+
+```{r}
+#ut1,um3,4, ut3,4,6
+
+
+colnames(read.count2) <- (c("IT1", "IT2", "IT3", "H1", "H3", "H4","H5", "UT1", "UT2", "UT3", "IT4", "IT5", "IT6", "IT7", "IM1", "IM2", "IM3", "IM4", "IM5", "UT4", "UT5", "UT6", "UT7", "UM1", "UM2", "UM3", "UM4", "UM5")) 
+#view(read.count)
+
+sample_info2 <- data.frame(
+   sample = c("IT1", "IT2", "IT3", "H1", "H3", "H4","H5", "UT1", "UT2", "UT3", "IT4", "IT5", "IT6", "IT7", "IM1", "IM2", "IM3", "IM4", "IM5", "UT4", "UT5", "UT6", "UT7", "UM1", "UM2", "UM3", "UM4", "UM5"),
+   trt = c("IT", "IT", "IT", "H", "H", "H","H", "UT", "UT", "UT", "IT", "IT", "IT", "IT", "IM", "IM", "IM", "IM", "IM", "UT", "UT", "UT", "UT", "UM", "UM", "UM", "UM", "UM"),
+    row.names = "sample") 
+
+#sample_info$groupS<- as.factor(sample_info$groupS)
+#sample_info$condition<- as.factor(sample_info$condition)
+#all(rownames(sample_info) %in% colnames(read.count)) #if false something is wrong
+sample_info
+```
+
+
+```{r}
+library(DESeq2)
+
+dds <- DESeqDataSetFromMatrix(countData = read.count2,
+                              colData = sample_info2,
+                              design = ~ trt)
+print(dds)
+
+dds <- (dds[ rowSums( counts(dds) ) > 10 , ])
+#dds$trt <-relevel(dds$trt, ref = "UM1")
+
+dds <- DESeq(dds)
+res <- results(dds, 
+               independentFiltering = TRUE,
+               alpha = 0.05)
+
+```
+
+
+```{r}
+summary(res)
+print(res)
+head(assay(dds))
+rld <- rlog(dds, blind = FALSE )
+
+pcadata<- plotPCA(rld,
+        intgroup="trt", returnData = TRUE) 
+pcadata
+
+ggplot(pcadata, aes(x = PC1, y = PC2, color = trt, label = name)) +
+  geom_point() +
+  geom_text()
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+```{r}
+featcount3 <- read_table("featcount.txt", 
+                        col_names = TRUE, skip = 1)
+read.count3 <- data.frame(featcount3,row.names = featcount3$Geneid ) #gene ids stored as row names
+geneID<- featcount3$Geneid
+
+read.count3 <- read.count3 [ ,-c(1:6)] #removes the columns without gene counts not the same as bottom row code
+```
+
+
+```{r}
+colnames(read.count3) <- (c("IT1", "IT2", "IT3", "H1", "H2", "H3", "H4","H5", "UT1", "UT2", "UT3", "IT4", "IT5", "IT6", "IT7", "IM1", "IM2", "IM3", "IM4", "IM5", "UT4", "UT5", "UT6", "UT7", "UM1", "UM2", "UM3", "UM4", "UM5")) 
+sample_info3 <- data.frame(
+   sample = c("IT1", "IT2", "IT3", "H1", "H2", "H3", "H4","H5", "UT1", "UT2", "UT3", "IT4", "IT5", "IT6", "IT7", "IM1", "IM2", "IM3", "IM4", "IM5", "UT4", "UT5", "UT6", "UT7", "UM1", "UM2", "UM3", "UM4", "UM5"),
+   replicate= c("IT1", "IT2", "IT3", "H1","H2", "H3", "H4", "H5", "UT1", "UT2", "UT3", "IT4", "IT5", "IT6", "IT7", "IM1", "IM2", "IM3", "IM4", "IM5", "UT4", "UT5", "UT6", "UT7", "UM1", "UM2", "UM3", "UM4", "UM5"),
+    row.names = "sample") 
+```
+
+```{r}
+print(read.count3$H2)
+
+H2<-read.count3[c('H2')]
+
+mergeddata<-cbind(read.count2,H2)
+print(mergeddata)
+```
+
+
+
+
+
+```{r}
+sample_info2 <- data.frame(
+   sample = c("IT1", "IT2", "IT3", "H1", "H3", "H4","H5", "UT1", "UT2", "UT3", "IT4", "IT5", "IT6", "IT7", "IM1", "IM2", "IM3", "IM4", "IM5", "UT4", "UT5", "UT6", "UT7", "UM1", "UM2", "UM3", "UM4", "UM5", "H2"),
+   trt = c("IT1", "IT2", "IT3", "H1", "H3", "H4","H5", "UT1", "UT2", "UT3", "IT4", "IT5", "IT6", "IT7", "IM1", "IM2", "IM3", "IM4", "IM5", "UT4", "UT5", "UT6", "UT7", "UM1", "UM2", "UM3", "UM4", "UM5","H2"),
+    row.names = "sample") 
+
+```
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+```{r}
+library(DESeq2)
+
+dds <- DESeqDataSetFromMatrix(countData = mergeddata,
+                              colData = sample_info2,
+                              design = ~ trt)
+print(dds)
+summary(dds)
+```
+
+
+```{r}
+
+```
+
+```{r}
+
+dds <- (dds[ rowSums( counts(dds) ) > 10 , ])
+
+
+#dds$condition<-relevel(dds$condition, ref = "mock")
+#relevel(dds$condition, ref = "mock")
+#summary(dds$condition)
+dds <- DESeq(dds)
+res <- results(dds, 
+               independentFiltering = TRUE)
+                       
+
+summary(res)
+print(res)
+
+```
+
+

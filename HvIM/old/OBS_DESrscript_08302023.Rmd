@@ -1,0 +1,623 @@
+---
+title: "DESque"
+output: html_notebook
+---
+
+ 
+#Corresponding names and conditions, make sure everything matches up at this point
+#DIC	- > IT infected, "IT2", "IT3", "IT4" 
+#DIT - >	H infected, "H1", "H3", "H4", "H5"
+#DMC - >	UT mock, "UT1", "UT2", "UT3"
+#PIC	- > IT infected, "IT5", "IT6", "IT7", "IT8"
+#PIT	- > IM infected, "IM1", "IM2", "IM3", "IM4", "IM5"
+#PMC	- > UT mock, "UT4", "UT5", "UT6", "UT7"
+#PMT	- > UM mock, "UM1", "UM2", "UM3", "UM4", "UM5"
+
+```{r set working directory, where files are located}
+setwd("~/Desktop/Lab/Coding")
+```
+
+
+```{r data input}
+library(readr)
+featcount <- read_table("featcount.txt", 
+                        col_names = TRUE, skip = 1)
+read.count <- data.frame(featcount,row.names = featcount$Geneid ) #gene ids stored as row names
+geneID<- featcount$Geneid
+
+read.count <- read.count [ ,-c(1:6)] #removes the columns without gene counts not the same as bottom row code
+
+orig_names <- names (read.count)
+```
+
+
+```{r}
+colnames(read.count) <- (c("IT2", "IT3", "IT4", "H1", "H3", "H4", "H5", "UT1", "UT2", "UT3", "IT5", "IT6", "IT7", "IT8", "IM1", "IM2", "IM3", "IM4", "IM5", "UT4", "UT5", "UT6", "UT7", "UM1", "UM2", "UM3", "UM4", "UM5")) 
+#view(read.count)
+
+sample_info <- data.frame(
+   sample = c("IT2", "IT3", "IT4", "H1", "H3", "H4", "H5", "UT1", "UT2", "UT3", "IT5", "IT6", "IT7", "IT8", "IM1", "IM2", "IM3", "IM4", "IM5", "UT4", "UT5", "UT6", "UT7", "UM1", "UM2", "UM3", "UM4", "UM5"),
+   condition = c("infected","infected","infected","infected","infected","infected","infected","mock","mock","mock","infected","infected","infected","infected","infected","infected","infected","infected","infected","mock","mock","mock","mock","mock","mock","mock","mock","mock"),
+   treatment=c("IT", "IT", "IT", "H", "H", "H", "H", "UT", "UT", "UT", "IT", "IT", "IT", "IT", "IM", "IM", "IM", "IM", "IM", "UT", "UT", "UT", "UT", "UM", "UM", "UM", "UM", "UM"),
+   replicate= c("IT2", "IT3", "IT4", "H1", "H3", "H4", "H5", "UT1", "UT2", "UT3", "IT5", "IT6", "IT7", "IT8", "IM1", "IM2", "IM3", "IM4", "IM5", "UT4", "UT5", "UT6", "UT7", "UM1", "UM2", "UM3", "UM4", "UM5"),
+    row.names = "sample")
+#sample_info$treatment<- as.factor(sample_info$treatment)
+#sample_info$condition<- as.factor(sample_info$condition)
+all(rownames(sample_info) %in% colnames(read.count)) #if false something is wrong
+sample_info 
+
+
+#add translatomes and rep
+```
+
+#Merged_infected_transcriptome <-read.count[,(c('IT2', 'IT3', 'IT4','IT5', 'IT6', 'IT7', 'IT8'))] Merged_uninfected_transcriptome <-read.count[,(c("UT1", "UT2", "UT3","UT4", "UT5", "UT6", "UT7"))] Mesophyll_uninfected_translatome <-read.count[,(c("UM1", "UM2", "UM3", "UM4", "UM5"))]
+#Mesophyll_infected_translatome <-read.count[,(c("IM1", "IM2", "IM3", "IM4", "IM5"))]
+#Haustoriated_translatome <-read.count[,(c("H1", "H3", "H4", "H5"))]
+
+#infected vs mock
+infected_roots<- read.count[ ,(c('IT2', 'IT3', 'IT4', 'H1', 'H3', 'H4', 'H5', 'IT5', 'IT6', 'IT7', 'IT8', 'IM1', 'IM2', 'IM3', 'IM4', 'IM5')) ]
+                            
+mock_roots <- (c("UT1", "UT2", "UT3","UT4", "UT5", "UT6", "UT7", "UM1", "UM2", "UM3", "UM4", "UM5"))
+
+#DMR6 vs PETE
+DMR6_roots<- read.count(c("IT2", "IT3", "IT4", "H1", "H3", "H4", "H5", "UT1", "UT2", "UT3"))
+PETE_roots<-read.count(c("IT5", "IT6", "IT7", "IT8", "IM1", "IM2", "IM3", "IM4", "IM5", "UT4", "UT5", "UT6", "UT7", "UM1", "UM2", "UM3", "UM4", "UM5"))
+
+#transcriptome vs translatome
+transcriptome<- read.count(c("IT2", "IT3", "IT4", "UT1", "UT2", "UT3", "IT5", "IT6", "IT7", "IT8", "UT4", "UT5", "UT6", "UT7"))
+translatome<- read.count(c("H1", "H3", "H4", "H5","IM1", "IM2", "IM3", "IM4", "IM5","UM1", "UM2", "UM3", "UM4", "UM5"))
+
+
+```{r}
+library(DESeq2)
+
+dds <- DESeqDataSetFromMatrix(countData = read.count,
+                              colData = sample_info,
+                              design = ~ condition)
+print(dds)
+```
+
+```{r}
+library(magrittr)
+
+#prefiltering
+
+dds <- dds[ rowSums( counts(dds) ) > 10 , ]
+
+
+#we can plot how many reads we have for each sample
+colSums(assay(dds))
+barplot(colSums(assay(dds)), names=colnames(dds$condition), las=2, main ="barplot of lib sizes", col = "turquoise")
+
+
+
+# calculate the size factor and add it to the data set
+dds <- estimateSizeFactors (dds)
+sizeFactors(dds)
+
+# counts () allows you to immediately retrieve the _ normalized _ count reads
+counts.sf_normalized <- counts(dds, normalized = TRUE)
+
+
+#Count data is not normally distributed, so if we want to examine the distributions of the raw counts it is helpful to transform the data on to a log scale. Typically we use a log2 transformation, however, because the data is count data and will contain many 0s we need to add a count of 1 to every value in order to prevent attempting log2(0) from creating errors.
+#transform size - factor normalized read counts to log2 scale using a pseudocount of 1
+log.norm.counts <- log2 (counts.sf_normalized + 1)
+
+par( mfrow =c(1 ,1)) # to plot the following two images underneath each other
+
+# first , boxplots of non - transformed read counts (one per sample )
+boxplot(counts.sf_normalized, notch = TRUE,
+        main = "untransformed read counts", ylab = "read counts")
+
+
+statusCol <- match(sample_info$condition, c("mock", "infected"))+1
+ 
+# box plots of log2 - transformed read counts
+boxplot (log.norm.counts, 
+         notch = TRUE, 
+         col= statusCol,
+            main = "log2 - transformed read counts ",
+            ylab = " log2 ( read counts )")
+abline(h=median(as.matrix(log.norm.counts)), col="blue")
+
+```
+
+
+```{r}
+library(DESeq2)
+library(vsn)
+library(ggplot2)
+
+# mean -sd plot
+msd_plot <- meanSdPlot (log.norm.counts,
+                        ranks =FALSE , # show the data on the original scale
+                        plot = FALSE )
+msd_plot $gg +
+  ggtitle (" sequencing depth normalized log2 ( read counts )") +
+  ylab (" standard deviation ")
+
+
+
+# obtain regularized log - transformed values
+DESeq.rlog <- rlog(dds, blind = TRUE )
+rlog.norm.counts <- assay(DESeq.rlog )
+
+
+# mean -sd plot for rlog - transformed data
+msd_plot <- meanSdPlot(rlog.norm.counts,
+                       ranks =FALSE , # show the data on the original scale
+                       plot = FALSE )
+msd_plot$gg + 
+  ggtitle ("rlog - transformed read counts ") +
+  ylab (" standard deviation ")
+
+plot (rlog.norm.counts [ ,1:2] , cex =.1 , main = " rlog transformed ")
+plot (log.norm.counts [ ,1:2] , cex =.1 , main = " Normalized log2 ( read counts )")
+
+topVarGenes <- head( order( rowVars( assay(DESeq.rlog) ), decreasing=TRUE ), 25 )
+heatmap.2( assay(DESeq.rlog)[ topVarGenes, ], scale="row",
+trace="none", dendrogram="column",
+col = colorRampPalette( rev(brewer.pal(9, "RdBu")) )(255))
+
+```
+
+
+```{r}
+library(magrittr)
+library(dendextend)
+# cor () calculates the correlation between columns of a matrix
+distance.m_rlog <- as.dist(1 - cor( rlog.norm.counts, method = "pearson" ))
+
+dend<- (distance.m_rlog %>%
+        dist %>% # calculate a distance matrix, 
+         hclust(method = "average") %>% # on it compute hierarchical clustering using the "average" method, 
+         as.dendrogram) # and lastly, turn that object into a dendrogram.
+
+# plot () can directly interpret the output of hclust ()
+#plot(hclust(distance.m_rlog),
+#labels =colnames(rlog.norm.counts),
+#main = " rlog transformed read counts \ ndistance : Pearson correlation ")
+
+dend %>% get_nodes_attr("height")
+#dend %>% plot
+dend %>% hang.dendrogram %>% get_nodes_attr("height") # node's height (after raising the leaves)
+
+#dend %>% plot
+#par(mfrow = c(1,2))
+#dend %>% set("labels_col", "blue") %>% plot(main = "Change label's color") # change color 
+#dend %>% set("labels_cex", 2) %>% plot(main = "Change label's size") # change color 
+
+
+par(mfrow = c(1,1))
+dend %>% set("branches_k_color", value = 3:1, k = 3) %>% 
+   plot(main = "Controlling branches' colors\n(via clustering)")
+```
+
+
+
+
+```{r quality control}
+library(ggfortify)
+library(ggrepel)
+library (ggplot2)
+library (DESeq2)
+library(pheatmap)
+
+pc <- prcomp(t(rlog.norm.counts))
+autoplot(pc,
+         data = sample_info, 
+         colour="replicate",
+         shape = "treatment",
+         size=5 + 
+  geom_text_repel(aes(x=PC1, y=PC2, label=sample_info$replicate), box.padding = 0.8))
+#label is not working
+
+# PCA
+
+plotPCA(DESeq.rlog, 
+             intgroup="treatment") + geom_text_repel(aes(x=PC1, y=PC2, label=sample_info$replicate), box.padding = 0.3) +theme_bw () + ggtitle (" Rlog transformed counts ")
+
+plotPCA(DESeq.rlog, 
+             intgroup="condition") + geom_text_repel(aes(x=PC1, y=PC2, label=sample_info$replicate), box.padding = 0.3) +theme_bw () + ggtitle (" Rlog transformed counts ")
+
+
+
+library("pheatmap")
+library("RColorBrewer")
+dists <- dist(t(assay(DESeq.rlog) ) )
+sampleDistMatrix <- as.matrix( dists )
+rownames(sampleDistMatrix) <- paste( DESeq.rlog$treatment, DESeq.rlog$replicate, sep="-" )
+colnames(sampleDistMatrix) <- NULL
+colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
+pheatmap(sampleDistMatrix,
+         clustering_distance_rows=dists,
+         clustering_distance_cols=dists,
+         col=colors)
+
+
+```
+
+
+```{r}
+str(colData(dds)$condition)
+colData(dds)$condition<-relevel(colData(dds)$condition, "mock")
+
+```
+
+
+```{r}
+DESdds <- DESeq(dds)
+```
+
+
+```{r}
+
+DGE.results<-results(DESdds, independentFiltering = TRUE, alpha = 0.05)
+summary(DGE.results)
+
+# the DESeqResult object can basically be handled like a data . frame
+head(DGE.results )
+table(DGE.results$padj<0.05)
+rownames(subset(DGE.results, padj<0.05))
+
+```
+
+
+```{r}
+#different ways to extract results
+#dds$condition <- factor(dds$condition, levels = c("mock","treated"))
+#dds$condition <- relevel(dds$condition, ref = "mock")
+#Note that we could have specified the coefficient or contrast we want to build a results table for, using either of the following equivalent commands:
+
+#res <- results(DESdds, name="condition_uninfected_vs_infected")
+#res <- results(dds, contrast=c("condition","treated","untreated"))
+
+#res <- results(DESdds, contrast=c("condition","UT","UM"))
+```
+
+
+```{r}
+hist(DGE.results$pvalue,
+     breaks=20, col = "grey", border = "white", xlab = "", ylab = "", 
+     main = " frequencies of p- values ")
+
+#Histograms are a simple and fast way of getting a feeling for how frequently certain values are present in a data set. A common example is a histogram of p-values. Left: Histogram of p-values for all genes tested for no differential expression between the two conditions mock vs infected
+
+plotMA (DGE.results , alpha = 0.05 , main = "mock vs.infected ",
+        ylim = c( -3 ,3))
+
+
+#figuring out how to make volcano plots
+#library(ggplot2)
+
+#par(mfrow=c(1,1))
+# Make a basic volcano plot
+#with(res05Ordered, plot(log2FoldChange, -log10(pvalue), pch=20, main="Volcano plot", xlim=c(-3,3)))
+#with(res, plot(log2FoldChange, -log10(pvalue), pch=20, main="Volcano plot", xlim=c(-3,3)))
+```
+
+
+```{r}
+#sum( res$padj < 0.1, na.rm=TRUE )
+#table( is.na(res$pvalue) )
+
+#We subset the results table to these genes and then sort it by the log2 fold change estimate to get the significant genes with the strongest down-regulation
+
+#resSig <- subset(res, res$padj < 0.1 )
+#head( resSig[ order( resSig$log2FoldChange ), ])
+#tail( resSig[ order( resSig$log2FoldChange ), ])
+```
+
+
+
+```{r}
+#heatmaps
+
+# load the library with the aheatmap () function
+library (NMF)
+library(ggplot2)
+library(scales)
+library(viridis)
+ #install.packages(c("ggplot2","scales","viridis"))
+
+# aheatmap needs a matrix of values , e.g., a matrix of DE genes with the transformed read counts for each replicate
+# sort the results according to the adjusted p- value
+DGE.results.sorted <- DGE.results[order(DGE.results$padj ), ]
+
+
+# Coerce to a data frame
+deseq2ResDF <- as.data.frame(DGE.results.sorted)
+
+# Examine this data frame
+head(deseq2ResDF)
+
+# Set a boolean column for significance
+deseq2ResDF$significant <- ifelse(deseq2ResDF$padj < .1, "Significant", NA)
+
+# Plot the results similar to DEseq2
+ggplot(deseq2ResDF, aes(baseMean, log2FoldChange, colour=significant)) + geom_point(size=1) + scale_y_continuous(limits=c(-3, 3)) + scale_x_log10() + geom_hline(yintercept = 0, colour="tomato1", size=2) + labs(x="mean of normalized counts", y="log fold change") + scale_colour_manual(name="q-value", values=("Significant"="red"), na.value="grey50") + theme_bw()
+
+# Let's add some more detail
+ggplot(deseq2ResDF, aes(baseMean, log2FoldChange, colour=padj)) + geom_point(size=1) + scale_y_continuous(limits=c(-3, 3)) + scale_x_log10() + geom_hline(yintercept = 0, colour="darkorchid4", size=1, linetype="longdash") + labs(x="mean of normalized counts", y="log fold change") + scale_colour_viridis(direction=-1, trans='sqrt') + theme_bw() + geom_density_2d(colour="black", size=2)
+
+
+# extract the normalized read counts for DE genes into a matrix
+hm.mat_DGEgenes <- log.norm.counts[ DGEgenes , ]
+
+# plot the normalized read counts of DE genes sorted by the adjusted p- value
+# combine the heatmap with hierarchical clustering
+# scale the read counts per gene to emphasize the sample -type - specific differences
+#top 500
+aheatmap (hm.mat_DGEgenes ,
+          color = bluered(100),
+          Rowv = TRUE , Colv = TRUE ,
+          distfun = "euclidean", hclustfun = "average",
+          scale = "row") # values are transformed into distances from the center of the row - specific average : ( actual value - mean of the group ) /standard deviation
+
+
+```
+
+
+```{r}
+library(DESeq2)
+library(vsn)
+library(ggplot2)
+library(gplots)
+topVarGenes <- head(order(rowVars(hm.mat_DGEgenes), decreasing=TRUE ), 35)
+heatmap.2( assay(hm.mat_DGEgenes)[ topVarGenes, ], scale="row",
+trace="none", dendrogram="column",
+col = colorRampPalette( rev(brewer.pal(9, "RdBu")) )(255))
+```
+
+
+
+```{r Raw Count Data}
+#with(res, plot(log2FoldChange, -log10(pvalue), pch=20, main="Volcano plot", xlim=c(-3,3)))
+
+# Add colored points: blue if padj<0.01, red if log2FC>1 and padj<0.05)
+#with(subset(res, padj<.01 ), points(log2FoldChange, -log10(pvalue), pch=20, col="blue"))
+#with(subset(res, padj<.01 & abs(log2FoldChange)>2), points(log2FoldChange, -log10(pvalue), pch=20, col="red"))
+
+# Get log2 counts
+
+
+```
+
+
+
+```{r Diagnostic Plots}
+#An MA plot is useful to observe if the data normalization worked well (Figure 8.6). The MA plot is a scatter plot where the x-axis denotes the average of normalized counts across samples and the y-axis denotes the log fold change in the given contrast. Most points are expected to be on the horizontal 0 line (most genes are not expected to be differentially expressed).
+
+DESeq2::plotMA(DEresults)
+
+```
+
+
+```{r Diagnostic Plots Viewing normalized counts for a single geneID}
+# Extract counts for the gene otop2
+gene2Counts <- plotCounts(dds, gene="AT1G01010", intgroup= "condition", returnData=TRUE)
+
+# Plot the data using ggplot2
+colourPallette <- c("#7145cd","#bbcfc4","#90de4a","#cd46c1","#77dd8e","#592b79","#d7c847","#6378c9","#619a3c","#d44473","#63cfb6","#dd5d36","#5db2ce","#8d3b28","#b1a4cb","#af8439","#c679c0","#4e703f","#753148","#cac88e","#352b48","#cd8d88","#463d25","#556f73")
+ggplot(gene2Counts, aes(x=condition, y=count)) + geom_point() + geom_line() + theme_bw() + theme(axis.text.x=element_text(angle=15, hjust=1)) + scale_colour_manual(values=colourPallette) + guides(colour=guide_legend(ncol=3)) + ggtitle("gene")
+```
+
+
+```{r}
+
+deseq2ResDF["AT1G01010",]
+rawCounts["AT1G01010",]
+normals=row.names(sample_info[sample_info[,"condition"]=="samples",])
+primaries=row.names(sample_info[sample_info[,"condition"]=="idk",])
+rawCounts["AT1G01010",normals]
+rawCounts["AT1G01010",primaries]
+
+library(vsn)
+
+# Convert the DESeq transformed object to a data frame
+deseq2VST <- vsn(DEresults,
+                            ranks = FALSE, 
+                            plot = FALSE)
+
+deseq2VST <- as.data.frame(deseq2VST)
+deseq2VST$Gene <- rownames(deseq2VST)
+head(deseq2VST)
+
+# Keep only the significantly differentiated genes where the fold-change was at least 3
+sigGenes <- rownames(deseq2ResDF[deseq2ResDF$padj <= .05 & abs(deseq2ResDF$log2FoldChange) > 3,])
+deseq2VST <- deseq2VST[deseq2VST$Gene %in% sigGenes,]
+
+# Convert the VST counts to long format for ggplot2
+library(reshape2)
+
+# First compare wide vs long version
+deseq2VST_wide <- deseq2VST
+deseq2VST_long <- melt(deseq2VST, id.vars=c("Gene"))
+
+head(deseq2VST_wide)
+head(deseq2VST_long)
+
+# Now overwrite our original data frame with the long format
+deseq2VST <- melt(deseq2VST, id.vars=c("Gene"))
+
+# Make a heatmap
+heatmap <- ggplot(deseq2VST, aes(x=variable, y=Gene, fill=value)) + geom_raster() + scale_fill_viridis(trans="sqrt") + theme(axis.text.x=element_text(angle=65, hjust=1), axis.text.y=element_blank(), axis.ticks.y=element_blank())
+heatmap
+
+# Convert the significant genes back to a matrix for clustering
+deseq2VSTMatrix <- dcast(deseq2VST, Gene ~ variable)
+rownames(deseq2VSTMatrix) <- deseq2VSTMatrix$Gene
+deseq2VSTMatrix$Gene <- NULL
+
+# Compute a distance calculation on both dimensions of the matrix
+distanceGene <- dist(deseq2VSTMatrix)
+distanceSample <- dist(t(deseq2VSTMatrix))
+
+# Cluster based on the distance calculations
+clusterGene <- hclust(distanceGene, method="average")
+clusterSample <- hclust(distanceSample, method="average")
+
+# Construct a dendogram for samples
+install.packages("ggdendro")
+library(ggdendro)
+sampleModel <- as.dendrogram(clusterSample)
+sampleDendrogramData <- segment(dendro_data(sampleModel, type = "rectangle"))
+sampleDendrogram <- ggplot(sampleDendrogramData) + geom_segment(aes(x = x, y = y, xend = xend, yend = yend)) + theme_dendro()
+
+# Re-factor samples for ggplot2
+deseq2VST$variable <- factor(deseq2VST$variable, levels=clusterSample$labels[clusterSample$order])
+
+# Construct the heatmap. note that at this point we have only clustered the samples NOT the genes
+heatmap <- ggplot(deseq2VST, aes(x=variable, y=Gene, fill=value)) + geom_raster() + scale_fill_viridis(trans="sqrt") + theme(axis.text.x=element_text(angle=65, hjust=1), axis.text.y=element_blank(), axis.ticks.y=element_blank())
+heatmap
+
+# Combine the dendrogram and the heatmap
+install.packages("gridExtra")
+library(gridExtra)
+grid.arrange(sampleDendrogram, heatmap, ncol=1, heights=c(1,5))
+
+# Load in libraries necessary for modifying plots
+#install.packages("gtable")
+library(gtable)
+library(grid)
+
+# Modify the ggplot objects
+sampleDendrogram_1 <- sampleDendrogram + scale_x_continuous(expand=c(.0085, .0085)) + scale_y_continuous(expand=c(0, 0))
+heatmap_1 <- heatmap + scale_x_discrete(expand=c(0, 0)) + scale_y_discrete(expand=c(0, 0))
+
+# Convert both grid based objects to grobs
+sampleDendrogramGrob <- ggplotGrob(sampleDendrogram_1)
+heatmapGrob <- ggplotGrob(heatmap_1)
+
+# Check the widths of each grob
+sampleDendrogramGrob$widths
+heatmapGrob$widths
+
+# Add in the missing columns
+sampleDendrogramGrob <- gtable_add_cols(sampleDendrogramGrob, heatmapGrob$widths[7], 6)
+sampleDendrogramGrob <- gtable_add_cols(sampleDendrogramGrob, heatmapGrob$widths[8], 7)
+
+# Make sure every width between the two grobs is the same
+maxWidth <- unit.pmax(sampleDendrogramGrob$widths, heatmapGrob$widths)
+sampleDendrogramGrob$widths <- as.list(maxWidth)
+heatmapGrob$widths <- as.list(maxWidth)
+
+# Arrange the grobs into a plot
+finalGrob <- arrangeGrob(sampleDendrogramGrob, heatmapGrob, ncol=1, heights=c(2,5))
+
+# Draw the plot
+grid.draw(finalGrob)
+
+# Re-order the sample data to match the clustering we did
+sampleData_v2$Run <- factor(sampleData_v2$Run, levels=clusterSample$labels[clusterSample$order])
+
+# Construct a plot to show the clinical data
+colours <- c("#743B8B", "#8B743B", "#8B3B52")
+sampleClinical <- ggplot(sampleData_v2, aes(x=Run, y=1, fill=Sample.Characteristic.biopsy.site.)) + geom_tile() + scale_x_discrete(expand=c(0, 0)) + scale_y_discrete(expand=c(0, 0)) + scale_fill_manual(name="Tissue", values=colours) + theme_void()
+
+# Convert the clinical plot to a grob
+sampleClinicalGrob <- ggplotGrob(sampleClinical)
+
+# Make sure every width between all grobs is the same
+maxWidth <- unit.pmax(sampleDendrogramGrob$widths, heatmapGrob$widths, sampleClinicalGrob$widths)
+sampleDendrogramGrob$widths <- as.list(maxWidth)
+heatmapGrob$widths <- as.list(maxWidth)
+sampleClinicalGrob$widths <- as.list(maxWidth)
+
+# Arrange and output the final plot
+finalGrob <- arrangeGrob(sampleDendrogramGrob, sampleClinicalGrob, heatmapGrob, ncol=1, heights=c(2,1,5))
+grid.draw(finalGrob)
+```
+
+
+
+
+```{r Diagnostic Plots}
+# extract normalized counts from the DESeqDataSet object
+countsNormalized <- DESeq2::counts(DESdds, normalized = TRUE)
+
+counts.sf_normalized
+# select top 500 most variable genes
+selectedGenes <- names(sort(apply(countsNormalized, 1, var), 
+                            decreasing = TRUE)[1:25])
+
+rld <- rlog(dds)
+DESeq2::plotPCA(rld, ntop = 500, intgroup = 'condition') + 
+  ylim(-50, 50) + theme_bw()
+```
+
+#This impacts the way the results are interpreted, for instance, if a gene is found up-regulated (has a positive log2 fold change), the up-regulation status is only relative to the factor that is provided as control. In this case, we used samples from the “CTRL” group as control and contrasted the samples from the “CASE” group with respect to the “CTRL” samples. Thus genes with a positive log2 fold change are called up-regulated in the case samples with respect to the control, while genes with a negative log2 fold change are down-regulated in the case samples. Whether the deregulation is significant or not, warrants assessment of the adjusted p-values.
+
+
+
+
+```{r}
+library(DESeq2)
+#install.packages("gProfileR")
+library(gProfileR)
+library(knitr)
+# extract differential expression results
+DEresults <- results(DESdds, contrast = c('condition', 'infected', 'uninfected'))
+
+#remove genes with NA values 
+DE <- DEresults[!is.na(DEresults$padj),]
+#select genes with adjusted p-values below 0.1
+DE <- DE[DE$padj < 0.1,]
+#select genes with absolute log2 fold change above 1 (two-fold change)
+DE <- DE[abs(DE$log2FoldChange) > 1,]
+count(DE)
+
+#get the list of genes of interest
+genesOfInterest <- rownames(DE)
+
+#calculate enriched GO terms
+goResults <- gprofiler(query = genesOfInterest, 
+                     organism = 'plant', 
+                     src_filter = 'GO', 
+                     hier_filtering = 'moderate')
+```
+```{r}
+#Let's define the first gene set as the list of genes from one of the
+#significant GO terms found in the GO analysis. order go results by pvalue
+goResults <- goResults[order(goResults$p.value),]
+#restrict the terms that have at most 100 genes overlapping with the query
+go <- goResults[goResults$overlap.size < 100,]
+# use the top term from this table to create a gene set 
+geneSet1 <- unlist(strsplit(go[1,]$intersection, ','))
+
+#Define another gene set by just randomly selecting 25 genes from the counts
+#table get normalized counts from DESeq2 results
+normalizedCounts <- DESeq2::counts(dds, normalized = TRUE)
+geneSet2 <- sample(rownames(normalizedCounts), 25)
+
+geneSets <- list('top_GO_term' = geneSet1,
+                 'random_set' = geneSet2)
+```
+
+
+```{r}
+library(gage)
+#use the normalized counts to carry out a GSEA. 
+gseaResults <- gage(exprs = log2(normalizedCounts+1), 
+           ref = match(rownames(colData[colData$group == 'CTRL',]), 
+                       colnames(normalizedCounts)), 
+           samp = match(rownames(colData[colData$group == 'CASE',]), 
+                        colnames(normalizedCounts)),
+           gsets = geneSets, compare = 'as.group')
+```
+
+
+```{r}
+library(pheatmap)
+# get the expression data for the gene set of interest
+M <- normalizedCounts[rownames(normalizedCounts) %in% geneSet1, ]
+# log transform the counts for visualization scaling by row helps visualizing
+# relative change of expression of a gene in multiple conditions
+pheatmap(log2(M+1), 
+         annotation_col = colData, 
+         show_rownames = TRUE, 
+         fontsize_row = 8,
+         scale = 'row', 
+         cutree_cols = 2, 
+         cutree_rows = 2)
+```

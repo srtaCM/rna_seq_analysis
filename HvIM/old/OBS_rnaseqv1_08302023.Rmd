@@ -1,0 +1,499 @@
+---
+title: "DESeq_rna2_13_2023"
+output: html_ntb.rmd
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code.
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*.
+
+```{r setwd and Librarys}
+setwd("~/Desktop/Lab/Coding")
+
+library(magrittr)  #this will allow us to string commands together in a UNIX-pipe-like fashion using %>%
+library(readr)
+library(tidyverse)
+library(ggplot2) #for making plots
+library(ggrepel)
+#library(DEGreport)
+library(RColorBrewer)
+library(DESeq2)
+library(pheatmap)
+library(S4Vectors)
+library(stats4)
+library(BiocGenerics)
+library(knitr)
+opts_chunk$set(echo = TRUE, message = FALSE,cache=FALSE) # tuning knitr output
+#library(tximport)
+library(plyr)
+library(GGally)
+library(dplyr)
+library(mlbench)
+#install.packages("viridis")
+library(viridis)
+#install.packages("hash")
+library(vsn)
+#install.packages("dendextend")
+#if (!require("BiocManager", quietly = TRUE))
+#    install.packages("BiocManager")
+#BiocManager::install()
+#IF NEEDED , install the vsn package
+#BiocManager::install(c("vsn"))
+#install.packages("ggfortify")
+library(ggfortify)
+```
+
+```{r Manipulating data, naming and other info}
+featcount <- read_table("featcount.txt", 
+                        col_names = TRUE, skip = 1)
+read.count <- data.frame(featcount,row.names = featcount$Geneid ) #gene ids stored as row names
+
+read.count <- read.count [ ,-c(1:6)] #removes the columns without gene counts not the same as bottom row code
+
+orig_names <- names (read.count) 
+
+
+colnames(read.count) <- (c("IT2", "IT3", "IT4", "H1", "H3", "H4", "H5", "UT1", "UT2", "UT3", "IT5", "IT6", "IT7", "IT8", "IM1", "IM2", "IM3", "IM4", "IM5", "UT4", "UT5", "UT6", "UT7", "UM1", "UM2", "UM3", "UM4", "UM5")) 
+
+view(read.count)
+
+
+ sample_info <- data.frame(condition = gsub( "_[0 -9]+ " , " " , names(read.count),
+),
+    row.names = names(read.count))
+
+#sample_info 
+
+#glimpse(read.count)
+#View(read.count)
+
+
+#names(read.count) <- as.factor(c(paste("IT", c(2:4), sep = "_"),
+ #                                paste("H", c(1:5), sep="_"),
+  #                               paste("UT", c(1:3), sep="_"),
+     #                            paste("IT", c(6:8), sep = "_"),
+    #                             paste("IM", c(1:5), sep="_"),
+       #                          paste("UT", c(4:6), sep = "_"),
+      #                           paste("UM", c(1:5), sep = "_")))
+#note: this works but causes an issue in the sample info step
+
+#Corresponding names and conditions, make sure everything matches up at this point
+#DIC	- > IT infected, 
+#DIT - >	H infected, 
+#DMC - >	UT mock, 
+#PIC	- > IT infected
+#PIT	- > IM infected
+#PMC	- > UT mock
+#PMT	- > UM mock
+ ```{rRaw Count Data}
+colnames(read.count) <- (c("IT2", "IT3", "IT4", "H1", "H3", "H4", "H5", "UT1", "UT2", "UT3", "IT5", "IT6", "IT7", "IT8", "IM1", "IM2", "IM3", "IM4", "IM5", "UT4", "UT5", "UT6", "UT7", "UM1", "UM2", "UM3", "UM4", "UM5")) 
+#view(read.count)
+
+metadataOG<- read_table("featcount.txt.summary", col_names = TRUE)
+metadata<-data.frame(metadataOG, row.names = metadataOG$Status)
+metadata<-metadata[,-c(1)]
+
+colnames(metadata) <- (c("IT2", "IT3", "IT4", "H1", "H3", "H4", "H5", "UT1", "UT2", "UT3", "IT5", "IT6", "IT7", "IT8", "IM1", "IM2", "IM3", "IM4", "IM5", "UT4", "UT5", "UT6", "UT7", "UM1", "UM2", "UM3", "UM4", "UM5")) 
+
+
+
+ sample_info <- data.frame(
+   sample = c("IT2", "IT3", "IT4", "H1", "H3", "H4", "H5", "UT1", "UT2", "UT3", "IT5", "IT6", "IT7", "IT8", "IM1", "IM2", "IM3", "IM4", "IM5", "UT4", "UT5", "UT6", "UT7", "UM1", "UM2", "UM3", "UM4", "UM5"),
+   condition = c("IT", "IT", "IT", "H", "H", "H", "H", "UT", "UT", "UT", "IT", "IT", "IT", "IT", "IM", "IM", "IM", "IM", "IM", "UT", "UT", "UT", "UT", "UM", "UM", "UM", "UM", "UM"),
+    row.names = "sample")
+sample_info$condition<- as.factor(sample_info$condition)
+ 
+
+#all(rownames(sample_info) %in% colnames(read.count))
+#sample_info 
+
+#names(read.count) <- as.factor(c(paste("IT", c(2:4), sep = "_"),
+ #                                paste("H", c(1:5), sep="_"),
+  #                               paste("UT", c(1:3), sep="_"),
+     #                            paste("IT", c(6:8), sep = "_"),
+    #                             paste("IM", c(1:5), sep="_"),
+       #                          paste("UT", c(4:6), sep = "_"),
+      #                           paste("UM", c(1:5), sep = "_")))
+#note: this works but causes an issue in the sample info step
+ 
+```
+
+```{r raw, not using deseq}
+#filter lowly expressed genes, counts per million (cpm)
+#converting to cpms, we are normalizing for the different sequencing depths for each sample
+#if (!require("BiocManager", quietly = TRUE))
+#    install.packages("BiocManager")
+
+#BiocManager::install("edgeR")
+library(edgeR)
+myCPM <-cpm(read.count)
+head(myCPM)
+
+#which values are greater than 1.0 (1 is a good place to start, if bigger size do 0.5)
+thresh<- myCPM >1.0
+
+#logical matrix of t/f
+head(thresh)
+
+#summary of trues in each row
+table(rowSums(thresh))
+
+#keep genes with at least 2 trues in each row
+keep<-rowSums(thresh) >=2
+
+#subset the rows of the read counts to keep the highly expressed genes
+counts.keep <-read.count[keep,]
+summary(counts.keep)
+dim(counts.keep)
+
+plot(myCPM[,1],read.count[,1], ylim=c(0,50), xlim=c(0,3), col="hotpink")
+abline(v=1.0)
+
+
+#shows that 1.0 does correspond to a count of about 10-15, based on the lib size (millions)
+```
+
+```{r Quality Control}
+DESeq.ds <- DESeqDataSetFromMatrix(counts.keep,
+                                   colData = sample_info,
+                                   design = ~condition)
+
+DESeq.ds
+colSums(assay(DESeq.ds))
+
+#check
+#head(counts(DESeq.ds)) raw counts
+#counts(DESeq.ds) %>% str
+
+#lib sizes and distribution plots
+barplot(colSums(assay(DESeq.ds)), names=colnames(DESeq.ds$condition), las=2, main ="barplot of lib sizes", col = "turquoise")
+
+#variance-stablising transformation
+# Get log2 counts
+vsd <- vst(DESeq.ds,blind=TRUE)
+# Check distributions of samples using boxplots
+boxplot(assay(vsd), xlab="", ylab="Log2 counts per million",las=2, col = "turquoise")
+# Let's add a blue horizontal line that corresponds to the median logCPM
+abline(h=median(assay(vsd)), col="blue", main="Boxplots of logCPMs (unnormalised)")
+
+#Heat Map
+DESDists <- dist(t(assay(vsd)))
+
+DESDistMatrix <- as.matrix(DESDists)
+rownames(DESDistMatrix) <- paste(vsd$condition, sep="-")
+colnames(DESDistMatrix) <- NULL
+colors <- colorRampPalette( rev(brewer.pal(9, "PuRd")) )(255)
+pheatmap(DESDistMatrix,
+         clustering_distance_rows=DESDists,
+         clustering_distance_cols=DESDists,
+         col=colors)
+```
+
+
+```{r Quality Control}
+#pca
+#Here we get four principal components named PC1-4. Each of these explains a percentage of the total variation in the dataset. For example, PC1 explains nearly 72% of the total variance i.e. around three-fourth of the information of the dataset can be encapsulated by just that one Principal Component. PC2 explains 22% and so on. 
+head(DESDistMatrix)
+
+# cor () calculates the correlation between columns of a matrix
+
+corr_matrix <-cor(DESDistMatrix)
+
+
+#PCA
+#pc <- prcomp(t(corr_matrix))
+#plot(pc$x[,1], pc$x[,2],
+#    col = colData() [,1],
+#    main = "PCA of seq.depth normalized\n and rlog-transformed read counts")
+
+
+
+
+#DES.pca <- prcomp(DESDistMatrix,
+#                   center = TRUE,
+#                   scale. = TRUE)
+
+#summary(DES.pca)
+#str(DES.pca)
+
+
+# loading library
+#DES.pca.plot <- autoplot(DES.pca,
+#                          data = DESDistMatrix)
+  
+#DES.pca.plot
+
+#pca_res <- prcomp(DESDistMatrix, scale. = TRUE)
+
+#autoplot(pca_res)
+
+
+
+plotPCA(vsd,intgroup="condition")
+
+plotPCA(vsd,intgroup="condition", "sizeFactor")
+```
+
+
+```{r Quality Control}
+#dendogram
+display.brewer.all()
+```
+
+
+```{r Quality Control}
+
+# investigate different library sizes = sequencing depth
+#colSums(counts(DESeq.ds))%>% barplot # should be the same as colSums (read.count), how many reads were counted for each sample/library size
+#library size is the total number of reads sequenced or total mapped reads
+#fragmentn ends 
+#calculate size factor and add to the data set (size factor: median ratio for each sample)
+
+
+#set up the plotting layout
+#par(mfrow=c(1,2))
+#counts.sf_normalized <- data.frame(counts(DESeq.ds, normalized = TRUE))
+#countsnorm <- data.frame(counts.sf_normalized)
+#summary(countsnorm)
+##adding boxplots
+##p <- ggplot(counts.sf_normalized, mapping = aes(x=condition)) + 
+##  guides(fill=none) + coord_flip()
+##p + geom_boxplot()
+
+#boxplot(countsnorm, main = "SF normalized")
+#boxplot(counts(DESeq.ds), main = "read counts only")
+
+#par(mfrow=c(1,2))
+#boxplot(log2(counts(DESeq.ds)), notch=TRUE, horizontal = TRUE,
+#        main = "Non-normalized read counts\n(log-transformed",
+#        xlab="read counts",
+#        col="violet",
+#        border="black")
+
+#boxplot(log2(counts(DESeq.ds, normalize=TRUE)), notch=TRUE,
+#        main="Size-factor-normalized read counts\n(log-transformed)",
+#        ylab="read counts")
+```
+
+
+```{r}
+####Check results 
+#colData (DESeq.ds) %>% head
+#assay (DESeq.ds) %>% head
+#rowRanges (DESeq.ds) %>% head
+
+#setting up plots
+par(mfrow=c(1,1))
+
+#extracting normalized counts
+
+
+#adding boxplots
+boxplot(vsd, main = "size factor normalized", cex=.6)
+boxplot(counts(DESeq.ds), main="read counts only", cex=.6)
+
+par(mfrow=c(1,2))
+boxplot(log2(counts(DESeq.ds)+1), notch=TRUE,
+        main="non-norm read counts",
+        ylab="log2(read counts", cex=.6)
+boxplot(log2(counts(DESeq.ds, normalize=TRUE)+1), notch=TRUE,
+        main="Size factor norm read counts",
+        ylab="log2(read counts", cex=.6)
+```
+
+
+```{r}
+# non normalized read counts plus pseudocount
+log.counts <- log2(counts(DESeq.ds, normalized = FALSE)+1)
+assay(DESeq.ds, "log.counts") <- log2(counts(DESeq.ds, normalized = FALSE)+1)
+
+#normalized read counts
+log.norm.counts <- log2(counts(DESeq.ds, normalized = TRUE) + 1)
+
+par(mfrow=c(1,1))
+plot(log.norm.counts[,1:2], cex =.1 , main = "Normalized log2(read counts)", col = "turquoise")
+
+#every dot= one gene, the wider lower part means that read counts correlate less well between replicated when they are low
+
+#standard dev of the expression may depend on the mean (the lower the mean read counts per gene, the higher the standard deviation)
+log.norm.counts<- log2(counts(DESeq.ds, normalized = TRUE)+1)
+
+par(mfrow=c(1,1))
+msd_plot <- vsn::meanSdPlot(log.norm.counts,
+                            ranks = FALSE, 
+                            plot = FALSE)
+msd_plot$gg +
+  ggtitle("seq depth normalized log2(read counts")+
+  ylab("standard dev")
+
+#red depict the running median estimator. 
+#plot shows that there is some variance-mean dependence for genes with low read counts. means data shows signs of heteroskedasricity
+```
+
+
+```{r}
+#reducing dependance on mean
+DESeq.rlog<- rlog(DESeq.ds, blind=TRUE)
+
+par(mfrow=c(1,1))
+plot(log.norm.counts[,1:2], cex=.1,
+     main = "size factor and log2 transformed",
+     col="skyblue")
+
+plot(assay(DESeq.rlog)[,1],
+     assay(DESeq.rlog)[,2],
+           cex=.1, main = "rlog transformed",
+           xlab = colnames(assay(DESeq.rlog[,1])),
+           ylab =colnames(assay(DESeq.rlog[,2])),
+     col="thistle")
+
+rlog.norm.counts<-assay(DESeq.rlog)
+```
+
+
+```{r}
+#rlog-transformed read counts and mean sd 
+msd_plot <-vsn::meanSdPlot(rlog.norm.counts, ranks=FALSE, plot = FALSE)
+msd_plot$gg + ggtitle("rlog transformation") + coord_cartesian(ylim = c(0,3))
+
+#adjusted at this point, differences in sequencing depth, differences in RNA composition, heteroskedasticity, large dynamic range so we can use it for exploratory analysis- de analyses
+
+save.image(file = "RNAseqkasia.RDATA")
+```
+
+
+```{r}
+
+#infected vs mock
+infected_roots<- (rlog.norm.counts[,c('IT2', 'IT3', 'IT4', 'H1', 'H3', 'H4', 'H5', 'IT5', 'IT6', 'IT7', 'IT8', 'IM1', 'IM2', 'IM3', 'IM4', 'IM5')] )
+mock_roots <- (rlog.norm.counts[,c("UT1", "UT2", "UT3","UT4", "UT5", "UT6", "UT7", "UM1", "UM2", "UM3", "UM4", "UM5")])
+
+#DMR6 vs PETE
+DMR6_roots<- (rlog.norm.counts[,c("IT2", "IT3", "IT4", "H1", "H3", "H4", "H5", "UT1", "UT2", "UT3")])
+PETE_roots<-(rlog.norm.counts[,c("IT5", "IT6", "IT7", "IT8", "IM1", "IM2", "IM3", "IM4", "IM5", "UT4", "UT5", "UT6", "UT7", "UM1", "UM2", "UM3", "UM4", "UM5")])
+
+#transcriptome vs translatome
+transcriptome<- (rlog.norm.counts[,c("IT2", "IT3", "IT4", "UT1", "UT2", "UT3", "IT5", "IT6", "IT7", "IT8", "UT4", "UT5", "UT6", "UT7")])
+translatome<- (rlog.norm.counts[,c("H1", "H3", "H4", "H5","IM1", "IM2", "IM3", "IM4", "IM5","UM1", "UM2", "UM3", "UM4", "UM5")])
+
+head(infected_roots)
+```
+
+
+```{r looking to see relationships between conditions}
+# cor () calculates the correlation between columns of a matrix
+distance.m_rlog <- as.dist(1-(cor(rlog.norm.counts, method = "pearson")) )
+all_gene_tree <- hclust(distance.m_rlog, method = "complete")
+
+# dendrogram plot () can directly interpret the output of hclust ()
+#plot(all_gene_tree,
+#     labels = colnames(rlog.norm.counts), cex=0.9,
+#     main = "rlog transformed read counts\ndistance: Pearson correlation")
+
+
+
+library(dendextend)
+dend_allg<-as.dendrogram(all_gene_tree)
+
+nleaves(dend_allg) # # of genes we clustered
+nnodes(dend_allg) # # of nodes (leaves+joins) in tree
+
+allg_clusters <- cutree(dend_allg, k=8, order_clusters_as_data = FALSE)
+table(allg_clusters)
+allg_clusters[1:6]
+
+plot(color_branches(dend_allg, k=8, leaflab="none"))
+
+allgenecluster.df <-data.frame(Condition=names(allg_clusters), cluster = allg_clusters)
+allgenecluster3<-filter(allgenecluster.df, cluster==3)
+cat(as.character(allgenecluster3[1]), quote=FALSE, sep = "\n");
+
+#https://bio723-class.github.io/Bio723-book/clustering-in-r.html
+
+```
+
+
+```{r looking to see relationships between conditions}
+
+#principle component analysis
+pc <- prcomp(t(rlog.norm.counts))
+plot(pc$x[,1], pc$x[,2],
+     col = colData(DESeq.ds) [,1], 
+     main = "PCA of seq.depth normalized\n and rlog-transformed read counts")
+```
+
+```{r}
+ # PCA
+P <-plotPCA(DESeq.rlog)
+
+# plot cosmetics
+P <- P + theme_bw() + ggtitle("Rlog transformed counts")
+print(P)
+```
+
+```{r}
+# DESeq uses the levels of the condition to determine the order of the comparison
+str(colData(DESeq.ds)$condition)
+
+# set WT as the first -level - factor
+colData(DESeq.ds)$condition <- relevel(colData(DESeq.ds)$condition, "UM1","UM2","UM3","UM4","UM5","UT1","UT2","UT3","UT4","UT5","UT6","UT7")
+
+
+DESeq.ds<-DESeq(DESeq.ds)
+```
+
+```{r}
+DESeq.ds <- estimateSizeFactors(DESeq.ds) # sequencing depth normalization between the samples
+DESeq.ds <- estimateDispersions(DESeq.ds, fitType = c("parametric", "local", "mean"), maxit = 100, quiet = FALSE, modelMatrix = NULL) # gene - wise dispersion estimates across all samples
+DESeq.ds <- nbinomWaldTest(DESeq.ds) # this fits a negative binomial GLM and applies Wald statistics to each gene
+DGE.results<- results (DESeq.ds, independentFiltering = TRUE , alpha = 0.05)
+summary (DGE.results)
+```
+
+```{r}
+# the DESeqResult object can basically be handled like a data . frame
+head(DGE.results)
+table(DGE.results$padj<0.05)
+rownames(subset(DGE.results,padj<0.05))
+
+hist(DGE.results$pvalue,
+col="grey", border="white", xlab="", ylab ="",
+main = "frequencies of p-values"
+
+plotMA (DGE.results, alpha=0.05 , main="WTvs.SNF2 mutants",
+ylim = c(-4,4))
+ 
+ 
+# load the library with the aheatmap () function
+library(NMF)
+ 
+# aheatmap needs a matrix of values , e.g. , a matrix of DE genes with the transformed read counts for each replicate
+# sort the results according to the adjusted p- value
+DGE.results.sorted <- DGE.results[order(DGE.results$padj),]
+
+# identify genes with the desired adjusted p- value cut -off
+DGEgenes <- rownames ( subset ( DGE . results . sorted , padj < 0.05) )
+#extract the normalized read counts for DE genes into a matrix
+hm . mat _ DGEgenes <- log. norm . counts [ DGEgenes , ]
+
+# plot the normalized read counts of DE genes sorted by the adjusted p- value
+aheatmap ( hm .mat _ DGEgenes , Rowv = NA , Colv = NA )
+
+# combine the heatmap with hierarchical clustering
+aheatmap ( hm .mat _ DGEgenes ,
+Rowv = TRUE , Colv = TRUE , # add dendrograms to rows and columns
+distfun = " euclidean " , hclustfun = " average " )
+
+# scale the read counts per gene to emphasize the sample -type - specific
+differences
+aheatmap ( hm .mat _ DGEgenes ,
+Rowv = TRUE , Colv = TRUE ,
+distfun = " euclidean " , hclustfun = " average " ,
+scale = " row " ) # values are transformed into distances from the center of the row - specific average : ( actual value - mean of the group ) /standard deviation
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

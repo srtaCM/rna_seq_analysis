@@ -1,0 +1,561 @@
+---
+title: "sept 8 rna seq"
+output:
+  html_notebook: default
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+
+setwd("~/Desktop/Lab/TRAP_Stats_08302023/Scripts")
+```
+
+
+```{r}
+library(readr)
+featcount <- read_table("featcount.txt", 
+                        col_names = TRUE, skip = 1)
+read.count <- data.frame(featcount,row.names = featcount$Geneid ) #gene ids stored as row names
+geneID<- featcount$Geneid
+
+read.count <- read.count [ ,-c(1:6)] #removes the columns without gene counts not the same as bottom row code
+
+orig_names <- names (read.count)
+#print(orig_names)
+```
+
+
+```{r IMvHvum}
+colnames(read.count) <- (c("IT-107","IT-108", "IT-109", "IT-110", "H-107", "H-108", "H-109", "H-110","H-111", "UT-106", "UT-108", "UT-114", "IT-206", "IT-207", "IT-208", "IT-209", "IM-206", "IM-207", "IM-208", "IM-209", "IM-210", "UT-204", "UT-208", "UT-213", "UT-214", "UM-204", "UM-208", "UM-213", "UM-214", "UM-215")) 
+#view(read.count)
+
+ImvH <- read.count [ ,-c(1:4, 10:16,22:25)]
+
+sample_info <- data.frame(
+   sample = c( "H-107", "H-108", "H-109", "H-110","H-111","IM-206", "IM-207", "IM-208", "IM-209", "IM-210","UM-204", "UM-208", "UM-213", "UM-214", "UM-215" ),
+   groups=c( "H", "H", "H", "H","H",  "IM", "IM", "IM", "IM", "IM","UM","UM","UM","UM","UM"),
+   replicate= c("H-107", "H-108", "H-109", "H-110","H-111", "IM-206", "IM-207", "IM-208", "IM-209", "IM-210","UM-204", "UM-208", "UM-213", "UM-214", "UM-215"),
+    row.names = "sample") 
+
+sample_info$groups<- as.factor(sample_info$groups)
+all(rownames(sample_info) %in% colnames(ImvH)) #if false something is wrong
+sample_info  
+```
+
+
+```{r all}
+colnames(read.count) <- (c("IT-107","IT-108", "IT-109", "IT-110", "H-107", "H-108", "H-109", "H-110","H-111", "UT-106", "UT-108", "UT-114", "IT-206", "IT-207", "IT-208", "IT-209", "IM-206", "IM-207", "IM-208", "IM-209", "IM-210", "UT-204", "UT-208", "UT-213", "UT-214", "UM-204", "UM-208", "UM-213", "UM-214", "UM-215")) 
+#view(read.count)
+
+sample_info <- data.frame(
+   sample = c("IT-107","IT-108", "IT-109", "IT-110", "H-107", "H-108", "H-109", "H-110","H-111", "UT-106", "UT-108", "UT-114", "IT-206", "IT-207", "IT-208", "IT-209", "IM-206", "IM-207", "IM-208", "IM-209", "IM-210", "UT-204", "UT-208", "UT-213", "UT-214", "UM-204", "UM-208", "UM-213", "UM-214", "UM-215"),
+   condition = c("infected", "infected", "infected", "infected", "infected", "infected", "infected","infected","infected","mock","mock","mock","infected","infected","infected","infected","infected","infected","infected","infected","infected","mock","mock","mock","mock","mock","mock","mock","mock","mock"),
+   groups=c("IT","IT","IT", "IT", "H", "H", "H", "H","H", "UT", "UT", "UT", "IT", "IT", "IT", "IT", "IM", "IM", "IM", "IM", "IM", "UT", "UT", "UT", "UT", "UM", "UM", "UM", "UM", "UM"),
+   replicate= c("IT-107","IT-108", "IT-109", "IT-110", "H-107", "H-108", "H-109", "H-110","H-111", "UT-106", "UT-108", "UT-114", "IT-206", "IT-207", "IT-208", "IT-209", "IM-206", "IM-207", "IM-208", "IM-209", "IM-210", "UT-204", "UT-208", "UT-213", "UT-214", "UM-204", "UM-208", "UM-213", "UM-214", "UM-215"),
+   rna_type_collected= c( "all","all","all","all","translated","translated","translated","translated","translated","all","all","all","all","all","all","all","translated","translated","translated","translated","translated","all","all","all","all","translated","translated","translated","translated","translated"),
+   rna_vs_trap= c("rna","rna","rna","rna","trap","trap","trap","trap","trap","rna","rna","rna","rna","rna","rna","rna","trap","trap","trap","trap","trap","rna","rna","rna","rna","trap","trap","trap","trap","trap"),
+    row.names = "sample") 
+
+sample_info$groups<- as.factor(sample_info$groups)
+sample_info$condition<- as.factor(sample_info$condition)
+all(rownames(sample_info) %in% colnames(read.count)) #if false something is wrong
+sample_info 
+
+#sum(read.count)
+```
+
+
+
+
+```{r}
+
+
+library(DESeq2)
+
+dds <- DESeqDataSetFromMatrix(countData = ImvH,
+                              colData = sample_info,
+                              design = ~groups)
+print(dds)
+
+```
+
+
+```{r}
+library(magrittr)
+library(vsn)
+#prefiltering
+
+
+dds <- (dds[ rowSums( counts(dds) ) > 10 , ])
+dds$groups<-relevel(dds$groups, ref = "IM")
+
+
+summary(dds$groups)
+
+
+```
+
+```{r}
+#if (!require("BiocManager", quietly = TRUE))
+#    install.packages("BiocManager")
+
+#BiocManager::install("apeglm")
+
+library(AnnotationDbi)
+library(apeglm)
+dds <- DESeq(dds)
+res <- results(dds, 
+               independentFiltering = TRUE)
+                       
+
+summary(res)
+print(res)
+
+
+#Plot the counts of some of the top differentially expressed genes as a sanity check:
+plotCounts(dds,gene="AT1G01010",intgroup="groups")
+dev.copy2pdf(file="all_plotCounts.pdf")
+
+#Plot the log2 Fold Changes as function of expresson:
+plotMA(res,alpha=0.05)
+abline(h=c(-2,2),col="blue")
+```
+
+
+
+#baseMean, is a just the average of the normalized count values, dividing by sizefactors, taken over all samples. 
+
+#The remaining four columns refer to a specic contrast, namely the comparison of the levels (infected vs mock)
+
+#log2FoldChange is the effect size estimate. It tells us how much the gene's expression seems to have changed due to treatment in comparison to control. This value is reported on a logarithmic scale to base 2: for example, a log2 fold change of 1.5 means that the gene's expression is increased by a multiplicative factor of 2^1.5~2.82
+
+#L2FC estimate has an uncertainty associated with it, which is available in the column lfcSE,the standard error estimate for the log2 fold change estimate. 
+
+#We can also express the uncertainty of a particular effect size estimate as the result of a statistical test. The purpose of a test for differential expression is to test whether the data provides sufficient evidence to conclude that this value is really different from zero. DESeq2 performs for each gene a hypothesis test to see whether evidence is suffcient to decide against the null hypothesis that there is no effect of the treatment on the gene and that the observed difference between treatment and control was merely caused by experimental variability (i. e., the type of variability that you can just as well expect between di erent samples in the same treatment group). As usual in statistics, the result of this test is reported as a p value, and it is found in the column pvalue. (Remember that a p value indicates the probability that a fold change as strong as the observed one, or even stronger, would be seen under the situation described by the null hypothesis.)
+
+#We note that a subset of the p values in res are NA (\not available"). This is DESeq's way of reporting that all counts for this gene were zero, and hence not test was applied. In addition, p values can be assigned NA if the gene was excluded from analysis because it contained an extreme count outlier.
+
+#DESeq2 uses the so-called Benjamini-Hochberg (BH) adjustment; in brief, this method calculates for each gene an adjusted p value which answers the following question: if one called signi cant all genes with a p value less than or equal to this gene's p value threshold, what would be the fraction of false positives (the false discovery rate, FDR) among them (in the sense of the calculation outlined above)?
+These values, called the BH-adjusted p values, are given in the column padj of the results object.
+
+
+
+```{r}
+library(vsn)
+resultsNames(dds) # lists the coefficients
+#plotMA(dds)
+vsd <- vst(dds, blind = TRUE )
+
+plotMA(res)
+
+
+```
+
+
+
+```{r}
+library(ggplot2)
+
+head(assay(dds))
+par(mfrow=c(1,2))
+meanSdPlot(assay(dds), ranks=FALSE)
+
+
+head(assay(vsd), 3)
+#assay(rld)#[ 1:3, 1:3]
+meanSdPlot(assay(vsd), ranks=FALSE)
+
+
+#P-value distribution genes before adjusting for multiple testing.
+ggplot(data =as.data.frame(res),aes(x =pvalue))+geom_histogram(bins =100)
+
+
+```
+
+```{r}
+
+# PCA
+library(ggfortify)
+library(ggrepel)
+library (ggplot2)
+library(pheatmap)
+library(devtools)
+
+#summary(res)
+#print(res)
+
+pcadata<- plotPCA(vsd,
+        intgroup=c("replicate","groups"), returnData = TRUE) 
+summary(pcadata)
+
+percentVar <- round(100 * attr(pcadata, "percentVar"))
+
+
+
+#  geom_hline(yintercept = 0, lty = 2) +
+#  geom_vline(xintercept = 0, lty = 2) +
+
+p <- ggplot(pcadata, aes(PC1,PC2, label = replicate, colour = groups )) +
+  geom_point(size=3)
+
+p2 <- p + geom_text_repel(box.padding = 0.5, max.overlaps = 15, segment.linetype = 2) + labs(title = "vst transformed counts") +
+  xlab(paste0("PC1: ",percentVar[1],"% variance")) +
+  ylab(paste0("PC2: ",percentVar[2],"% variance"))
+p2
+
+dev.copy2pdf(file="PCA")
+```
+
+
+```{r}
+library("gplots") 
+library("RColorBrewer")
+
+#making distance matrix
+Dists <- dist(t( assay(vsd) ) )
+Dists
+
+DistMatrix <- as.matrix( Dists )
+rownames(DistMatrix) <- paste(vsd$replicate,  sep="-" )
+colnames(DistMatrix)<-paste(vsd$replicate,  sep="-" )
+
+
+#color scheme
+colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
+
+#generate heat map
+pheatmap(DistMatrix,
+ clustering_distance_rows=Dists,
+ clustering_distance_cols=Dists,
+ col=colors)
+
+
+#summary(DistMatrix)
+#boxplot(DistMatrix, 
+#        main = "Dist to Dist summary",
+#        xlab = "Replicate",
+#        col = rld$groupS,
+#        border = "brown")
+
+
+```
+
+
+```{r Dendogram}
+# Construct a dendogram for samples
+#install.packages("ggdendro")
+library(ggdendro)
+library(magrittr)
+library(dendextend)
+
+clusterTree <- hclust(dist(t( assay(vsd))), method="average")
+sampleTree <- as.dendrogram(clusterTree)
+
+sampleTree <- sampleTree %>% 
+  color_branches(k = 2)
+ 
+ plot(sampleTree)
+#attributes 
+
+#get_nodes_attr(sampleTree, "midpoint")
+#get_nodes_attr(sampleTree, "height")
+#assign_values_to_leaves_nodePar(sampleTree)
+#heights_per_k.dendrogram(sampleTree)
+
+
+topVarGenes<-head(order(rowVars(assay(vsd)),decreasing=TRUE),25)
+pheatmap(assay(vsd)[topVarGenes,],scale="row",col=colorRampPalette(rev(brewer.pal(9,"RdBu")))(255))
+```
+
+
+
+
+
+
+```{r results}
+library(dplyr)
+library(pheatmap)
+
+res05 <- results(dds, 
+               independentFiltering = TRUE,
+               alpha = 0.1,
+               lfcThreshold = .5)
+summary(res05)
+
+print(res05)
+#select genes with adjusted p-values below 0.1
+p05sig<-res05[order(res05$padj <0.1),]
+
+
+#select genes with absolute log2 fold change above 1 (two-fold change)
+DE <- p05sig[abs(p05sig$log2FoldChange) > 1,]
+
+
+DE<-as.data.frame(DE)
+
+#table(p05sig[abs(p05sig$log2FoldChange) > 1,])
+
+#get the list of genes of interest
+#genesOfInterest <- rownames(DE)
+```
+
+
+```{r ranking}
+#Plot the counts of some of the top differentially expressed genes as a sanity check:
+plotCounts(dds,gene="AT1G01010",intgroup="condition")
+dev.copy2pdf(file="Id4_plotCounts.pdf")
+
+#Plot the log2 Fold Changes as function of expresson:
+plotMA(res05,alpha=0.05)
+abline(h=c(-2,2),col="blue")
+
+#strongest down regulation
+head( p05sig[ order( p05sig$log2FoldChange ), ], 25)
+sdr_table<-as.data.frame(p05sig[ order( p05sig$log2FoldChange ), ])
+head(sdr_table, 25)
+
+#strongest up regulation
+head( p05sig[ order( -p05sig$log2FoldChange ), ], 25)
+sur_table<- as.data.frame( p05sig[order( -p05sig$log2FoldChange ), ])
+head(sur_table, 25)
+#.5 .1 .05 adj p val, lfc .5,1,2,3
+```
+
+```{r lfc}
+res05lfc58 <- results(dds, 
+               independentFiltering = TRUE,
+               alpha = 0.05,
+               lfcThreshold = .5)
+summary(res05lfc58)
+
+#The lfc.cutoff is set to 0.58; remember that we are working with log2 fold changes so this translates to an actual fold change of 1.5 which is pretty reasonable
+
+
+#subset the results table to only include those that are significant using the filter() function, but first we will convert the results table into a tibble:
+
+table05res58 <-as.data.frame(res05lfc58[order(res05lfc58$padj <0.05),])
+
+#How many genes are differentially expressed in the infected compared to Control, given our criteria specified above? Does this reduce our results?
+
+table05res58
+```
+
+
+```{r}
+library("AnnotationDbi")
+#if (!require("BiocManager", quietly = TRUE))
+#    install.packages("BiocManager")
+
+#BiocManager::install("org.Hs.eg.db")
+library("org.Hs.eg.db")
+
+columns(org.Hs.eg.db)
+
+res$symbol = mapIds(org.Hs.eg.db,
+                    keys=___, 
+                    keytype="ENSEMBL",
+                    column=___,
+                    multiVals="first")
+
+res$entrez = mapIds(org.Hs.eg.db,
+                    keys=___,
+                    keytype="ENSEMBL",
+                    column="ENTREZID",
+                    multiVals="first")
+
+res$name =   mapIds(org.Hs.eg.db,
+                    keys=row.names(res),
+                    keytype=___,
+                    column=___,
+                    multiVals="first")
+
+head(res, 10)
+```
+
+
+```{r lfc.5}
+library(vsn)
+#extract the normalized read counts for DE genes into a matrix
+matrixDGEgenes <- vst(res05lfc58)
+pheatmap(#matrixDGEgenes)
+
+# combine the heatmap with hierarchical clustering
+#pheatmap(matrixDGEgenes ,
+#          Rowv = TRUE , Colv = TRUE , # add dendrograms to rows and columns
+#          distfun = " euclidean ", hclustfun = " average ")
+
+# scale the read counts per gene to emphasize the sample -type - specific differences
+#aheatmap (matrixDGEgenes ,
+#          Rowv = TRUE , Colv = TRUE ,
+#          distfun = " euclidean ", hclustfun = " average ",
+#          scale = " row") # values are transformed into distances from the center of the row - specific average : ( actual value - mean of the group ) / standard deviation
+```
+
+```
+
+
+
+```{r}
+
+
+#The lfcThreshold isn't doing what you think it is doing. You could hypothetically do what you have done to get the 495 genes, which is to do a post hoc filtering on the fold changes. The problem with that is you have now destroyed any meaning for your p-values, which were testing for evidence that the fold change is different from zero.
+
+#In other words, a p-value is a test where you compare the range of Wald statistics you would expect to get if there were no differences between your groups. There will still be variation due to sampling, so you will by happenstance get some large statistics, and the p-value tells you the long run probability of seeing your observed result under the null. In the first case, the null distribution was one where the means are identical. Since your p-value was based on the null of no differences, adding in an extra criterion invalidates the original meaning of the p-value (and any multiplicity adjustment you might then make).
+
+#If you specify the lfcThreshold, you incorporate the fold change criterion into the Wald statistic, and are now testing your observed result against the values you would expect under the null distribution where the difference between the two groups is no larger than the lfc you have specified. This is a much more conservative threshold, and you should expect far fewer genes.
+
+#An alternative way to think about the difference is to note that a post hoc fold change criterion tells you that the fold change between your samples is greater than a certain value, but using lfcThreshold tests the probability that the underlying population fold change is greater than that value, which is entirely different (and what you really want to be testing).
+
+#Anyway, you should in general use something smaller like 1, or 0.585 (representing a 2-fold or 1.5-fold difference), rather than something massive like an lfcThreshold of 2.
+
+
+#multiple testing
+#be careful to not use the p values directly as evidence against the null, but to correct for multiple testing. pvalue= 0.05? 
+#how many are below the pvalue vs the amount of genes that the test was able to calculate a pvalue for
+
+#sum(res$pvalue<0.05,na.rm=TRUE) 
+#sum(is.na(res$pvalue)) 
+
+#There are 15... genes with a p value below 0.05 among the 29... genes, for which the test succeeded in reporting a p value
+
+
+#The sum command is normally used to add numberic values. However in logic vectors, TRUE=1 and FALSE=0, so we can use the sum function to count the number of “TRUE” in the vector. In the example we counted the number of genes that have a an adjusted p-value less than 0.05.
+#sum(res$padj < 0.05, na.rm=TRUE)
+
+#resSig <- subset(res, padj < 0.1)
+#head(resSig[ order(resSig$log2FoldChange), ])
+#There are 15864 genes with a p value below 0.05 among the 23205 genes, for which the test succeeded in reporting a p value
+```
+
+
+
+```{r}
+#In high-throughput biology, we are careful to not use the p values directly as evidence against the null, but to correct for multiple testing. What would happen if we were to simply threshold the p values at a low value, say 0.05? There are 5722 genes with a p value below 0.05 among the 29391 genes, for which the test succeeded in reporting a p value:}
+library(pheatmap)
+#if one called signicant all genes with a pvalue less than/equal to this gene's pvalue threshold, what would be the fraction of false positives (the false discovery rate, FDR) among them (in the sense of the calculation outlined above)? 
+#sum( res$padj < 0.5, na.rm=TRUE )
+```
+
+
+rownames(subset(res05, padj < 0.05))
+DE.sorted <- res05[order(res05$padj), ]
+
+#remove genes with NA values
+#DE <-res05[!is.na(res05$padj),]
+
+#select genes with absolute log2 fold change above 1 (two-fold change)
+DE.sorted <-DE.sorted[abs(DE.sorted$log2FoldChange)>1,]
+#get the list of genes of interest
+DEgenes <- rownames(DE.sorted)
+
+resOrdered <- as.data.frame(DE)[1:100,]
+
+
+#DGEgenes <- rownames(subset(resOrdered) )
+#head(resOrdered)
+
+#write.csv(resOrdered, file="results.csv")
+
+#extract the normalized read counts for DE genes into a matrix
+#matrixDGEgenes <- rld[DGEgenes , ]
+#M<-rld[rownames(DGEgenes)%in% resOrdered, ]
+#pheatmap(M)
+
+# combine the heatmap with hierarchical clustering
+#pheatmap(matrixDGEgenes ,
+#          Rowv = TRUE , Colv = TRUE , # add dendrograms to rows and columns
+#          distfun = " euclidean ", hclustfun = " average ")
+
+# scale the read counts per gene to emphasize the sample -type - specific differences
+#aheatmap (matrixDGEgenes ,
+#          Rowv = TRUE , Colv = TRUE ,
+#          distfun = " euclidean ", hclustfun = " average ",
+#          scale = " row") # values are transformed into distances from the center of the row - specific average : ( actual value - mean of the group ) / standard deviation
+```
+
+
+
+
+
+```{r}
+#We can also make custom plots using the ggplot function from the ggplot2 package (Figure 9).
+#data <- plotCounts(dds, gene=topGene, intgroup=c("dex","cell"), returnData=TRUE)
+#ggplot(data, aes(x=dex, y=count, color=cell)) +
+#scale_y_log10() +
+#geom_point(position=position_jitter(width=.1,height=0), size=3)
+#ggplot(data, aes(x=dex, y=count, fill=dex)) +
+#scale_y_log10() +
+#geom_dotplot(binaxis="y", stackdir="center")
+#ggplot(data, aes(x=dex, y=count, color=cell, group=cell)) +
+#scale_y_log10() + geom_point(size=3) + geom_line()
+
+#topVarGenes <- head(order(rowVars(assay(rld)),decreasing=TRUE),20)
+#mat <- assay(rld)[ topVarGenes, ]
+#mat <- mat - rowMeans(mat)
+#df <- as.data.frame(colData(rld)[,c("cell","dex")])
+#pheatmap(mat, annotation_col=df)
+
+#pheatmap(assay(rld)[top_hits,], cluster_rows = FALSE, show_rownames = TRUE, cluster_cols = FALSE) #disables clustering
+#pheatmap(assay(rld)[resOrdered,], )
+
+#annot_info <- as.data.frame(colData(dds)[,c('condition','replicate')])
+#pheatmap(assay(rld)[genesOfInterest,], 
+#         annotation_col = annot_info)
+
+#library(NMF)
+#scale the read counts per gene to emphasize the sample -type - specific differences
+
+#aheatmap(assay(rld)[top_hits,],
+#          Rowv = TRUE , Colv = TRUE ,
+#          distfun = 'euclidean', hclustfun = 'average',
+#          scale = 'row') # values are transformed into distances from the center of the row - specific average : ( actual value - mean of the group )/standard deviation
+```
+
+```{r}
+#vendiagram of mine v kasia
+library(VennDiagram)
+
+KGENES_all <- c("AT4G15610", "AT1G68620", "AT1G09932", "AT4G16260", "AT3G01420", "AT4G10500", "AT3G22600", "AT1G15520", "AT2G45220", "AT1G21240", "AT3G13950", "AT3G28510", "AT1G26390", "AT2G35980", "AT1G51860", "AT1G19250", "AT3G15536", "AT2G19190", "AT2G44240", "AT4G14630", "AT5G66690", "AT2G41850", "AT2G19500", "AT2G29350", "AT2G43570", "AT3G44300", "AT1G73260", "AT1G14880", "AT2G14610", "AT1G07050", "AT4G33980", "AT2G40080", "AT3G20810", "AT3G07650", "AT1G68050")
+
+KGENES_TOP25<-c("AT1G09932", "AT4G16260","AT3G01420","AT3G55970","AT4G15610","AT2G45220","AT1G68620","AT3G13950","AT4G11650","AT2G35980","AT4G10500","AT3G28510","AT2G19190","AT2G44240","AT3G15536","AT1G19250","AT4G14630","AT5G66690","AT3G60140","AT2G41850","AT2G19500","AT5G06850","AT1G19480","AT2G36690","AT5G43350","AT2G19800","AT1G15520","AT3G22600","AT2G43570","AT3G44300","AT1G73260","AT5G35200","AT1G14880","AT2G14610","AT2G29350")
+
+intersect(KGENES_all,top_hits)
+
+
+```
+
+```{r}
+#if (!require("BiocManager", quietly = TRUE))
+#    install.packages("BiocManager")
+
+#BiocManager::install("AnnotationDbi")
+
+library(AnnotationDbi)
+#?select
+
+
+
+
+##select()interface: 
+##Objects in this package can be accessed using the select () interface 
+##from the AnnotationDbi package. See ?select for details. 
+
+##Bimap interface: 
+x<-org.At.tairGENENAME 
+#Get the TAIR identifiers that are mapped to a gene name 
+mapped_tairs<-mappedkeys(x) 
+#Convert to a list
+xx<-as.list(x[mapped_tairs]) if(length(xx)>0){ 
+  #Get the GENENAME for the first five tairs 
+  xx[1:5] 
+  #Get the first one 
+  xx[[1]] }
+  
+```
+
