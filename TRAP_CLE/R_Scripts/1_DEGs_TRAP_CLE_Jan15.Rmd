@@ -223,10 +223,9 @@ dds_UM <- DESeq2::DESeq(dds_UM)
 # List available model coefficients
 DESeq2::resultsNames(dds_UM)
 
-# Extract contrasts of interest: IM vs UM and H vs UM (UM is the reference)
+# Extract contrasts of interest: IM vs UM and H vs UM (UM is the reference) IT vs UT
 res_IM_UM <- DESeq2::results(dds_UM, name = "Groups_IM_vs_UM")
 res_H_UM  <- DESeq2::results(dds_UM, name = "Groups_H_vs_UM")
-
 ```
 
 
@@ -235,22 +234,22 @@ res_H_UM  <- DESeq2::results(dds_UM, name = "Groups_H_vs_UM")
 # 3. UT baseline (IT vs UT)
 ################################
 
-# If you want UT as the reference (baseline) instead of UM, uncomment this block.
+
 # This will re-level Groups and fit a separate DESeq2 model for UT vs IT.
 
-# sample_info1$Groups <- factor(
-#   sample_info1$Groups,
-#   levels = c("UT", "IT", "IM", "H", "UM")
-# )
-# dds_UT <- DESeq2::DESeqDataSetFromMatrix(
-#   countData = read.count,
-#   colData   = sample_info1,
-#   design    = ~ Groups
-# )
-# dds_UT <- dds_UT[rowSums(DESeq2::counts(dds_UT)) > 10, ]
-# dds_UT <- DESeq2::DESeq(dds_UT)
-# DESeq2::resultsNames(dds_UT)
-# res_IT_UT <- DESeq2::results(dds_UT, name = "Groups_IT_vs_UT")
+ sample_info1$Groups <- factor(
+   sample_info1$Groups,
+   levels = c("UT", "IT", "IM", "H", "UM")
+ )
+ dds_UT <- DESeq2::DESeqDataSetFromMatrix(
+   countData = read.count,
+   colData   = sample_info1,
+   design    = ~ Groups
+ )
+ dds_UT <- dds_UT[rowSums(DESeq2::counts(dds_UT)) > 10, ]
+ dds_UT <- DESeq2::DESeq(dds_UT)
+ DESeq2::resultsNames(dds_UT)
+ res_IT_UT <- DESeq2::results(dds_UT, name = "Groups_IT_vs_UT")
 
 
 #########################
@@ -263,6 +262,9 @@ res_IM_UM_df$GeneID <- rownames(res_IM_UM_df)
 
 res_H_UM_df  <- as.data.frame(res_H_UM)
 res_H_UM_df$GeneID  <- rownames(res_H_UM_df)
+
+res_IT_UT_df  <- as.data.frame(res_IT_UT)
+res_IT_UT_df$GeneID  <- rownames(res_IT_UT_df)
 ```
 
 
@@ -276,15 +278,17 @@ readr::write_csv(res_IM_UM_df,
                  file.path(tables_dir, "DESeq2_IM_vs_UM.csv"))
 readr::write_csv(res_H_UM_df,  
                  file.path(tables_dir, "DESeq2_H_vs_UM.csv"))
+readr::write_csv(res_IT_UT_df,  
+                 file.path(tables_dir, "DESeq2_IT_vs_UT.csv"))
 
 # Multi-sheet Excel workbook (recommended)
 writexl::write_xlsx(
   list(
     "IM_vs_UM" = res_IM_UM_df,
-    "H_vs_UM"  = res_H_UM_df
-    # "IT_vs_UT" = res_IT_UT_df  # Uncomment if UT baseline was run
+    "H_vs_UM"  = res_H_UM_df,
+    "IT_vs_UT" = res_IT_UT_df
   ),
-  path = file.path(tables_dir, "DESeq2_results_IM_H_vs_UM.xlsx")
+  path = file.path(tables_dir, "DESeq2_results_IM_H_IT.xlsx")
 )
 
 
@@ -302,6 +306,7 @@ cat("📊 Files created:\n")
 # Ensure GeneID columns are present (in case previous chunk was skipped)
 res_IM_UM_df$GeneID <- rownames(res_IM_UM_df)
 res_H_UM_df$GeneID  <- rownames(res_H_UM_df)
+res_IT_UT_df$GeneID  <- rownames(res_IT_UT_df)
 
 # Select key columns and rename for clarity (log2FC and padj from each contrast)
 im_um_sel <- res_IM_UM_df %>%
@@ -309,6 +314,9 @@ im_um_sel <- res_IM_UM_df %>%
 
 h_um_sel <- res_H_UM_df %>%
   dplyr::select(GeneID, H_vs_UM_log2FC = log2FoldChange, H_vs_UM_padj = padj)
+
+it_ut_sel <- res_IT_UT_df %>%
+  dplyr::select(GeneID, IT_vs_UT_log2FC = log2FoldChange, IT_vs_UT_padj = padj)
 
 # If UT baseline is run:
 # it_ut_sel <- res_IT_UT_df %>%
@@ -320,7 +328,7 @@ h_um_sel <- res_H_UM_df %>%
 
 
 # Full join all contrasts by GeneID (full_join keeps all genes from both tables)
-deseq_all <- dplyr::full_join(im_um_sel, h_um_sel, by = "GeneID")
+deseq_all <- dplyr::full_join(im_um_sel, h_um_sel,it_ut_sel, by = "GeneID")
 head(deseq_all)
 
 # Preview the merged table
@@ -332,8 +340,6 @@ head(deseq_all, 3)  # First 3 rows
 summary(deseq_all$IM_vs_UM_log2FC)
 summary(deseq_all$IM_vs_UM_padj)
 
-# View in spreadsheet-style viewer:
-View(deseq_all)
 ```
 
 
@@ -353,6 +359,7 @@ writexl::write_xlsx(
   list(
     "IM_vs_UM" = im_um_sel,
     "H_vs_UM"  = h_um_sel,
+    "IT_vs_UT" = it_ut_sel,
     "All_wide" = deseq_all
   ),
   path = file.path(tables_dir, "DESeq2_results_combined.xlsx")
@@ -380,160 +387,220 @@ cat(sprintf("📁 Directory: %s\n", tables_dir))
 ```
 
 
-```{r combined-de-analysis}
+
+```{r}
 # ===============================
-# Combined: Shared/Unique + Volcano + Heatmap
+# Combined: Shared/Unique + Volcano + Heatmap + Exports
 # ===============================
 
 library(EnhancedVolcano)
 library(pheatmap)
+library(ggplot2)
+library(dplyr)
 
-# 1. Significant genes (padj < 0.05)
-sig_IM <- rownames(res_IM_UM)[res_IM_UM$padj < 0.05]
-sig_H  <- rownames(res_H_UM)[res_H_UM$padj < 0.05]
+# 1. Significant genes (padj < 0.05, |log2FC| > 1)
+sig_IM <- rownames(res_IM_UM)[res_IM_UM$padj < 0.05 & abs(res_IM_UM$log2FoldChange) > 1]
+sig_H  <- rownames(res_H_UM)[res_H_UM$padj < 0.05 & abs(res_H_UM$log2FoldChange) > 1]
 
 shared    <- intersect(sig_IM, sig_H)
 unique_IM <- setdiff(sig_IM, sig_H)
 unique_H  <- setdiff(sig_H, sig_IM)
 
-cat("Shared significant (padj < 0.05):", length(shared), "\n")
-cat("IM-unique significant:", length(unique_IM), "\n")
-cat("H-unique significant:", length(unique_H), "\n")
-cat("Total IM sig:", length(sig_IM), "\n")
-cat("Total H sig:", length(sig_H), "\n")
+cat("🔬 DE Genes (padj < 0.05, |LFC| > 1):\n")
+cat("- Shared (IM & H vs UM):     ", length(shared), "\n")
+cat("- IM-unique:                ", length(unique_IM), "\n")
+cat("- H-unique (pure haustoria):", length(unique_H), "\n")
+cat("- Total IM sig:             ", length(sig_IM), "\n")
+cat("- Total H sig:              ", length(sig_H), "\n")
 
-# 2. Merged results for plotting
+# 2. Merged results df
 merged_res <- data.frame(
   Gene             = rownames(res_IM_UM),
-  log2FC_IM_vs_UM  = res_IM_UM$log2FoldChange,
-  padj_IM_vs_UM    = res_IM_UM$padj,
-  log2FC_H_vs_UM   = res_H_UM$log2FoldChange,
-  padj_H_vs_UM     = res_H_UM$padj
-)
+  log2FC_IM        = res_IM_UM$log2FoldChange,
+  padj_IM          = res_IM_UM$padj,
+  log2FC_H         = res_H_UM$log2FoldChange,
+  padj_H           = res_H_UM$padj,
+  stringsAsFactors = FALSE
+) %>%
+  mutate(
+    category = case_when(
+      rownames(.) %in% shared ~ "Shared",
+      rownames(.) %in% unique_IM ~ "IM-unique", 
+      rownames(.) %in% unique_H ~ "H-unique",
+      TRUE ~ "NS"
+    ),
+    max_padj = pmax(padj_IM, padj_H, na.rm = TRUE)
+  )
 
-merged_res$category <- ifelse(
-  rownames(merged_res) %in% shared, "Shared",
-  ifelse(rownames(merged_res) %in% unique_IM, "IM-unique",
-         ifelse(rownames(merged_res) %in% unique_H, "H-unique", "NS"))
-)
+# Export merged + categories
+readr::write_csv(merged_res, file.path(tables_dir, "DE_shared_unique_categories.csv"))
 
-# 3. Log2FC scatter (IM vs H concordance)
-p1 <- ggplot(merged_res, aes(x = log2FC_IM_vs_UM, y = log2FC_H_vs_UM, color = category)) +
-  geom_point(alpha = 0.6, size = 0.8) +
-  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "black") +
-  scale_color_manual(values = c("Shared" = "red", "IM-unique" = "blue", 
-                                "H-unique" = "green", "NS" = "grey")) +
-  labs(title = "IM vs UM vs H vs UM: Concordance", 
-       x = "IM vs UM log2FC", y = "H vs UM log2FC") +
-  theme_minimal() + theme(legend.position = "bottom")
-print(p1)
+# 3. Concordance scatter
+p_concord <- ggplot(merged_res, aes(log2FC_IM, log2FC_H, color = category)) +
+  geom_point(alpha = 0.6, size = 1) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "black", size = 0.8) +
+  scale_color_manual(values = c(Shared = "red3", "IM-unique" = "steelblue", "H-unique" = "darkgreen", NS = "grey70")) +
+  labs(title = "Concordance: IM vs UM vs H vs UM", x = "log2FC (IM vs UM)", y = "log2FC (H vs UM)",
+       caption = paste("Shared:", length(shared))) +
+  theme_minimal(base_size = 12) + 
+  theme(legend.position = "bottom", legend.title = element_blank())
+print(p_concord)
+ggsave(file.path(graphics_dir, "concordance_IM_H_vs_UM.png"), p_concord, width = 8, height = 6, dpi = 300)
 
-# 4. Volcano plot (IM vs UM)
-p2 <- EnhancedVolcano(
-  deseq_all,
-  lab = deseq_all$GeneID,
-  x = 'IM_vs_UM_log2FC', y = 'IM_vs_UM_padj',
+# ===============================
+# Combined: Shared/Unique + Volcano + Heatmap + Exports
+# ===============================
+
+library(EnhancedVolcano)
+library(pheatmap)
+library(ggplot2)
+library(dplyr)
+
+# 1-3. [Previous sections unchanged: sig genes, merged_res, concordance plot, exports]
+
+# ... (keep sig_IM, sig_H, shared, merged_res, p_concord, ggsave as-is)
+
+# 4. Volcano IM vs UM (FIXED: no 'draws')
+p_volc_IM <- EnhancedVolcano(merged_res,
+  lab = merged_res$Gene,
+  x = 'log2FC_IM', y = 'padj_IM',
   pCutoff = 0.05, FCcutoff = 1,
-  title = 'IM vs UM Volcano'
+  pointSize = 1.2, labSize = 2.5,
+  title = 'IM vs UM Volcano (TRAP Mesophyll)',
+  subtitle = "padj < 0.05 & |log2FC| > 1",
+  colAlpha = 0.8,
+  legendPosition = 'right',
+  col = c("grey40", "blue", "green3", "red"),
+  legendLabels = c('NS', 'LFC', 'p-value', 'p-value & LFC'),
+  legendLabSize = 10
 )
-print(p2)
+print(p_volc_IM)
+ggsave(file.path(graphics_dir, "volcano_IM_vs_UM.png"), p_volc_IM, width = 10, height = 8, dpi = 300)
 
-# 5. Heatmap: Top SHARED genes (haustoria candidates)
-# Debug (run this first):
-setdiff(top_shared_genes, rownames(dds_UM))
-sum(top_shared_genes %in% rownames(dds_UM))  # Should be 50
+# 4b. Bonus: Volcano H vs UM 
+p_volc_H <- EnhancedVolcano(merged_res,
+  lab = merged_res$Gene,
+  x = 'log2FC_H', y = 'padj_H',
+  pCutoff = 0.05, FCcutoff = 1,
+  pointSize = 1.2, labSize = 2.5,
+  title = 'H vs UM Volcano (Pure Haustoria)',
+  subtitle = "padj < 0.05 & |log2FC| > 1", 
+  colAlpha = 0.8,
+  legendPosition = 'right',
+  col = c("grey40", "blue", "green3", "red")
+)
+print(p_volc_H)
+ggsave(file.path(graphics_dir, "volcano_H_vs_UM.png"), p_volc_H, width = 10, height = 8, dpi = 300)
 
-# Fix: Only use genes that exist in dds_UM
-top_shared_genes <- intersect(top_shared_genes, rownames(dds_UM))
-length(top_shared_genes)  # Confirm we have enough
 
-# Replace the heatmap section with:
-top_shared_genes <- head(shared, 50)
-top_shared_genes <- intersect(top_shared_genes, rownames(dds_UM))  # Safe subset
-if(length(top_shared_genes) > 0) {
-  pheatmap(
-    assay(dds_UM)[top_shared_genes, ],
-    scale = "row",
-    annotation_col = sample_info1[, c("Groups", "Condition"), drop = FALSE],
-    main = paste("Top", length(top_shared_genes), "SHARED DE genes"),
-    show_rownames = FALSE
+# 5-6. [Heatmap + top table unchanged]
+
+print(p_volc_IM)
+ggsave(file.path(graphics_dir, "volcano_IM_vs_UM.png"), p_volc_IM, width = 10, height = 8, dpi = 300)
+
+# 5. Heatmap: Top SHARED (haustoria signal)
+top_shared <- head(shared, min(50, length(shared)))
+top_shared <- intersect(top_shared, rownames(dds_UM))  # Safe subset [conversation_history:55]
+cat("Heatmap: Top", length(top_shared), "shared genes in dds_UM\n")
+
+if(length(top_shared) > 0) {
+  mat <- assay(dds_UM)[top_shared, ]
+  annotation_col <- as.data.frame(colData(dds_UM)[, c("Groups", "Condition"), drop = FALSE])
+  rownames(annotation_col) <- colnames(mat)
+  
+  p_heat <- pheatmap(mat, scale = "row",
+    annotation_col = annotation_col,
+    main = paste("Top", length(top_shared), "Shared DE Genes\n(Haustoria Candidates: IM & H vs UM)"),
+    show_rownames = FALSE, show_colnames = FALSE,
+    filename = file.path(graphics_dir, "heatmap_top_shared_genes.png"),  # Auto-save
+    width = 10, height = 8
   )
 } else {
-  cat("No shared genes found in dds_UM\n")
+  cat("❌ No shared genes available for heatmap\n")
 }
 
-# 6. Top shared table
-merged_res[shared, ] %>%
-  dplyr::mutate(avg_lfc = (log2FC_IM_vs_UM + log2FC_H_vs_UM) / 2) %>%
-  dplyr::arrange(dplyr::desc(avg_lfc)) %>%
-  head(20) %>%
-  print()
+top_shared_df <- merged_res %>%
+  filter(Gene %in% shared) %>%
+  mutate(avg_lfc = (log2FC_IM + log2FC_H)/2) %>%
+  arrange(desc(avg_lfc)) %>%
+  head(20)
+
+knitr::kable(top_shared_df[,1:6], digits = 3, caption = "Top 20 Shared DE Genes")  # Nice table in Rmd
+
+readr::write_csv(top_shared_df, file.path(tables_dir, "top20_shared_DE_genes.csv"))
 
 ```
 
 
-```{r pca-samples}
+
+```{r}
 library(ggplot2)
 library(ggrepel)
 library(DESeq2)
 
 # ===============================
-# Sample clustering: VST + PCA
+# Sample clustering: VST + PCA + Export
 # ===============================
 
-# VST transform (variance-stabilizing normalization for PCA)
-vsd <- vst(dds_UM, blind = TRUE)  # blind=TRUE ignores design for unbiased PCA
+# VST (variance stabilizing for PCA/clustering)
+vsd <- vst(dds_UM, blind = TRUE)
 
-# Normalized counts for other plots (if needed)
-norm_counts <- assay(dds_UM)
-
-# PCA plot data (DESeq2 built-in function)
-pca_data <- DESeq2::plotPCA(
-  vsd, 
-  intgroup = c("Groups", "Condition"),  # Use Groups + Condition
+# PCA data (DESeq2 convenience function)
+pca_data <- DESeq2::plotPCA(vsd, 
+  intgroup = c("Groups", "Condition"), 
   returnData = TRUE
 )
 percentVar <- round(100 * attr(pca_data, "percentVar"))
 
-# PCA plot with improved aesthetics
-p <- ggplot(pca_data, aes(PC1, PC2, color = Groups)) +
-  geom_point(aes(shape = Condition), size = 4, stroke = 1) +
+# Enhanced PCA plot
+p_pca <- ggplot(pca_data, aes(PC1, PC2, color = Groups, shape = Condition)) +
+  geom_point(size = 4, stroke = 1.2, alpha = 0.85) +
   scale_color_manual(values = c(
     "UM" = "#00BFC4", "IM" = "#FF9933", 
     "H"  = "#CC6677", "UT" = "#4477AA", 
     "IT" = "#88CCEE"
   )) +
   scale_shape_manual(values = c("Uninfected" = 16, "Infected" = 17)) +
-  labs(
-    title = "Sample Clustering: VST PCA",
-    subtitle = "TRAP-seq (IM/H/UM/UT/IT samples)"
+  geom_text_repel(aes(label = name), 
+    box.padding = 0.35, point.padding = 0.3,
+    max.overlaps = 20, size = 3.2,
+    segment.color = "grey60", segment.size = 0.3,
+    bg.color = "white", bg.r = 0.1
   ) +
-  theme_classic() +
+  labs(
+    title = "TRAP-seq Sample Clustering (VST PCA)",
+    subtitle = "Haustoria enrichment: H vs IM separation",
+    caption = paste("PC1:", round(percentVar[1],1), "% | PC2:", round(percentVar[2],1), "%")
+  ) +
+  xlab(paste0("PC1 (", round(percentVar[1],1), "%)")) +
+  ylab(paste0("PC2 (", round(percentVar[2],1), "%)")) +
+  theme_classic(base_size = 13) +
   theme(
-    legend.position = "bottom",
-    plot.title = element_text(hjust = 0.5, face = "bold")
+    legend.position = "bottom", 
+    legend.title = element_blank(),
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
+    plot.subtitle = element_text(hjust = 0.5, size = 12)
   )
 
-# Add sample labels (repel avoids overlap)
-p2 <- p + 
-  geom_text_repel(
-    aes(label = name),  # 'name' from plotPCA()
-    box.padding = 0.3, 
-    max.overlaps = Inf,  # Show all labels
-    size = 3, 
-    segment.color = "grey50",
-    segment.size = 0.2
-  ) +
-  xlab(paste0("PC1: ", percentVar[1], "% variance")) +
-  ylab(paste0("PC2: ", percentVar[2], "% variance"))
+print(p_pca)
 
-print(p2)
+# Export high-res to Graphics/
+ggsave(file.path(graphics_dir, "TRAPseq_PCA_vst_samples.png"), 
+       p_pca, width = 12, height = 9, dpi = 300, bg = "white")
 
-# ===============================
-# Optional: Save high-res plot
-# ===============================
-# ggsave("TRAP_PCA_vst.pdf", plot = p2, width = 12, height = 10, dpi = 300)
+# Bonus: Sample distance heatmap
+sampleDists <- dist(t(assay(vsd)))
+sampleDistMatrix <- as.matrix(sampleDists)
+rownames(sampleDistMatrix) <- pca_data$name
+colnames(sampleDistMatrix) <- NULL
+colors <- colorRampPalette(rev(RColorBrewer::brewer.pal(9, "Blues")))(255)
+pheatmap(sampleDistMatrix, clustering_distance_rows = sampleDists,
+         clustering_distance_cols = sampleDists, col = colors,
+         main = "Sample-to-Sample Distances (VST)",
+         filename = file.path(graphics_dir, "sample_distances_heatmap.png"))
+
 ```
+
 
 
 ```{r ma-plots}
