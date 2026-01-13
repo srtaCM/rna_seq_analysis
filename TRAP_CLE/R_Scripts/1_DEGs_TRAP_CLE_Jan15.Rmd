@@ -288,18 +288,10 @@ res_H_UM_df$GeneID  <- rownames(res_H_UM_df)
 
 # Select key columns and rename for clarity (log2FC and padj from each contrast)
 im_um_sel <- res_IM_UM_df %>%
-  dplyr::select(
-    GeneID,
-    IM_vs_UM_log2FC = log2FoldChange,
-    IM_vs_UM_padj   = padj
-  )
+  dplyr::select(GeneID, IM_vs_UM_log2FC = log2FoldChange, IM_vs_UM_padj = padj)
 
 h_um_sel <- res_H_UM_df %>%
-  dplyr::select(
-    GeneID,
-    H_vs_UM_log2FC  = log2FoldChange,
-    H_vs_UM_padj    = padj
-  )
+  dplyr::select(GeneID, H_vs_UM_log2FC = log2FoldChange, H_vs_UM_padj = padj)
 
 # If UT baseline is run:
 # it_ut_sel <- res_IT_UT_df %>%
@@ -312,9 +304,8 @@ h_um_sel <- res_H_UM_df %>%
 
 
 # Full join all contrasts by GeneID (full_join keeps all genes from both tables)
-deseq_all <- im_um_sel %>%
-  dplyr::full_join(h_um_sel, by = "GeneID") %>%
-  # dplyr::arrange(desc(IM_vs_UM_padj))  # optional: sort by padj
+deseq_all <- dplyr::full_join(im_um_sel, h_um_sel, by = "GeneID")
+head(deseq_all)
 
 # Preview the merged table
 # These should now print the first 6 rows:
