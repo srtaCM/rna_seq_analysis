@@ -44,7 +44,7 @@ set.seed(123)
 # }
 
 # Install / update Bioconductor packages (uncomment and edit as needed)
-# BiocManager::install(c(
+ #BiocManager::install(c( "rprojroot"))
 #   "DESeq2",
 #   "EnhancedVolcano",
 #   "ComplexHeatmap",
@@ -87,16 +87,34 @@ suppressPackageStartupMessages({
 
 
 ```{r setup-output-dirs}
-# Base results directory (relative to project root)
-results_dir   <- "Results"
+# ===============================
+# Setup output directories at PROJECT ROOT (RStudio-friendly)
+# ===============================
+
+# Option 1: RStudio Project (recommended - simplest)
+if (rstudioapi::isAvailable()) {
+  project_root <- normalizePath(rstudioapi::getActiveProject()[[1]])
+} else {
+  # Option 2: Fallback to parent dir (assumes R_Scripts/ under project root)
+  project_root <- normalizePath(file.path(dirname(getwd()), ".."))
+}
+
+# Define paths relative to PROJECT ROOT
+results_dir   <- file.path(project_root, "TRAP_CLE/Results")
 graphics_dir  <- file.path(results_dir, "Graphics")
 tables_dir    <- file.path(results_dir, "Tables")
 procdata_dir  <- file.path(results_dir, "Processed_data")
 
-# Create directories if they do not exist
-dir.create(graphics_dir, recursive = TRUE, showWarnings = FALSE)
-dir.create(tables_dir,   recursive = TRUE, showWarnings = FALSE)
-dir.create(procdata_dir, recursive = TRUE, showWarnings = FALSE)
+# Create directories (idempotent, no warnings)
+dir.create(results_dir,   recursive = TRUE, showWarnings = FALSE)
+dir.create(graphics_dir,  recursive = TRUE, showWarnings = FALSE)
+dir.create(tables_dir,    recursive = TRUE, showWarnings = FALSE)
+dir.create(procdata_dir,  recursive = TRUE, showWarnings = FALSE)
+
+# Confirmation
+cat("✅ Project root:", project_root, "\n")
+cat(sprintf("📁 Tables dir: %s\n", tables_dir))
+cat(sprintf("✅ Dirs ready for exports/plots\n"))
 
 ```
 
@@ -273,7 +291,6 @@ writexl::write_xlsx(
 cat("✅ Tables exported to:", tables_dir, "\n")
 cat("📊 Files created:\n")
 
-
 ```
 
 
@@ -300,7 +317,6 @@ h_um_sel <- res_H_UM_df %>%
 #     IT_vs_UT_log2FC = log2FoldChange,
 #     IT_vs_UT_padj   = padj
 #   )
-
 
 
 # Full join all contrasts by GeneID (full_join keeps all genes from both tables)
@@ -359,6 +375,7 @@ cat("✅ Tables exported to Results/Tables:\n")
 cat("- DESeq2_all_contrasts_wide.csv\n")
 cat("- DESeq2_results_combined.xlsx\n")
 cat("- DESeq2_long_format_for_joining.csv\n")
+cat(sprintf("📁 Directory: %s\n", tables_dir))
 
 ```
 
