@@ -93,12 +93,28 @@ cat(sprintf("✅ Dirs ready for exports/plots\n"))
 
 
 ```{r read-couts, message=FALSE}
-# Read featureCounts (skip header, geneid as rownames)
-featcount <- read_table ("./Data_Repository/featcount.txt", col_names = TRUE, skip = 1)
+# Read featureCounts (preserve Geneid)
+featcount <- read_tsv("./Data_Repository/featcount.txt", skip = 1)
 
-# Clean featcounts: geneid → rownames, drop metadata cols 1-6
-read.count <- as.data.frame(featcount[, -c(1:6)], row.names = featcount$Geneid)
+# Set Geneid as column
+gene_ids <- featcount[[1]]
 
+# Count matrix: columns 7+ (samples), rownames = Geneid
+read.count <- as.matrix(featcount[, 7:ncol(featcount)])
+rownames(read.count) <- gene_ids
+
+# Clean colnames (remove .bam paths)
+colnames(read.count) <- gsub(".*\\/|\\..*Aligned.*", "", colnames(read.count))
+
+# Check
+#dim(read.count) #check dimensions 
+#head(rownames(read.count))  # AT1G00010 etc.
+#head(colnames(read.count))  # DIC1_S21, DIT1_S5 etc.
+
+```
+
+
+```{r read-couts, message=FALSE}
 # Standardize colnames
 sample_names <- c("IT-107", "IT-108", "IT-109", "IT-110", 
                   "H-107", "H-108", "H-109", "H-110", "H-111",
@@ -171,6 +187,7 @@ dds_UM$Groups <- relevel(dds_UM$Groups, ref = "UM")
 
 # Run DESeq2
 dds_UM <- DESeq(dds_UM)
+print(dds_UM)
 
 # Results names
 resultsNames(dds_UM)
@@ -260,9 +277,9 @@ plot(dend, main = "Sample Clustering (VST, Ward.D2)", ylab = "Euclidean Distance
 #       width = 10, height = 8, dpi = 300)
 
 # Sample distance matrix heatmap
+dist_mat <- as.matrix(sample_dist)
 colnames(dist_mat) <- rownames(sample_info)  # Clean labels
 rownames(dist_mat) <- rownames(sample_info)
-dist_mat <- as.matrix(sample_dist)
 
 colors_dist <- colorRampPalette(rev(RColorBrewer::brewer.pal(9, "Blues")))(255)
 
@@ -339,7 +356,7 @@ print(p_pca)
 
 # High-res export + PDF for papers
 #ggsave(file.path(graphics_dir, "TRAPseq_PCA_vst_final.png"), 
-       p_pca, width = 11, height = 8, dpi = 300, bg = "white")
+#       p_pca, width = 11, height = 8, dpi = 300, bg = "white")
 ```
 
 
@@ -348,6 +365,7 @@ resultsNames(dds_UM)
 
 # Base results (padj sorted)
 res_H_UM <- results(dds_UM, contrast = c("Groups", "H", "UM"), alpha = 0.05)
+print(res_H_UM)
 res_IM_UM <- results(dds_UM, contrast = c("Groups", "IM", "UM"), alpha = 0.05)
 
 # LFC shrinkage (apeglm, more accurate for rankings)
@@ -389,10 +407,10 @@ cat("IM vs UM: ", sig_IM_UM, " (", round(100*sig_IM_UM/nrow(res_IM_UM),1), "%)\n
 cat("H > IM confirms haustoria enrichment!\n\n")
 
 # Comprehensive export (base + shrunk LFC)
-write_csv(as.data.frame(res_H_UM), file.path(tables_dir, "05_DESeq2_H_vs_UM_base.csv"))
-write_csv(as.data.frame(lfc_H_UM), file.path(tables_dir, "05_DESeq2_H_vs_UM_LFCshrink.csv"))
-write_csv(as.data.frame(res_IM_UM), file.path(tables_dir, "05_DESeq2_IM_vs_UM_base.csv"))
-write_csv(as.data.frame(lfc_IM_UM), file.path(tables_dir, "05_DESeq2_IM_vs_UM_LFCshrink.csv"))
+#write_csv(as.data.frame(res_H_UM), file.path(tables_dir, "05_DESeq2_H_vs_UM_base.csv"))
+#write_csv(as.data.frame(lfc_H_UM), file.path(tables_dir, "05_DESeq2_H_vs_UM_LFCshrink.csv"))
+#write_csv(as.data.frame(res_IM_UM), file.path(tables_dir, "05_DESeq2_IM_vs_UM_base.csv"))
+#write_csv(as.data.frame(lfc_IM_UM), file.path(tables_dir, "05_DESeq2_IM_vs_UM_LFCshrink.csv"))
 
 cat("✅ Exported 4 result tables (base + LFC-shrunk)\n")
 ```
