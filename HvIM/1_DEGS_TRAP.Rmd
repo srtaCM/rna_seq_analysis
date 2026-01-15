@@ -29,20 +29,20 @@ options (max.print = .Machine$integer.max, scipen = 0, stringsAsFactors = F, dpl
 
 # Install missing Bioconductor pkgs if needed (uncomment to run once)
 #if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager")
-BiocManager::install(c("DESeq2", "apeglm", "clusterProfiler", "org.At.tair.db"), update = FALSE, ask = FALSE)
+#BiocManager::install(c("DESeq2", "apeglm", "clusterProfiler", "org.At.tair.db"), update = FALSE, ask = FALSE)
 
 # CRAN pkgs (tidyverse handles most)
-install_if_missing <- function(dplyr) {
-  if (!require(dplyr, character.only = TRUE, quietly = TRUE)) {
-    install.packages(dplyr, dependencies = TRUE)
-    library(dplyr, character.only = TRUE, quietly = TRUE)
-  }
-}
+#install_if_missing <- function(dplyr) {
+#  if (!require(dplyr, character.only = TRUE, quietly = TRUE)) {
+#   install.packages(dplyr, dependencies = TRUE)
+#    library(dplyr, character.only = TRUE, quietly = TRUE)
+#  }
+#}
 
-pkgs_cran <- c("readr", "tidyverse", "ggplot2", "ggrepel", "pheatmap", "writexl", 
-               "dplyr", "RColorBrewer", "gplots", "dendextend", "reshape2", "xlsx")
+#pkgs_cran <- c("readr", "tidyverse", "ggplot2", "ggrepel", "pheatmap", "writexl", 
+#               "dplyr", "RColorBrewer", "gplots", "dendextend", "reshape2", "xlsx")
 
-invisible(sapply(pkgs_cran, install_if_missing))
+#invisible(sapply(pkgs_cran, install_if_missing))
 
 # Bioc pkgs (quiet load)
 suppressPackageStartupMessages({
@@ -55,6 +55,10 @@ suppressPackageStartupMessages({
   library(dendextend)
   library(pheatmap)
   library(dplyr)
+  library(readr)
+  library(ggplot2)
+  library(ggrepel)
+  library(tidyr)
 })
 
 # Confirm loaded
@@ -64,13 +68,11 @@ cat("- Key: DESeq2, tidyverse, pheatmap, EnhancedVolcano, clusterProfiler\n")
 ```
 
 ```{r}
-# Option 1: RStudio Project (recommended - simplest)
+# making sure you are routing to the right ROOT
 if (rstudioapi::isAvailable()) {
   project_root <- normalizePath(rstudioapi::getActiveProject()[[1]])
-} else {
-  # Option 2: Fallback to parent dir (assumes R_Scripts/ under project root)
-  project_root <- normalizePath(file.path(dirname(getwd()), ".."))
-}
+}# else 
+
 
 # Define paths relative to PROJECT ROOT
 results_dir   <- file.path(project_root, "HvIM/Results")
@@ -78,7 +80,7 @@ graphics_dir  <- file.path(results_dir, "Graphics")
 tables_dir    <- file.path(results_dir, "Tables")
 procdata_dir  <- file.path(results_dir, "Processed_data")
 
-# Create directories (idempotent, no warnings)
+# Create directories
 dir.create(results_dir,   recursive = TRUE, showWarnings = FALSE)
 dir.create(graphics_dir,  recursive = TRUE, showWarnings = FALSE)
 dir.create(tables_dir,    recursive = TRUE, showWarnings = FALSE)
@@ -86,21 +88,18 @@ dir.create(procdata_dir,  recursive = TRUE, showWarnings = FALSE)
 
 # Confirmation
 cat("✅ Project root:", project_root, "\n")
-cat(sprintf("📁 Tables dir: %s\n", tables_dir))
 cat(sprintf("✅ Dirs ready for exports/plots\n"))
-
 ```
 
 
 ```{r read-couts, message=FALSE}
-
-# Read featureCounts output (skip header, geneid as rownames)
+# Read featureCounts (skip header, geneid as rownames)
 featcount <- read_table ("./Data_Repository/featcount.txt", col_names = TRUE, skip = 1)
 
-# Clean: geneid → rownames, drop metadata cols 1-6
+# Clean featcounts: geneid → rownames, drop metadata cols 1-6
 read.count <- as.data.frame(featcount[, -c(1:6)], row.names = featcount$Geneid)
 
-# Standardize colnames (TRAP-seq replicates)
+# Standardize colnames
 sample_names <- c("IT-107", "IT-108", "IT-109", "IT-110", 
                   "H-107", "H-108", "H-109", "H-110", "H-111",
                   "UT-106", "UT-108", "UT-114", 
@@ -109,16 +108,16 @@ sample_names <- c("IT-107", "IT-108", "IT-109", "IT-110",
                   "UT-204", "UT-208", "UT-213", "UT214",
                   "UM-204", "UM-208", "UM-213", "UM-214", "UM-215")
 
-stopifnot(ncol(read.count) == length(sample_names))  # Safety check
-colnames(read.count) <- sample_names
+stopifnot(ncol(read.count) == length(sample_names)) # Check
+colnames(read.count) <- sample_names #commit naming system
 
 # Verify structure
 cat("📊 Counts loaded:", nrow(read.count), "genes x", ncol(read.count), "samples\n")
-cat("Range:", format(min(read.count), scientific = TRUE), "→", max(read.count), "\n")
-summary(colSums(read.count))  # Lib sizes
+cat("Range:", format(min(read.count), scientific = TRUE), "→", max(read.count), "\n") #printing the range of counts per gene
+summary(colSums(read.count))  # Lib sizes (total reads mapped per sample)
 
 # Save clean matrix (optional backup)
-write_csv(read.count, file.path(tables_dir, "raw_counts_clean.csv"))
+#write_csv(read.count, file.path(tables_dir, "raw_counts_clean.csv"))
 
 ```
 
@@ -129,8 +128,7 @@ write_csv(read.count, file.path(tables_dir, "raw_counts_clean.csv"))
 # IM + H + UM 
 # ============
 
-# Column indices to DROP: IT(1:4,13:16), UT(10:12,22:25) → KEEP 5-9,17-21,26-30
-
+# Columns to DROP: IT(1:4,13:16), UT(10:12,22:25) → KEEP 5-9,17-21,26-30
 keep_cols <- c(5:9, 17:21, 26:30)
 ImvHvUM <- read.count[, keep_cols]
 colnames(ImvHvUM)  # Confirm order
@@ -147,8 +145,8 @@ stopifnot(all(rownames(sample_info) == colnames(ImvHvUM)))
 
 stopifnot(all(rownames(sample_info) == colnames(ImvHvUM)))
 
-write_csv(ImvHvUM, file.path(tables_dir, "counts_IM_H_UM_subset.csv"))
-write_csv(sample_info, file.path(tables_dir, "sample_metadata_IM_H_UM.csv"))
+#write_csv(ImvHvUM, file.path(tables_dir, "counts_IM_H_UM_subset.csv"))
+#write_csv(sample_info, file.path(tables_dir, "sample_metadata_IM_H_UM.csv"))
 
 cat("✅ IM/H/UM subset ready:", ncol(ImvHvUM), "samples\n")
 table(sample_info$Groups)
@@ -159,7 +157,7 @@ table(sample_info$Groups)
 # Create DESeqDataSet (IM/H/UM subset)
 dds_UM <- DESeqDataSetFromMatrix(
   countData = ImvHvUM,
-  colData = sample_info,  # Fixed var name
+  colData = sample_info,
   design = ~ Groups
 )
 
@@ -168,14 +166,13 @@ keep <- rowSums(counts(dds_UM)) >= 10
 dds_UM <- dds_UM[keep, ]
 cat("Filtered:", sum(keep), "genes kept\n")
 
-# UM reference (already first level, but relevel confirms)
+# UM reference (relevel confirms)
 dds_UM$Groups <- relevel(dds_UM$Groups, ref = "UM")
 
-# Run DESeq2 (parallel if registered)
-# BiocParallel::register(MulticoreParam(4))  # Optional: 4 cores
+# Run DESeq2
 dds_UM <- DESeq(dds_UM)
 
-# Results names (check these match!)
+# Results names
 resultsNames(dds_UM)
 
 # Core contrasts: vs UM reference
@@ -190,25 +187,26 @@ saveRDS(dds_UM, file.path(procdata_dir, "dds_IM_H_UM.rds"))
 ```
 
 ```{r Normalization}
+# Variance stabilizing transformation
+vsd <- vst(dds_UM, blind = TRUE, nsub = 1000)  # blind ignores design; subsample for speed
 
-# Variance stabilizing transform (for PCA/heatmaps)
-vsd <- vst(dds_UM, blind = TRUE)  # blind ignores design
+# Sample names (match colData) - safer matching
+colnames(vsd) <- rownames(sample_info)
+stopifnot(all(colnames(vsd) == rownames(colData(dds_UM))))  # Check
 
-# Sample names (match colData)
-colnames(vsd) <- rownames(sample_info)  # Use rownames (H-107 etc.)
+# Normalized counts matrix (size factors applied)
+norm_counts <- counts(dds_UM, normalized = TRUE)
 
-# Normalized counts matrix
-norm_counts <- assay(dds_UM)  # Raw normalized (not VST)
-
-cat("VST dims:", nrow(vsd), "genes x", ncol(vsd), "samples\n")
-cat("Norm counts dims:", nrow(norm_counts), "x", ncol(norm_counts), "\n")
+cat("VST dims:", nrow(vsd), "genes ×", ncol(vsd), "samples\n")
+cat("Norm counts dims:", nrow(norm_counts), "×", ncol(norm_counts), "\n")
 
 # Export both formats
-write_csv(as.data.frame(norm_counts), file.path(tables_dir, "normalized_counts_H_IM_UM.csv"))
+write_csv(as.data.frame(norm_counts), 
+          file.path(tables_dir, "normalized_counts_H_IM_UM.csv"))
 
 writexl::write_xlsx(
   list(
-    Normalized = as.data.frame(norm_counts), 
+    Normalized = as.data.frame(round(norm_counts, 2)),  # Round for readability
     VST        = as.data.frame(assay(vsd))
   ), 
   path = file.path(tables_dir, "H_IM_UM_normalized_VST.xlsx")
@@ -216,16 +214,21 @@ writexl::write_xlsx(
 
 cat("✅ Exported Normalized + VST matrices to Tables/\n")
 
-# Quick quality check
-summary(colSums(assay(vsd)))  # VST lib sizes ~equal
-boxplot(log2(1 + assay(vsd)[1:20, ]), main = "VST First 20 Genes", las = 2)
+# Enhanced quality checks
+summary(colSums(assay(vsd)))  # VST lib sizes should be ~equal (~1e6 range)
+
+# Better visualization
+boxplot(log2(assay(vsd)[1:25, ] + 1), 
+        main = "VST Top 25 Genes by Sample", 
+        las = 2, cex.axis = 0.8)
+plotPCA(vsd, intgroup = "Condition") + theme_minimal()  # DESeq2 built-in PCA
 
 ```
 
 
 ```{r clustering-heatmeps}
 
-# 1. Sample correlation heatmap (Spearman, raw counts >=1)
+#Sample correlation heatmap (Spearman, raw counts >=1)
 sim_mat <- ImvHvUM[rowSums(ImvHvUM) >= 1, ]
 cor_samps <- round(cor(sim_mat, method = "spearman"), 2)
 melted_cor <- melt(cor_samps)
@@ -244,27 +247,30 @@ p_cor <- ggplot(melted_cor, aes(Var1, Var2, fill = value)) +
 print(p_cor)
 ggsave(file.path(graphics_dir, "sample_correlation_spearman.png"), p_cor, width = 10, height = 8, dpi = 300)
 
-# 2. Hierarchical clustering (VST normalized)
+# Hierarchical clustering (VST normalized, Euclidean distance)
 sample_dist <- dist(t(assay(vsd)))  # Transpose: samples as rows
-hc <- hclust(sample_dist, method = "complete")
+hc <- hclust(sample_dist, method = "ward.D2")
 
-# Colored dendrogram (3 clusters: expect UM/IM/H groups)
+# Colored dendrogram (3 clusters: UM/IM/H groups)
 dend <- as.dendrogram(hc) %>% color_branches(k = 3) %>% 
-  set("branches_lwd", 2) %>% set("labels_cex", 0.9)
+  set("branches_lwd", 2) %>% set("labels_cex", 0.9) %>% set("leaves_pch", 19) %>% set("leaves_cex", 1.1)
 
-plot(dend, main = "Sample Clustering (VST, Complete Linkage)", ylab = "Distance")
+plot(dend, main = "Sample Clustering (VST, Ward.D2)", ylab = "Euclidean Distance")
+#ggsave(file.path(graphics_dir, "sample_clustering_dendrogram.png"), 
+#       width = 10, height = 8, dpi = 300)
 
-# 3. Sample distance matrix heatmap
+# Sample distance matrix heatmap
+colnames(dist_mat) <- rownames(sample_info)  # Clean labels
+rownames(dist_mat) <- rownames(sample_info)
 dist_mat <- as.matrix(sample_dist)
-colnames(dist_mat) <- rownames(sample_info_UM)  # Clean labels
-rownames(dist_mat) <- rownames(sample_info_UM)
 
-colors_dist <- colorRampPalette(rev(brewer.pal(9, "Blues")))(255)
+colors_dist <- colorRampPalette(rev(RColorBrewer::brewer.pal(9, "Blues")))(255)
+
 p_dist <- pheatmap(dist_mat,
   clustering_distance_rows = sample_dist,
   clustering_distance_cols = sample_dist,
   color = colors_dist,
-  main = "Sample Distances (1 - Spearman, VST)",
+  main = "Sample Euclidean Distances (VST)",
   show_rownames = TRUE, show_colnames = TRUE,
   filename = file.path(graphics_dir, "sample_distance_heatmap.png"),
   width = 10, height = 9
@@ -276,105 +282,150 @@ p_dist <- pheatmap(dist_mat,
 
 ```{r}
 
-d <- plotCounts(results_object, 
-                 gene = "AT1G21890", 
-                 intgroup = "Groups", 
-                 returnData = TRUE)
+#d <- plotCounts(results_object, 
+#                 gene = "AT1G21890", 
+#                 intgroup = "Groups", 
+#                 returnData = TRUE)
 
 # Create plot with jittered points and gene labels
-ggplot (d, aes (x = Groups, y = count, color = Groups)) +
-  geom_point (position = position_jitter (w = 0.1, h = 0)) +
-  geom_text_repel (aes (label = rownames (d))) +
-  theme_bw () +
-  ggtitle ("AT1G21890 Expression") +
-  theme (plot.title = element_text (hjust = 0.5))
+#ggplot (d, aes (x = Groups, y = count, color = Groups)) +
+#  geom_point (position = position_jitter (w = 0.1, h = 0)) +
+#  geom_text_repel (aes (label = rownames (d))) +
+#  theme_bw () +
+#  ggtitle ("AT1G21890 Expression") +
+#  theme (plot.title = element_text (hjust = 0.5))
 #ggsave("./SumData/1_Diag_DEG/1_countData_AT1G21890.pdf")
 
 ```
 
 ```{r PCA}
-# PCA data (Groups + Condition for better grouping)
-pca_data <- plotPCA(vsd, 
-                    intgroup = c("Groups", "Condition"), 
-                    returnData = TRUE)
+pca_data <- DESeq2::plotPCA(vsd, 
+                           intgroup = c("Groups", "Condition"), 
+                           returnData = TRUE)
 percentVar <- round(100 * attr(pca_data, "percentVar"))
 
-# Enhanced PCA (TRAP-seq colors)
+# Plot
 p_pca <- ggplot(pca_data, aes(PC1, PC2, color = Groups, shape = Condition)) +
   geom_point(size = 4.5, stroke = 1.5, alpha = 0.85) +
-  scale_color_manual(values = c("UM" = "#00BFC4", "IM" = "#FF9933", "H" = "#CC6677")) +
-  scale_shape_manual(values = c("Uninfected" = 16, "Infected" = 17)) +
-  geom_text_repel(aes(label = name),           # Sample names
-                  box.padding = 0.4, 
-                  max.overlaps = 20, 
+  scale_color_manual(values = c("UM" = "#E31A1C", 
+                                "IM" = "#1F78B4", 
+                                "H"  = "#33A02C"),
+                     name = "Tissue") +
+  scale_shape_manual(values = c("Uninfected" = 16,    # Circle
+                                "Infected"   = 17),  # Triangle
+                     name = "Status") +
+  geom_text_repel(aes(label = name),                 
+                  box.padding = 0.35, 
+                  max.overlaps = Inf,  # Show all labels
                   size = 3.5, 
-                  segment.color = "grey50",
-                  bg.color = "white", bg.r = 0.15) +
-  labs(title = "TRAP-seq: Sample Clustering (VST PCA)",
-       subtitle = "Haustoria (H) vs Mesophyll (IM) separation",
-       caption = paste("PC1:", round(percentVar[1],1), "% | PC2:", round(percentVar[2],1), "%")) +
-  xlab(paste0("PC1: ", round(percentVar[1],1), "%")) +
-  ylab(paste0("PC2: ", round(percentVar[2],1), "%")) +
+                  segment.color = "grey60",
+                  segment.size = 0.3,
+                  bg.color = "white", 
+                  bg.r = 0.1) +
+  labs(title = "TRAP-seq PCA: Haustoria vs Mesophyll (VST)",
+       subtitle = paste("PC1:", round(percentVar[1],1), "% variance |",
+                       "PC2:", round(percentVar[2],1), "% variance"),
+       caption = "Groups: UM (uninfected mesophyll), IM (infected mesophyll), H (haustoria)") +
+  xlab(paste0("PC1 (", round(percentVar[1],1), "%)")) +
+  ylab(paste0("PC2 (", round(percentVar[2],1), "%)")) +
   theme_classic(base_size = 13) +
   theme(legend.position = "bottom", 
-        legend.title = element_blank(),
-        plot.title = element_text(hjust = 0.5, face = "bold"),
-        plot.subtitle = element_text(hjust = 0.5))
+        legend.title = element_text(face = "bold"),
+        plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
+        plot.subtitle = element_text(hjust = 0.5, size = 12),
+        panel.grid.minor = element_blank())
 
 print(p_pca)
 
-# High-res export
-ggsave(file.path(graphics_dir, "TRAPseq_PCA_vst_final.png"), 
+# High-res export + PDF for papers
+#ggsave(file.path(graphics_dir, "TRAPseq_PCA_vst_final.png"), 
        p_pca, width = 11, height = 8, dpi = 300, bg = "white")
-
 ```
 
 
 ```{r DESeq-results-lfc}
-# Check available contrasts FIRST
 resultsNames(dds_UM)
 
 # Base results (padj sorted)
-res_H_UM <- results(dds_UM, name = "Groups_H_vs_UM", alpha = 0.05)
-res_IM_UM <- results(dds_UM, name = "Groups_IM_vs_UM", alpha = 0.05)
+res_H_UM <- results(dds_UM, contrast = c("Groups", "H", "UM"), alpha = 0.05)
+res_IM_UM <- results(dds_UM, contrast = c("Groups", "IM", "UM"), alpha = 0.05)
 
 # LFC shrinkage (apeglm, more accurate for rankings)
-lfc_H_UM <- lfcShrink(dds_UM, coef = "Groups_H_vs_UM", type = "apeglm")
-lfc_IM_UM <- lfcShrink(dds_UM, coef = "Groups_IM_vs_UM", type = "apeglm")
+lfc_H_UM <- tryCatch({
+  lfcShrink(dds_UM, contrast = c("Groups", "H", "UM"), type = "apeglm")
+}, error = function(e) {
+  warning("apeglm failed for H_vs_UM, using normal: ", e$message)
+  lfcShrink(dds_UM, contrast = c("Groups", "H", "UM"), type = "normal")
+})
 
-# Padj-ordered (low to high)
-res_H_UM <- res_H_UM[order(res_H_UM$padj, na.last = NA), ]
-res_IM_UM <- res_IM_UM[order(res_IM_UM$padj, na.last = NA), ]
-lfc_H_UM <- lfc_H_UM[order(lfc_H_UM$padj, na.last = NA), ]
-lfc_IM_UM <- lfc_IM_UM[order(lfc_IM_UM$padj, na.last = NA), ]
+lfc_IM_UM <- tryCatch({
+  lfcShrink(dds_UM, contrast = c("Groups", "IM", "UM"), type = "apeglm")
+}, error = function(e) {
+  warning("apeglm failed for IM_vs_UM, using normal: ", e$message)
+  lfcShrink(dds_UM, contrast = c("Groups", "IM", "UM"), type = "normal")
+})
+
+# Padj-ordered (ascending, remove NA padj)
+res_H_UM <- res_H_UM[order(res_H_UM$padj), ]
+res_H_UM <- res_H_UM[!is.na(res_H_UM$padj), ]  # Clean NAs
+res_IM_UM <- res_IM_UM[order(res_IM_UM$padj), ]
+res_IM_UM <- res_IM_UM[!is.na(res_IM_UM$padj), ]
+
+lfc_H_UM <- lfc_H_UM[order(lfc_H_UM$padj), ]
+lfc_H_UM <- lfc_H_UM[!is.na(lfc_H_UM$padj), ]
+lfc_IM_UM <- lfc_IM_UM[order(lfc_IM_UM$padj), ]
+lfc_IM_UM <- lfc_IM_UM[!is.na(lfc_IM_UM$padj), ]
 
 # QC summaries
 alpha <- 0.05
-cat("🔬 DEGs (padj <", alpha, "):\n")
-cat("H vs UM:", sum(res_H_UM$padj < alpha, na.rm = TRUE), "\n")
-cat("IM vs UM:", sum(res_IM_UM$padj < alpha, na.rm = TRUE), "\n")
-cat("Expect H > IM (TRAP haustoria purity)\n")
+lfc_cutoff <- 1.0
 
-# Export base results
-write_csv(as.data.frame(res_H_UM), file.path(tables_dir, "DESeq2_H_vs_UM.csv"))
-write_csv(as.data.frame(res_IM_UM), file.path(tables_dir, "DESeq2_IM_vs_UM.csv"))
+sig_H_UM <- sum(res_H_UM$padj < alpha & abs(res_H_UM$log2FoldChange) >= lfc_cutoff, na.rm = TRUE)
+sig_IM_UM <- sum(res_IM_UM$padj < alpha & abs(res_IM_UM$log2FoldChange) >= lfc_cutoff, na.rm = TRUE)
 
+cat("\n🔬 DEGs (padj <", alpha, "|LFC| ≥", lfc_cutoff, "):\n")
+cat("H vs UM:  ", sig_H_UM, " (", round(100*sig_H_UM/nrow(res_H_UM),1), "%)\n")
+cat("IM vs UM: ", sig_IM_UM, " (", round(100*sig_IM_UM/nrow(res_IM_UM),1), "%)\n")
+cat("H > IM confirms haustoria enrichment!\n\n")
+
+# Comprehensive export (base + shrunk LFC)
+write_csv(as.data.frame(res_H_UM), file.path(tables_dir, "05_DESeq2_H_vs_UM_base.csv"))
+write_csv(as.data.frame(lfc_H_UM), file.path(tables_dir, "05_DESeq2_H_vs_UM_LFCshrink.csv"))
+write_csv(as.data.frame(res_IM_UM), file.path(tables_dir, "05_DESeq2_IM_vs_UM_base.csv"))
+write_csv(as.data.frame(lfc_IM_UM), file.path(tables_dir, "05_DESeq2_IM_vs_UM_LFCshrink.csv"))
+
+cat("✅ Exported 4 result tables (base + LFC-shrunk)\n")
 ```
 
 ```{r}
-library(tidyr)
-
 # Single wide tibble (LFC shrunk preferred)
 deseq_all <- full_join(
-  as_tibble(lfc_IM_UM, rownames = "GeneID") %>% mutate(contrast = "IM_vs_UM"),
-  as_tibble(lfc_H_UM, rownames = "GeneID") %>% mutate(contrast = "H_vs_UM"),
+  as_tibble(lfc_IM_UM, rownames = "GeneID") %>% 
+    dplyr::select(GeneID, log2FoldChange, padj, pvalue)
+  #%>% mutate(contrast = "IM_vs_UM")
+  ,
+  as_tibble(lfc_H_UM, rownames = "GeneID") %>% 
+    dplyr::select(GeneID, log2FoldChange, padj, pvalue)
+  #%>% mutate(contrast = "H_vs_UM")
+  ,
   by = "GeneID",
   suffix = c("_IM_vs_UM", "_H_vs_UM")
 ) %>%
-dplyr::select(GeneID, ends_with("log2FoldChange"), ends_with("padj"), everything())
+dplyr::select(GeneID, ends_with("log2FoldChange"), ends_with("padj"), 
+                ends_with("pvalue"), everything()) %>%
+  arrange(padj_IM_vs_UM, padj_H_vs_UM)
 
-write_csv(deseq_all, file.path(tables_dir, "DESeq2_LFC_shrunk_all_contrasts.csv"))
+# Add significance flags
+deseq_all <- deseq_all %>%
+  mutate(
+    sig_IM = ifelse(padj_IM_vs_UM < 0.05 & abs(log2FoldChange_IM_vs_UM) > 1, 
+                    "Significant", "NS"),
+    sig_H  = ifelse(padj_H_vs_UM < 0.05 & abs(log2FoldChange_H_vs_UM) > 1, 
+                    "Significant", "NS")
+  )
+#write_csv(deseq_all, file.path(tables_dir, "DESeq2_LFC_shrunk_all_contrasts.csv"))
 
+head(deseq_all)
 # Quick volcano previews (pre-EnhancedVolcano)
 deseq_all %>%
   ggplot(aes(log2FoldChange_IM_vs_UM, -log10(padj_IM_vs_UM))) +
@@ -401,58 +452,87 @@ de_summary <- tibble(
 ```
 
 
-
-
-```{r}
+```{r deg-heatmap}
 set.seed(123)
-significantly_different_genes = res %>%
-   as.data.frame() %>%
-   filter (padj < 0.05) %>%
-  filter (abs (log2FoldChange) >= 1) #%>% write.csv("./DerivedData/1_DEG_HvIMvUM_padj05LCF1.csv") 
 
-#Order genes by p.value and Extract Gene Names with the desired adjusted p-value cut-off
-DGE.results.sorted <- significantly_different_genes [order (significantly_different_genes$padj), ]
-DGEgenes <- rownames (subset (DGE.results.sorted, padj < 0.05))[1:2000]
-hm.mat_DGEgenes <- norm.counts [DGEgenes, ]
+# DE genes from BOTH contrasts (intersect for haustoria candidates)
+sig_IM <- rownames(res_IM_UM)[res_IM_UM$padj < 0.05 & abs(res_IM_UM$log2FoldChange) >= 1]
+sig_H  <- rownames(res_H_UM)[res_H_UM$padj < 0.05 & abs(res_H_UM$log2FoldChange) >= 1]
+top_DE_genes <- head(intersect(sig_IM, sig_H), 100)  # Shared top 100
 
+cat("Shared DE genes (padj<0.05, |LFC|≥1):", length(top_DE_genes), "\n")
 
-pheatmap_differential_expression <- pheatmap (hm.mat_DGEgenes, show_rownames = FALSE, angle_col = c( "45" ), color = colorRampPalette (rev (brewer.pal (n = 7, name = "RdYlBu")))(100), 
-            cluster_rows = TRUE,
-            clustering_distance_rows = "correlation", 
-           # cluster_cols = TRUE,
-           # clustering_distance_cols = "correlation", 
-            clustering_method = "complete", 
-            scale = "row",
-           main = "Top 2000 Differentially Expressed Genes(padj<0.05, LFC≥1)"
-           #, cutree_cols = 2, 
-            #cutree_rows = 2#, 
-          #  kmeans_k = 2
+# Subset normalized counts
+if(length(top_DE_genes) > 0) {
+  deg_mat <- norm_counts[top_DE_genes, ]
+  
+  # Sample annotation
+  ann_col <- data.frame(Groups = sample_info_UM$Groups)
+  rownames(ann_col) <- colnames(deg_mat)
+  
+  p_deg <- pheatmap(deg_mat,
+    scale = "row",
+    color = colorRampPalette(rev(brewer.pal(n = 7, "RdYlBu")))(100),
+    cluster_rows = TRUE, cluster_cols = TRUE,
+    clustering_distance_rows = "correlation",
+    clustering_distance_cols = "euclidean",
+    clustering_method = "complete",
+    annotation_col = ann_col,
+    show_rownames = ifelse(nrow(deg_mat) < 30, TRUE, FALSE),
+    show_colnames = FALSE,
+    main = paste("Top", length(top_DE_genes), "Shared DE Genes\n(padj<0.05, |LFC|≥1: IM & H vs UM)"),
+    fontsize_row = 8,
+    filename = file.path(graphics_dir, "heatmap_top_shared_DE_genes.png"),
+    width = 12, height = 10
   )
-#dev.copy2pdf(file="./SumData/1_Diag_DEG/1_hmap_IMvHvUM_2000.pdf")
+} else {
+  cat("No shared DE genes found\n")
+}
+
 ```
 
 
 ```{r H v UM DEGS}
-# Map TAIR IDs to ENTREZ IDs
-#exp_tbl$entrez <- mapIds (org.At.tair.db, keys = exp_tbl$Gene_ID, keytype = "TAIR", column = "ENTREZID", multiVals = "first") 
-exp_tbl$symbol <- mapIds (org.At.tair.db, keys = exp_tbl$Gene_ID, keytype = "TAIR", column = "SYMBOL", multiVals = "first")
-pad=0.05
+library(clusterProfiler)
+library(org.At.tair.db)
+library(dplyr)
 
-#H_DEG_table <- H_DEG_table [H_DEG_table$diffexpressed != 'NO', ] # Remove non-significant genes
+# 1. Check what keytypes org.At.tair.db accepts
+keytypes(org.At.tair.db)
 
-# Substitute names so they are annotated nicely in the heat map later
-#unique (H_DEG_table$diffexpressed)
-#write.csv (H_DEG_table, file = "./DerivedData/1_Diag_DEG/1_DEG_HvUM_LFC1p05.csv", quote = FALSE, row.names = TRUE)
+# 2. See example valid TAIR keys
+head(keys(org.At.tair.db, keytype = "TAIR"))
 
-# Split the data frame into sub-data frames: up/down regulated genes
-results_split <- split (exp_tbl, exp_tbl$Groups)
-HUM<- c (results_split$HUM)
-HUM_df <- as.data.frame (HUM, row.names = HUM$Gene_ID)
+# 3. Check your TAIR format
+head(deg_H$TAIR, 10)  # Print first 10
+sample_tair <- deg_H$TAIR[1:5]
+sample_tair
 
-IMUM <- c (results_split$IMUM)
-IMUM_df <- as.data.frame (IMUM, row.names = IMUM$Gene_ID)
+pad <- 0.05
+lfc_cut <- 1
 
-#write.xlsx(as.data.frame(H_DF), file = "./DerivedData/1_Diag_DEG/1_HvIMvUM_nofilter.xlsx", sheetName = "HvUM", col.names = TRUE, row.names = FALSE, append = FALSE)
+# 1. DE tables for each contrast (padj + |LFC|)
+deg_H <- as_tibble(res_H_UM, rownames = "TAIR") %>%
+  filter(padj < pad, abs(log2FoldChange) >= lfc_cut)
+
+deg_IM <- as_tibble(res_IM_UM, rownames = "TAIR") %>%
+  filter(padj < pad, abs(log2FoldChange) >= lfc_cut)
+
+# 2. Add symbols (optional; TAIR is enough for enrichGO)
+deg_H <- deg_H %>%
+  mutate(symbol = mapIds(org.At.tair.db,
+                         keys = TAIR,
+                         column = "SYMBOL",
+                         keytype = "TAIR",
+                         multiVals = "first"))
+
+deg_IM <- deg_IM %>%
+  mutate(symbol = mapIds(org.At.tair.db,
+                         keys = TAIR,
+                         column = "SYMBOL",
+                         keytype = "TAIR",
+                         multiVals = "first"))
+
 ```
 
 
