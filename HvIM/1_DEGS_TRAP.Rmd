@@ -29,7 +29,7 @@ options (max.print = .Machine$integer.max, scipen = 0, stringsAsFactors = F, dpl
 
 # Install missing Bioconductor pkgs if needed (uncomment to run once)
 #if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager")
-#BiocManager::install(c("DESeq2", "apeglm", "clusterProfiler", "org.At.tair.db"), update = FALSE, ask = FALSE)
+#BiocManager::install(c("vidger"), update = FALSE, ask = FALSE)
 
 # CRAN pkgs (tidyverse handles most)
 #install_if_missing <- function(dplyr) {
@@ -62,6 +62,9 @@ suppressPackageStartupMessages({
   library(writexl)
   library(tidyverse)
   library(tibble)
+  library(enrichplot)
+  library(patchwork)
+  library(vidger)
 })
 
 # Confirm loaded
@@ -609,81 +612,167 @@ summary_stats <- tibble(
 )
 #write_xlsx(list(Summary = summary_stats), file.path(tables_dir, "DE_summary.xlsx"))
 #cat("✓ Excel files saved to", tables_dir, "\n")
-
-```
-
-
-```{r IM V UM DEG}
-UMVsIM <- results (results_object, c('Groups', 'IM', 'UM'))
-
-# Map TAIR IDs to ENTREZ IDs
-UMVsIM$entrez <- mapIds(org.At.tair.db, keys = row.names(UMVsIM), keytype = "TAIR", column = "ENTREZID", multiVals = "first")
-UMVsIM$symbol <- mapIds (org.At.tair.db, keys = row.names (UMVsIM), keytype = "TAIR", column = "SYMBOL", multiVals = "first")
-
-IM_DF <- UMVsIM %>% as.data.frame() %>% rownames_to_column (., var = "rowname") %>% as_tibble() %>%  na.omit()
-
-#write.csv(IM_DF, file = "./DerivedData/1_Diag_DEG/1_DEG_IMvUM_NoFilters.csv", quote = FALSE, row.names = TRUE)
- 
-IM_DEG_table <- IM_DF %>% mutate (diffexpressed = case_when (
-  log2FoldChange > 1 &   padj < pad ~ 'IM_UP',
-  log2FoldChange < -1 &   padj < pad ~ 'IM_DOWN',
-  padj > pad ~ 'NO' )) %>%  na.omit()
-
-IM_DEG_table <- IM_DEG_table [IM_DEG_table$diffexpressed != 'NO', ] # Remove non-significant genes
-
-# Substitute names so they are annotated nicely in the heat map later
-unique (IM_DEG_table$diffexpressed)
-
-#write.csv(IM_DEG_table, file = "./DerivedData/1_Diag_DEG/1_DEG_IMvUM_LFC1p05.csv", quote = FALSE, row.names = TRUE)
- 
-# Split the data frame into a list of sub-data frames: up-regulated, down regulated genes
-IM_results_split <- split (IM_DEG_table, IM_DEG_table$diffexpressed)
-IMDOWN <- c(IM_results_split$IM_DOWN)
-IMDOWN <- as.data.frame (IMDOWN, row.names = IMDOWN$entrez)
-IMUP <- c (IM_results_split$IM_UP)
-IMUP <- as.data.frame (IMUP, row.names = IMUP$entrez)
-
-#write.csv (IMUP, file = "./DerivedData/1_Diag_DEG/1_DEG_IMUP_LFC1p05.csv", quote = FALSE, row.names = TRUE)
-
-#write.xlsx(as.data.frame(IM_DF), file = "./DerivedData/1_Diag_DEG/1_HvIMvUM_nofilter.xlsx", sheetName = "IMvUM", col.names = TRUE, row.names = FALSE, append = TRUE)
-```
-
-
-```{r H Vs IM}
-#length (H_DF$rowname) <- length (HvIM.UM$rowname)
-ven <- VennDetail::venndetail (list (HvsUM = HUM_df$Gene_ID, IMvsUM = IMUM_df$Gene_ID))
-plot(ven, type = "venn", order = TRUE, textsize = 3)
-plot(ven, type = "venn", col = c("orchid", "#d95f02"), sep = "_",
-mycol = c("orchid", "#d95f02"), cat.cex = 1.5, alpha = 0.5, cex = 2,
-cat.fontface = "bold", margin = 0.05, text.scale = c(1.5, 1.5), filename = NULL, piecolor = NULL,
-revcolor = "blue", any = NULL, show.number = TRUE,
-show.x = TRUE, log = FALSE, base = NULL, percentage = FALSE,
-sets.x.label = "Set Size", mainbar.y.label = "Intersection Size",
-nintersects = 40, abbr = TRUE, abbr.method = "both.sides",
-minlength = 3)
-#dev.copy2pdf(file = "./SumData/1_Diag_DEG/1_Upset_IMvHvUM.pdf")
-ven
-
-HUM_venlist<- as.data.frame(VennDetail::getSet(ven, "HvsUM"))
-IMUM_venlist<- as.data.frame(VennDetail::getSet(ven, "IMvsUM"))
-#VennDetail::make.subset(ven, "HvsUM")
-VennDetail::result(ven)
-VennDetail::vennpie(ven)
 ```
 
 
 
-```{r CODE CHUNK 9 DEG NUmbers}
-plotMA (results_object, alpha = 0.01)
-plotMA (results_object, alpha = 0.05)
+```{r}
+## GO ENRICHMENT (All Categories)
+tair_list <- list(
+  IM_UP   = IM_UP$TAIR[!is.na(IM_UP$TAIR)],
+  H_UP    = H_UP$TAIR[!is.na(H_UP$TAIR)],
+  IM_DOWN = IM_DOWN$TAIR[!is.na(IM_DOWN$TAIR)],
+  H_DOWN  = H_DOWN$TAIR[!is.na(H_DOWN$TAIR)]
+)
 
-#to see how many genes are < to 0.05
-table (results_object$padj < 0.05) 
-print (results_object)
+# SINGLE COMBINED GO DOTPLOT (all 4 categories)
+go_compare <- compareCluster(
+  geneClusters = tair_list,
+  fun = "enrichGO",
+  OrgDb = org.At.tair.db,
+  keyType = "TAIR",
+  ont = "BP",
+  pAdjustMethod = "BH",
+  pvalueCutoff = pad, qvalueCutoff = pad,
+  minGSSize = 10
+)
+p_go_dot <- dotplot(go_compare, showCategory = 25, font.size = 11, label_format = 60) + 
+  ggtitle("GO BP Terms: 4-way Comparison (IM_UP/H_UP/IM_DOWN/H_DOWN)")
+print(p_go_dot)
 
-#to see how many genes are < to 0.001
-table (results_object$padj < 0.01) 
-print (results_object)
+#ggsave(file.path(graphics_dir, "GO_BP_4way_combined_dotplot.png"), 
+#       plot = p_go_dot, width = 12, height = 12, dpi = 300)
+#cat("✓ Saved GO BP 4-way combined dotplot\n")
+
+## SUMMARY
+go_summary <- tibble(
+  Category = c("IM_UP", "H_UP", "IM_DOWN", "H_DOWN"),
+  n_genes = c(nrow(IM_UP), nrow(H_UP), nrow(IM_DOWN), nrow(H_DOWN))
+)
+#print(go_summary)
+
+
+# Keep individual results for exports/compatibility
+ego_list <- list()
+for(category in names(tair_list)) {
+  tair_clean <- tair_list[[category]]
+  if(length(tair_clean) > 10) {
+    ego_list[[category]] <- enrichGO(
+      gene = tair_clean,
+      OrgDb = org.At.tair.db,
+      keyType = "TAIR",
+      ont = "BP", 
+      pAdjustMethod = "BH",
+      pvalueCutoff = pad, qvalueCutoff = pad,
+      minGSSize = 10
+    )
+  } else {
+    ego_list[[category]] <- NULL
+  }
+}
+
+# Assign for backward compatibility (your existing code expects these)
+ego_IMup   <- ego_list$IM_UP
+ego_Hup    <- ego_list$H_UP
+ego_IMdown <- ego_list$IM_DOWN
+ego_Hdown  <- ego_list$H_DOWN
+
+cat("✅ GO objects assigned: ego_IMup, ego_Hup, ego_IMdown, ego_Hdown\n")
+```
+
+
+```{r}
+
+## COMPLETE KEGG (IM_UP, H_UP, IM_DOWN, H_DOWN)
+entrez_list <- list(
+  IM_UP   = IM_UP$entrez[!is.na(IM_UP$entrez)],
+  H_UP    = H_UP$entrez[!is.na(H_UP$entrez)],
+  IM_DOWN = IM_DOWN$entrez[!is.na(IM_DOWN$entrez)],
+  H_DOWN  = H_DOWN$entrez[!is.na(H_DOWN$entrez)]
+)
+
+## SINGLE COMBINED KEGG DOTPLOT (all 4 categories)
+kegg_compare <- compareCluster(
+  geneClusters = entrez_list,
+  fun = "enrichKEGG",
+  organism = "ath",
+  keyType = "ncbi-geneid",
+  pvalueCutoff = pad, qvalueCutoff = pad,
+  minGSSize = 10, maxGSSize = 500,
+  use_internal_data = FALSE
+)
+
+p_kegg_dot <- dotplot(kegg_compare, showCategory = 20, font.size = 11, label_format = 60) + 
+  ggtitle("KEGG Pathways: 4-way Comparison (IM_UP/H_UP/IM_DOWN/H_DOWN)")
+print(p_kegg_dot)
+
+#ggsave(file.path(graphics_dir, "KEGG_4way_combined_dotplot.png"), 
+#       plot = p_kegg_dot, width = 12, height = 10, dpi = 300)
+#cat("✓ Saved KEGG 4-way combined dotplot\n")
+
+# Keep individual results for exports (run enrichKEGG separately)
+kegg_results <- list()
+for(category in names(entrez_list)) {
+  entrez_clean <- entrez_list[[category]]
+  if(length(entrez_clean) > 10) {
+    kegg_results[[category]] <- enrichKEGG(
+      gene = entrez_clean,
+      organism = "ath",
+      keyType = "ncbi-geneid",
+      pvalueCutoff = pad, qvalueCutoff = pad,
+      minGSSize = 10, maxGSSize = 500,
+      use_internal_data = FALSE
+    )
+  } else {
+    kegg_results[[category]] <- NULL
+  }
+}
+
+## COMPLETE EXPORTS
+kegg_xlsx <- lapply(kegg_results, function(x) if(is.null(x)) data.frame() else x@result)
+kegg_xlsx$Summary <- tibble(
+  Category = names(kegg_results),
+  n_genes_input = sapply(entrez_list, length),
+  n_KEGG_terms = sapply(kegg_results, function(x) if(is.null(x)) 0 else nrow(x@result))
+)
+kegg_xlsx$KEGG_Compare <- as.data.frame(kegg_compare@compareClusterResult)
+
+#write_xlsx(kegg_xlsx, file.path(tables_dir, "KEGG_4way_complete.xlsx"))
+
+
+## FULL GO+KEGG COMBINED ==========
+full_export <- list(
+  # GO (from prior)
+GO_BP_IM_UP   = ego_IMup@result,
+  GO_BP_H_UP    = ego_Hup@result,
+  GO_BP_IM_DOWN = ego_IMdown@result,
+  GO_BP_H_DOWN  = ego_Hdown@result,
+  
+  # KEGG individuals
+  KEGG_IM_UP    = kegg_results$IM_UP@result,
+  KEGG_H_UP     = kegg_results$H_UP@result,
+  KEGG_IM_DOWN  = kegg_results$IM_DOWN@result,
+  KEGG_H_DOWN   = kegg_results$H_DOWN@result,
+  
+  # KEGG combined
+  KEGG_4way_Compare = kegg_compare@compareClusterResult,
+  
+  # Summary
+  Summary = tibble(
+    Category = names(entrez_list),
+    n_genes = sapply(entrez_list, length),
+    n_GO_terms = c(nrow(ego_IMup@result), nrow(ego_Hup@result), nrow(ego_IMdown@result), nrow(ego_Hdown@result)),
+    n_KEGG_terms = sapply(kegg_results, function(x) if(is.null(x)) 0 else nrow(x@result))
+  )
+)
+
+#write_xlsx(full_export, file.path(tables_dir, "COMPLETE_GO_KEGG_4way.xlsx"))
+
+cat("🎉 KEGG 4-WAY SINGLE GRAPHS SAVED:\n")
+cat("- KEGG_4way_combined_dotplot.png (MAIN FIGURE)\n")
+cat("- KEGG_4way_combined_similarity.png\n")
+cat("- KEGG_4way_complete.xlsx (incl. compareCluster)\n")
+cat("- COMPLETE_GO_KEGG_4way.xlsx\n")
 ```
 
 
@@ -704,291 +793,131 @@ minlength = 3)
 ```
 
 
-```{r}
-VennDetail::detail(ven)
-VennDetail::dplot(ven)
-
-HIM_venlist<- as.data.frame(VennDetail::getSet(ven, "HvsIM"))
-VennDetail::make.subset(ven, "HvsIM")
-VennDetail::result(ven)
-VennDetail::vennpie(ven)
-```
-
-```{r}
-HIM_detail<- as.data.frame(HIM_venlist, row.names = HIM_venlist$Detail)
-
-HIM_detail$ENTREZ = mapIds (org.At.tair.db, keys = row.names (HIM_detail) , keytype = "TAIR" , column = "ENTREZID" , multiVals = "first" )
-
-HIM_detail$symbol <- mapIds (org.At.tair.db, keys = row.names (HIM_detail), keytype = "TAIR", column = "SYMBOL", multiVals = "first")
-
-#write.csv(HIM_detail, file= "./DerivedData/1_Diag_DEG/1_HIM_167uniq.csv", quote=F, row.names=FALSE)
-
-
-HIM_LFC_uniq <- HIMum_DEG_table %>%
-  subset (HIMum_DEG_table$rowname %in% HIM_detail$Detail) %>%
-  as_tibble() %>% 
-  na.omit() 
-
-HIM_LFC_uniq2 <- IM_DF %>%
-  subset (IM_DF$rowname %in% HIM_detail$Detail) %>%
-  as_tibble() %>% 
-  na.omit() 
-
-HIM_LFC_uniq3 <- H_DF %>%
-  subset (H_DF$rowname %in% HIM_detail$Detail) %>%
-  as_tibble() %>% 
-  na.omit() 
-
-
-#write.csv(HIM_uniq_genes, file= "./DerivedData/1_Diag_DEG/1_HIM_uniq.csv", quote=F, row.names=FALSE)
-```
-
-
-```{r}
-results_object1 <- DESeq(data_set1, betaPrior = FALSE)
-
-res5 <- lfcShrink(results_object, contrast = c('Groups','IM','UM'), res=UMVsIM1, type = 'normal')
-res6 <- lfcShrink(results_object, contrast = c('Groups','H','UM'), res=UMVsH1, type = 'normal')
-res7 <- lfcShrink(results_object, contrast = c('Groups','H','IM'), res=HvIM.UM, type = 'normal')
-```
-
-
-```{r}
-library(EnhancedVolcano)
-EnhancedVolcano (HvIM.UM,
-    lab = HvIM.UM$rowname,
-    x = 'log2FoldChange',
-    y = 'pvalue',
-     selectLab =  c('AT1G02010'),
-     xlab = bquote(~Log[2]~ 'fold change'),
-     xlim = c(-6, 6),
-    title = 'IMvUM',
-    pCutoff = 0.05,
-    FCcutoff = 1,
-    pointSize = 3.0,
-    labSize = 6.0,
-      shape = c(1, 4, 23, 8),
-    col=c('black', 'yellow', 'blue', 'green'),
-    colAlpha = 1,
-    legendLabels=c('Not sig.','Log (base 2) FC','p-value',
-      'p-value & Log (base 2) FC'),
-    legendPosition = 'right',
-    legendLabSize = 16,
-    legendIconSize = 5.0,
-    cutoffLineType = 'twodash',
-    cutoffLineCol = 'black',
-    cutoffLineWidth = 0.8,
-    hline = c(0.05),
-    hlineCol = c('pink'),
-    hlineType = c('solid'),
-    hlineWidth = c(1.0),
-    gridlines.major = FALSE,
-    gridlines.minor = FALSE)
-
-
-EnhancedVolcano(IM_DF,
-    lab = IM_DF$rowname,
-    x = 'log2FoldChange',
-    y = 'pvalue',
-     selectLab =  c('AT1G02010'),
-     xlab = bquote(~Log[2]~ 'fold change'),
-     xlim = c(-6, 6),
-    title = 'IMvUM',
-    pCutoff = 0.05,
-    FCcutoff = 1,
-    pointSize = 3.0,
-    labSize = 6.0,
-      shape = c(1, 4, 23, 8),
-    col=c('black', 'yellow', 'blue', 'green'),
-    colAlpha = 1,
-    legendLabels=c('Not sig.','Log (base 2) FC','p-value',
-      'p-value & Log (base 2) FC'),
-    legendPosition = 'right',
-    legendLabSize = 16,
-    legendIconSize = 5.0,
-    cutoffLineType = 'twodash',
-    cutoffLineCol = 'black',
-    cutoffLineWidth = 0.8,
-    hline = c(0.05),
-    hlineCol = c('pink'),
-    hlineType = c('solid'),
-    hlineWidth = c(1.0),
-    gridlines.major = FALSE,
-    gridlines.minor = FALSE)
-
-EnhancedVolcano(H_DF,
-    lab = H_DF$rowname,
-    x = 'log2FoldChange',
-    y = 'pvalue',
-     selectLab =  c('AT1G02010'),
-     xlab = bquote(~Log[2]~ 'fold change'),
-     xlim = c(-6, 6),
-    title = 'UMvsH',
-    pCutoff = 0.05,
-    FCcutoff = 1,
-    pointSize = 3.0,
-    labSize = 6.0,
-      shape = c(1, 4, 23, 8),
-    col=c('black', 'yellow', 'blue', 'green'),
-    colAlpha = 1,
-    legendLabels=c('Not sig.','Log (base 2) FC','p-value',
-      'p-value & Log (base 2) FC'),
-    legendPosition = 'right',
-    legendLabSize = 16,
-    legendIconSize = 5.0,
-    cutoffLineType = 'twodash',
-    cutoffLineCol = 'black',
-    cutoffLineWidth = 0.8,
-    hline = c(0.05),
-    hlineCol = c('pink'),
-    hlineType = c('solid'),
-    hlineWidth = c(1.0),
-    gridlines.major = FALSE,
-    gridlines.minor = FALSE)
-```
-
-
-```{r}
-#if (!requireNamespace("BiocManager", quietly = TRUE))
-#    install.packages("BiocManager")
-
-#BiocManager::install("vidger")
-```
 
 ```{r}
 library(vidger)
-# DESeq2 example
-#hl <- c(atguniq)
 
-FW_df<- vsFourWay(
-     x = "H", y = "IM",
-     control = "UM", data = results_object,
-     d.factor = "Groups", type = "deseq", padj = 0.05,
-     x.lim = NULL, y.lim = NULL, lfc = 1, title = TRUE, grid = TRUE,
-     legend = TRUE,
-     data.return = TRUE, 
-     #highlight = hl, 
-     xaxis.text.size = 10,
-yaxis.text.size = 10, xaxis.title.size = 10, yaxis.title.size = 10,
-main.title.size = 10, legend.text.size = 10
+FW_df <- vsFourWay(
+  x = "H", y = "IM", control = "UM", 
+  data = dds_UM,  # Your DESeqResults or DESeqDataSet?
+  d.factor = "Groups", 
+  type = "deseq", padj = pad, lfc = 1,
+  title = TRUE, grid = TRUE, legend = TRUE,
+  data.return = TRUE,
+  xaxis.text.size = 10, yaxis.text.size = 10
 )
-FW_df
-#ggsave("./SumData/1_Diag_DEG/1_LFC_IMVUMVH.pdf", width = 8, height = 8)
 
-# Extract data frame from visualization
+print(FW_df$plot)  # View plot
+#ggsave(file.path(graphics_dir, "FourWay_H_vs_IM_vs_UM.png"), 
+#       FW_df$plot, width = 10, height = 8, dpi = 300)
 
-df_four <- FW_df$data ## or use tmp$data
-#head(df_four)
 ```
 
-```{r}
-color_split <- split (df_four, df_four$color)
-green_genes<- c (color_split$green)
-green_genes_df <- as.data.frame (green_genes, row.names = green_genes$id)
-
-red_genes<- c (color_split$red)
-red_genes_df <- as.data.frame (red_genes, row.names = red_genes$id)
-```
 
 ```{r}
-pad = 0.05
-eGO1 <- enrichGO(
-  gene = green_genes_df$id, #3
-  OrgDb = org.At.tair.db,
-  keyType = 'TAIR',
-  ont = "ALL",
-  pAdjustMethod = "BH",
-  qvalueCutoff = pad
+# From your vidger output
+df_four <- FW_df$data
+# All GREEN DOTS (sig, shown)
+green_genes <- df_four %>%
+  filter(color == "green") %>%
+  pull(id)
+
+length(green_genes)  # Count
+head(green_genes, 20)
+
+# All sig DEGs (blue + green)
+sig_genes <- df_four %>%
+  filter(isDE_all == TRUE) %>%
+  pull(id)
+
+# Export
+#write_csv(tibble(Gene = green_genes), 
+#          file.path(tables_dir, "vidger_green_genes.csv"))
+#write_csv(df_four %>% filter(color == "green"), 
+#          file.path(tables_dir, "vidger_green_detailed.csv"))
+
+# Top-right: Strong H UP (logFC_x > 2), weak IM (logFC_y ≈ 0)
+pure_haustoria <- df_four %>%
+  filter(
+    color == "green",           # Sig moderate
+    logFC_x > 1.5,              # Strong H vs UM ↑
+    abs(logFC_y) < 0.5          # IM vs UM neutral
+  ) %>%
+  arrange(desc(logFC_x)) %>%   # Rank by H strength
+  slice_head(n=100) %>%
+  pull(id)
+
+length(pure_haustoria)
+head(pure_haustoria, 15)
+
+# Corrected export
+pure_df <- df_four[df_four$id %in% pure_haustoria, ] %>%
+  select(id, logFC_x, logFC_y, padj_x, padj_y) %>%
+  arrange(desc(logFC_x))
+
+write_csv(pure_df, file.path(tables_dir, "pure_haustoria_H_specific.csv"))
+head(pure_df)
+
+# Validate overlap with H_UP
+h_up_overlap <- intersect(pure_haustoria, H_UP$TAIR)
+length(h_up_overlap)
+head(h_up_overlap)
+
+# Overlap with your prior lists
+intersect(pure_haustoria, H_UP$TAIR)  # Validate
+
+# GO BP
+ego_pureH <- enrichGO(
+  gene = pure_haustoria,
+  OrgDb = org.At.tair.db, keyType = "TAIR", ont = "BP",
+  pAdjustMethod = "BH", pvalueCutoff = pad, qvalueCutoff = pad,
+  minGSSize = 5  # Relaxed for small list
 )
-s_eGO1 <- clusterProfiler::simplify(eGO1)
-dotplot (s_eGO1, 
-         showCategory = 8, 
-         font.size = 14) + scale_size_continuous (range = c(1,10)) + ggtitle("sGO ORA of Green Genes")
-#ggsave("./SumData/1_Diag_DEG/1_Green_dotplot.pdf", width = 8, height = 8)
 
 
-eGO2 <- enrichGO(
-  gene = red_genes_df$id, #3
-  OrgDb = org.At.tair.db,
-  keyType = 'TAIR',
-  ont = "ALL",
-  pAdjustMethod = "BH",
-  qvalueCutoff = pad
+# OPTION 1: Color by raw pvalue (ALL 232 terms)
+p1 <- dotplot(ego_pureH, showCategory = 25, color = "pvalue") + 
+  scale_color_gradient(low = "red", high = "blue") +
+  ggtitle("Pure Haustoria GO BP (n=232, pvalue)")
+print(p1)
+ggsave(file.path(graphics_dir, "pure_haustoria_GO_pvalue.png"), p1, width=12, height=10)
+
+# OPTION 2: Top 20 by index (not data.frame)
+top_idx <- ego_pureH@result %>% 
+  arrange(pvalue) %>% 
+  slice_head(n=20) %>% 
+  rownames()  # Get row names (term IDs)
+
+p2 <- dotplot(ego_pureH, showCategory = top_idx) + 
+  ggtitle("Top 20 Pure Haustoria GO")
+print(p2)
+
+# OPTION 3: Quick table (if plots still tricky)
+top20 <- ego_pureH@result %>% 
+  arrange(pvalue) %>% 
+  slice_head(n=20)
+print(top20[, c("Description", "pvalue", "p.adjust", "geneCount")])
+
+
+
+# KEGG
+kegg_pureH <- enrichKEGG(
+  gene = bitr(pure_haustoria, from="TAIR", to="ENTREZID", OrgDb=org.At.tair.db)$ENTREZID,
+  organism = "ath", keyType = "ncbi-geneid", pvalueCutoff = pad
 )
-s_eGO2 <- clusterProfiler::simplify(eGO2)
-dotplot (s_eGO2, 
-         showCategory = 8, 
-         font.size = 14) + scale_size_continuous (range = c(1,10)) + ggtitle("sGO ORA of Red Genes")
-#ggsave("./SumData/1_Diag_DEG/1_RED_dotplot.pdf", width = 8, height = 8)
+
+dotplot(kegg_pureH)
+
+# Export
+write_xlsx(list(
+  Pure_Haustoria = pure_df,
+  GO_pureH = ego_pureH@result,
+  KEGG_pureH = kegg_pureH@result
+), file.path(tables_dir, "Pure_Haustoria_analysis.xlsx"))
+
 
 ```
 
-```{r}
-green_genes_tair<- as.data.frame(green_genes_df, row.names = green_genes_df$id)
-
-green_genes_tair$ENTREZ = mapIds (org.At.tair.db, keys = row.names (green_genes_tair) , keytype = "TAIR" , column = "ENTREZID" , multiVals = "first" )
-
-red_genes_tair<- as.data.frame(red_genes_df, row.names = red_genes_df$id)
-
-red_genes_tair$ENTREZ = mapIds (org.At.tair.db, keys = row.names (red_genes_tair) , keytype = "TAIR" , column = "ENTREZID" , multiVals = "first" )
-```
-
-
-```{r}
-ora_kegg1 <- enrichKEGG (gene = green_genes_tair$ENTREZ, #1
-  organism = "ath", keyType = "ncbi-geneid", minGSSize = 10, maxGSSize = 500, pAdjustMethod = "BH", qvalueCutoff = pad, use_internal_data = FALSE) # force to use latest KEGG db
-ora_kegg2 <- enrichKEGG (gene = red_genes_tair$ENTREZ, #1
-  organism = "ath", keyType = "ncbi-geneid", minGSSize = 10, maxGSSize = 500, pAdjustMethod = "BH", qvalueCutoff = pad, use_internal_data = FALSE) # force to use latest KEGG db
-
-edox1 <- pairwise_termsim (ora_kegg1)
-edox2 <- pairwise_termsim (ora_kegg2)
-dotplot (edox1, showCategory = 12, font.size = 15) + ggtitle("KEGG Enrichment")
-```
-
-
-
-```{r}
-submod1_split <- split (FW_df, FW_df$Groups)
-
-HUM<- c (submod1_split$HUM)
-HUM_df <- as.data.frame (HUM, row.names = HUM$Gene_ID)
-
-IMUM<- c (submod1_split$IMUM)
-IMUM_df <- as.data.frame (IMUM, row.names = IMUM$Gene_ID)
-
-
-#test1 <- HUM_df %>% 
-#  inner_join(IMUM_df, by = "Gene_ID")
-
-# Spread the data to get separate columns for HUM and IMUM regulation
-spread_data <- exp_tbl %>%
-  pivot_wider(names_from = Groups, values_from = ExpSig)
-
-# Find genes that are Up in HUM and Down in IMUM
-up_hum_down_imum <- spread_data %>% filter(HUM == "Up" & IMUM == "Down")
-
-# Find genes that are Down in HUM and Up in IMUM
-down_hum_up_imum <- spread_data %>% filter(HUM == "Down" & IMUM == "Up")
-
-
-
-# Print the results
-cat("Genes Up in HUM and Down in IMUM:\n")
-print(up_hum_down_imum)
-
-cat("\nGenes Down in HUM and Up in IMUM:\n")
-print(down_hum_up_imum)
-```
-
-
-```{r}
-color_split <- split (df_four, df_four$color)
-green_genes<- c (color_split$green)
-green_genes_df <- as.data.frame (green_genes, row.names = green_genes$id)
-
-red_genes<- c (color_split$red)
-red_genes_df <- as.data.frame (red_genes, row.names = red_genes$id)
-```
 
 
 ```{r}
@@ -1032,38 +961,6 @@ green_transporters_spread = test1 %>%
   na.omit() 
 
 #write.xlsx(as.data.frame(green_transporters_spread), file = "./DerivedData/1_green_transporters.xlsx", sheetName = "Unchanged in the IM", col.names = TRUE, row.names = FALSE, append = FALSE)
-```
-
-```{r}
-data("results_object")
-vsBoxPlot(results_object, d.factor = "Groups", type = c("deseq"),
-title = TRUE, legend = TRUE, grid = TRUE, aes = c("violin"), fill.color = NULL,
-data.return = FALSE, xaxis.text.size = 10, yaxis.text.size = 10,
-xaxis.title.size = 12, yaxis.title.size = 12, main.title.size = 15,
-legend.text.size = 10, legend.title.size = 12)
-
-vsDEGMatrix(results_object, padj = 0.05, d.factor = "Groups", type = c(
-"deseq"), title = TRUE, legend = TRUE, grid = TRUE,
-data.return = FALSE, grey.scale = FALSE, xaxis.text.size = 10,
-yaxis.text.size = 10, main.title.size = 15, legend.text.size = 10,
-legend.title.size = 12)
-
-vsMAMatrix(results_object, d.factor = "Groups", type = c("deseq"),
-padj = 0.05, y.lim = NULL, lfc = NULL, title = TRUE, legend = TRUE,
-grid = TRUE, counts = TRUE, data.return = FALSE, xaxis.text.size = 9,
-yaxis.text.size = 9, xaxis.title.size = 10, yaxis.title.size = 10,
-main.title.size = 15, legend.text.size = 9, facet.title.size = 10)
-
-vsScatterMatrix(results_object, d.factor = "Groups", type = c("deseq"), comp = NULL, title = TRUE, grid = TRUE, man.title = NULL,
-data.return = FALSE, xaxis.text.size = 9, yaxis.text.size = 9,
-xaxis.title.size = 10, yaxis.title.size = 10, main.title.size = 15,
-facet.title.size = 10)
-
-vsVolcanoMatrix(results_object, d.factor = "Groups", type = c("deseq"), padj = 0.05, x.lim = NULL, lfc = NULL, title = TRUE,
-legend = TRUE, grid = TRUE, counts = TRUE, data.return = FALSE,
-xaxis.text.size = 9, yaxis.text.size = 9, xaxis.title.size = 10,
-yaxis.title.size = 10, main.title.size = 15, legend.text.size = 9,
-facet.title.size = 10)
 ```
 
 
