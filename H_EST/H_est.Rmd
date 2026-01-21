@@ -42,7 +42,6 @@ cat("Timestamp:", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "\n\n")
 
 ```{r}
 ## LOADING PACKAGES
-
 library(readr)      # read_table, read_csv
 library(tidyverse)  # dplyr, ggplot2, tidyr, purrr, etc.
 library(ggplot2)
@@ -56,12 +55,30 @@ library(tidyr)
 
 
 ## SET WKD
-
 setwd("~/Desktop/Lab/TRAPseq/H_EST")    # Project directory for H-estimation
 if (!dir.exists("results")) dir.create("results")  # Folder for all outputs
 
 cat("Working directory:", getwd(), "\n")
 cat("Output directory: ./results\n\n")
+```
+
+```{r}
+## Establish directories (FIXED)
+graphics_dir <- params$graphics_dir
+if (!dir.exists(graphics_dir)) dir.create(graphics_dir, recursive = TRUE)
+
+tables_dir <- params$tables_dir  
+if (!dir.exists(tables_dir)) dir.create(tables_dir, recursive = TRUE)
+
+# procdata_dir was undefined/missing params$procdata_dir
+procdata_dir <- file.path("Results/Processed_data")
+if (!dir.exists(procdata_dir)) dir.create(procdata_dir, recursive = TRUE)
+
+cat("📁 Directories ready:\n")
+cat("- Graphics: ", graphics_dir, "\n")
+cat("- Tables:   ", tables_dir, "\n") 
+cat("- Proc ", procdata_dir, "\n")
+
 ```
 
 
@@ -102,11 +119,12 @@ rownames(read.count) <- gene_ids
 ## Clean colnames (remove .bam paths)
 colnames(read.count) <- gsub(".*\\/|\\..*Aligned.*", "", colnames(read.count))
 
-# Check
+## Check
 dim(read.count) #check dimensions 
 head(rownames(read.count))  # AT1G00010 etc.
 head(colnames(read.count))  # DIC1_S21, DIT1_S5 etc.
 ```
+
 
 ```{r}
 ## Standardize colnames
@@ -115,7 +133,7 @@ sample_names <- c("IT-107", "IT-108", "IT-109", "IT-110",
                   "UT-106", "UT-108", "UT-114", 
                   "IT-206", "IT-207", "IT-208", "IT-209",
                   "IM-206", "IM-207", "IM-208", "IM-209", "IM-210",
-                  "UT-204", "UT-208", "UT-213", "UT214",
+                  "UT-204", "UT-208", "UT-213", "UT-214",
                   "UM-204", "UM-208", "UM-213", "UM-214", "UM-215")
 colnames(read.count) <- sample_names #save naming system
 
@@ -131,227 +149,122 @@ raw_counts_df <- tibble::rownames_to_column(raw_counts_df, "GeneID")
 
 
 ```{r}
-library(DESeq2)
-library(dplyr)
-library(tidyr)
+## check actual colnames length
+cat("read.count has", ncol(read.count), "samples\n")
+print(colnames(read.count))
+sample_info <- data.frame(row.names = colnames(read.count))  
 
-sample_info <- data.frame(
-  Sample = c("IT-107", "IT-108", "IT-109", "IT-110", 
-             "H-107", "H-108", "H-109", "H-110", "H-111",
-             "UT-106", "UT-108", "UT-114", 
-             "IT-206", "IT-207", "IT-208", "IT-209",
-             "IM-206", "IM-207", "IM-208", "IM-209", "IM-210",
-             "UT-204", "UT-208", "UT-213", "UT214",
-             "UM-204", "UM-208", "UM-213", "UM-214", "UM-215"),
-  row.names = "Sample", 
-  stringsAsFactors = FALSE
-)
+## set bulk (CLE samples)
+sample_info$line <- "bulk"  
+bulk_samples <- c("IT-107", "IT-108", "IT-109", "IT-110", "IT-206", "IT-207", "IT-208", "IT-209", "UT-106", "UT-108", "UT-114","UT-204", "UT-208", "UT-213", "UT-214")
+sample_info$line[rownames(sample_info) %in% bulk_samples] <- "bulk"
 
+## TRAP samples
+sample_info$line[rownames(sample_info) %in% 
+  c("H-107", "H-108", "H-109", "H-110", "H-111")] <- "DMR6pPETEp"
+sample_info$line[rownames(sample_info) %in% 
+  c("IM-206", "IM-207", "IM-208", "IM-209", "IM-210")] <- "35SpPETEp" 
+sample_info$line[rownames(sample_info) %in% 
+  c("UM-204", "UM-208", "UM-213", "UM-214", "UM-215")] <- "35SpPETEp"  
 
+##CLE and TRAP 
+sample_info$extraction <- "CLE"  # Default
+sample_info$extraction[rownames(sample_info) %in% 
+  c("H-107", "H-108", "H-109", "H-110", "H-111",    # DIT-TRAP  
+    "IM-206", "IM-207", "IM-208", "IM-209", "IM-210",
+    "UM-204", "UM-208", "UM-213", "UM-214", "UM-215")] <- "TRAP"
+# Factors
+sample_info$line <- factor(sample_info$line, levels = c("bulk", "35SpPETEp", "DMR6pPETEp"))
+sample_info$extraction <- factor(sample_info$extraction)
+```
 
-%>%
-  # Now use $Sample (column) instead of rownames
-  mutate(
-    prefix = substr(Sample, 1, 3),    # "IT-", "H-1", "UT-", "IM-", "UM-"
-    
-    # DMR6p;PETEp (414C4): H-107..111 (DIT), IT-107..110 (DIC) 
-    # 35Sp;PETEp (419F2): all others
-    line = case_when(
-      grepl("^H-1", Sample) ~ "DMR6pPETEp",  # H-107 to H-111 = DIT (TRAP, low yield)
-      TRUE ~ "35SpPETEp"                     # Everything else
-    ),
-    
-    condition = case_when(
-      grepl("^(UT|UM)", Sample) ~ "mock",
-      TRUE ~ "infected"
-    ),
-    
-    # TRAP (first batch, low DMR6 yields) vs CLE (second batch)
-    extraction = case_when(
-      Sample %in% c("IT-107", "IT-108", "IT-109", "IT-110",
-                    "H-107", "H-108", "H-109", "H-110", "H-111",
-                    "UT-106", "UT-108", "UT-114") ~ "TRAP",
-      TRUE ~ "CLE"
-    )
-  ) %>%
-  mutate(
-    line = factor(line, levels = c("35SpPETEp", "DMR6pPETEp")),
-    condition = factor(condition, levels = c("mock", "infected")),
-    extraction = factor(extraction)
-  )
-
-# Verify
+```{r}
+## Verify perfect match
 stopifnot(all(rownames(sample_info) == colnames(read.count)))
-print("✅ Meta")
+print("✅ Metadata summary:")
 print(table(sample_info$line, sample_info$extraction))
-print(table(sample_info$line, sample_info$condition))
-
-
 ```
 
 
 ```{r}
-# Decode line, condition, extraction from the prefixes you defined earlier
-sample_info <- sample_info %>%
-  mutate(
-    prefix = substr(Sample, 1, 2),   # "IT", "H-", "UT", "IM", "UM"
+## TRAP DESeq2 (clean haustoria signal)
+trap_samples   <- sample_info$extraction == "TRAP"
+trap_cols <- rownames(sample_info)[trap_samples]
 
-    # 419F2 (35S::GFP1-9 + PETE::GFP10-11) vs 414C4 (DMR6::GFP1-9 + PETE::GFP10-11)
-    # Here we follow your earlier mapping: 
-    # DIC = IT, DIT = H, DMC = UT, PIC = IT, PIT = IM, PMC = UT, PMT = UM
-    # →  IT / IM / UT / UM are 35Sp;PETEp, H is DMR6p;PETEp
-    line = case_when(
-      grepl("^H-",  Sample) ~ "DMR6pPETEp",  # H-107..H-111 = DMR6 line (haustoria TRAP)
-      TRUE                   ~ "35SpPETEp"   # Everything else = 35S line
-    ),
+cat("TRAP samples:", length(trap_cols), "\n")
+print(trap_cols)
 
-    condition = case_when(
-      grepl("^(UT|UM)", Sample) ~ "mock",
-      TRUE                      ~ "infected"
-    ),
-    
-    # TRAP vs CLE: first block of each genotype are TRAP (IT, H, UT),
-    # second block (IM, UM, UT-2xx) are CLE
-    extraction = case_when(
-      grepl("^(IT-|H-|UT-1)", Sample) ~ "TRAP",
-      TRUE                            ~ "CLE"
-    )
-  ) %>%
-  mutate(
-    line      = factor(line,      levels = c("35SpPETEp", "DMR6pPETEp")),
-    condition = factor(condition, levels = c("mock", "infected")),
-    extraction = factor(extraction)
-  )
-
-# Sanity checks
-stopifnot(all(rownames(sample_info) == colnames(read.count)))
-cat("\nMetadata tables:\n")
-print(table(sample_info$line, sample_info$condition))
-print(table(sample_info$line, sample_info$extraction))
+counts_trap <- round(as.matrix(read.count[, trap_cols, drop = FALSE]))
+col_data_trap <- sample_info[trap_samples, , drop = FALSE]
 
 
-# 2. TRAP-only DESeq2 object (clean haustoria signal)
-keep_trap   <- sample_info$extraction == "TRAP"
-counts_trap <- as.matrix(read.count[, keep_trap])
+print("Match check:", all(colnames(counts_trap) == rownames(col_data_trap)))
 
+
+## DESeq2
 dds_trap <- DESeqDataSetFromMatrix(
-  countData = round(counts_trap),
-  colData   = sample_info[keep_trap, ],
-  design    = ~ line + condition
+  countData = counts_trap,
+  colData = col_data_trap,
+  design = ~ line
 )
 
 dds_trap$line <- relevel(dds_trap$line, ref = "35SpPETEp")
 dds_trap <- DESeq(dds_trap)
 rld_trap <- rlog(dds_trap)
+```
 
 
-# 3. Haustoria marker set (can expand later) [web:54][web:56][web:62]
+```{r}
+# haustoria genes
 haustoria_genes <- c(
-  "AT5G24530",  # DMR6
+  "AT5G24530",  # DMR6 
   "AT2G14610",  # PR1
-  "AT3G04720",  # PR2
+  "AT3G04720",  # PR2 
   "AT4G02380",  # PR5
   "AT1G57520",  # CYP81D8
-  "AT2G38470",  # WRKY33
-  "AT1G12270",  # ICS1
-  "AT3G26830"   # PBS3
+  "AT2G38470"   # WRKY33
 )
 
+
 haustoria_genes <- intersect(haustoria_genes, rownames(rld_trap))
-cat("Using", length(haustoria_genes), "haustoria markers present in this dataset\n")
+cat("Using", length(haustoria_genes), "markers\n")
 
 h_mat   <- assay(rld_trap)[haustoria_genes, , drop = FALSE]
 h_index <- colMeans(h_mat)
 
-sample_info_trap <- sample_info[keep_trap, ]
+sample_info_trap <- sample_info[trap_samples, ]
 sample_info_trap$h_index <- h_index
 
-# 4. Summarize to a line-level H-index (your haustoria metric)
 h_summary <- sample_info_trap %>%
-  group_by(line, condition) %>%
+  group_by(line) %>%
   summarise(
     mean_h = mean(h_index),
-    se_h   = sd(h_index) / sqrt(n()),
-    n      = n(),
+    se_h = sd(h_index) / sqrt(n()),
+    n = n(),
     .groups = "drop"
   ) %>%
-  tidyr::pivot_wider(names_from = line, values_from = c(mean_h, se_h, n)) %>%
   mutate(
-    H_index = mean_h_DMR6pPETEp / mean_h_35SpPETEp
-  )
-
+    baseline = mean_h[line == "35SpPETEp"],  # Store 35S value
+    H_index = mean_h / baseline
+  ) %>%
+  select(-baseline)  # Clean up
+print("🚀 HAUSTORIA H-INDEX (TRAP):")
 print(h_summary)
 
-## Quick H-index plot
-ggplot(sample_info_trap, aes(line, h_index, fill = condition)) +
+# Export key results
+write_csv(h_summary, file.path(tables_dir, "HAUSTORIA_INDEX.csv"))
+write_csv(sample_info_trap, file.path(tables_dir, "TRAP_METADATA.csv"))
+
+
+# Plot
+library(ggplot2)
+ggplot(sample_info_trap, aes(line, h_index, fill = line)) +
   geom_boxplot() +
-  geom_jitter(width = 0.15, alpha = 0.6) +
-  theme_minimal() +
-  labs(y = "H-index (mean rlog haustoria markers)",
-       title = "Haustoria enrichment in DMR6p;PETEp vs 35Sp;PETEp TRAP")
-
+  geom_jitter(width = 0.2, alpha = 0.7) +
+  labs(y = "H-index (mean rlog haustoria genes)",
+       title = "DMR6p;PETEp vs 35Sp;PETEp TRAP") +
+  theme_minimal()
 ```
-
-
-```{r}
-sample_info$condition <- ifelse(grepl("^[IU][MT]-", sample_info$Sample), "mock", "infected")
-sample_info$extraction <- ifelse(grepl("-1", sample_info$Sample), "TRAP", "CLE")  # -1xx=TRAP, -2xx=CLE
-
-sample_info$line <- factor(sample_info$line, levels=c("35SpPETEp", "DMR6pPETEp"))
-sample_info$condition <- factor(sample_info$condition, levels=c("mock", "infected"))
-
-# Verify
-stopifnot(all(rownames(sample_info) %in% colnames(your_counts_matrix)))
-table(sample_info$line, sample_info$extraction)  # Should show DMR6 TRAP low-yield
-
-
-stopifnot(all(rownames(sample_info) == colnames(ImvHvUM)))
-
-ImvHvUM_df <- tibble::rownames_to_column(as.data.frame(as.matrix(ImvHvUM)), "GeneID")
-
-
-cat("✅ IM/H/UM subset ready:", ncol(ImvHvUM), "samples\n")
-table(sample_info$Groups)
-```
-
-```{r}
-# TRAP-only for cleanest haustoria signal
-dds_trap <- DESeqDataSetFromMatrix(
-  countData = counts_matrix[, sample_info$extraction == "TRAP"],
-  colData = sample_info[sample_info$extraction == "TRAP", ],
-  design = ~ line + condition
-)
-
-dds_trap$line <- relevel(dds_trap$line, ref="35SpPETEp")
-dds_trap <- DESeq(dds_trap)
-rld_trap <- rlog(dds_trap)
-
-# H-index using DMR6 markers
-haustoria_genes <- c("AT1G75040", "AT2G14610", ...)  # From before
-h_index <- colMeans(assay(rld_trap)[haustoria_genes, ])
-
-sample_info_trap$h_index <- h_index
-h_summary <- sample_info_trap %>%
-  group_by(line, condition) %>%
-  summarise(mean_h = mean(h_index), se = sd(h_index)/sqrt(n()), .groups="drop") %>%
-  pivot_wider(names_from=line, values_from=c(mean_h, se)) %>%
-  mutate(H_index = mean_h_DMR6pPETEp / mean_h_35SpPETEp)
-
-print(h_summary)  # DMR6p;PETEp infected >> 35Sp;PETEp = haustoria enrichment!
-
-```
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
