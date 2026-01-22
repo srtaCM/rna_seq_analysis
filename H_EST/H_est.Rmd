@@ -26,7 +26,7 @@ options(
   max.print = .Machine$integer.max, # Avoid truncation of large outputs
   scipen = 0, # Use standard scientific notation
   stringsAsFactors = FALSE, # Do not auto-convert strings to factors
-  dplyr.summarise.inform = FALSE, # Suppress dplyr's summarise messages
+  dplyr.summarise.inform = FALSE, # Suppress dplyr's summaries
   digits = 3 # Number of digits when printing numbers
 )
 
@@ -55,30 +55,28 @@ library(tidyr)
 
 
 ## SET WKD
-setwd("~/Desktop/Lab/TRAPseq/H_EST")    # Project directory for H-estimation
+setwd("~/Desktop/Lab/TRAPseq/H_EST")
 if (!dir.exists("results")) dir.create("results")  # Folder for all outputs
 
 cat("Working directory:", getwd(), "\n")
-cat("Output directory: ./results\n\n")
 ```
 
 ```{r}
-## Establish directories (FIXED)
+## Establish Results Folders
 graphics_dir <- params$graphics_dir
 if (!dir.exists(graphics_dir)) dir.create(graphics_dir, recursive = TRUE)
 
 tables_dir <- params$tables_dir  
 if (!dir.exists(tables_dir)) dir.create(tables_dir, recursive = TRUE)
 
-# procdata_dir was undefined/missing params$procdata_dir
 procdata_dir <- file.path("Results/Processed_data")
 if (!dir.exists(procdata_dir)) dir.create(procdata_dir, recursive = TRUE)
 
+## Print
 cat("📁 Directories ready:\n")
 cat("- Graphics: ", graphics_dir, "\n")
 cat("- Tables:   ", tables_dir, "\n") 
 cat("- Proc ", procdata_dir, "\n")
-
 ```
 
 
@@ -127,7 +125,7 @@ head(colnames(read.count))  # DIC1_S21, DIT1_S5 etc.
 
 
 ```{r}
-## Standardize colnames
+## Standardize cols
 sample_names <- c("IT-107", "IT-108", "IT-109", "IT-110", 
                   "H-107", "H-108", "H-109", "H-110", "H-111",
                   "UT-106", "UT-108", "UT-114", 
@@ -135,11 +133,12 @@ sample_names <- c("IT-107", "IT-108", "IT-109", "IT-110",
                   "IM-206", "IM-207", "IM-208", "IM-209", "IM-210",
                   "UT-204", "UT-208", "UT-213", "UT-214",
                   "UM-204", "UM-208", "UM-213", "UM-214", "UM-215")
-colnames(read.count) <- sample_names #save naming system
+colnames(read.count) <- sample_names # save naming system
 
 ## Verify structure
 cat("📊 Counts loaded:", nrow(read.count), "genes x", ncol(read.count), "samples\n")
-cat("Range:", format(min(read.count), scientific = TRUE), "→", max(read.count), "\n") #printing the range of counts per gene
+cat("Range:", format(min(read.count), scientific = TRUE), "→", max(read.count), "\n") # printing the range of counts per gene
+
 summary(colSums(read.count))  # Lib sizes (total reads mapped per sample)
 
 ## Convert matrix → data frame with gene IDs
@@ -148,10 +147,11 @@ raw_counts_df <- tibble::rownames_to_column(raw_counts_df, "GeneID")
 ```
 
 
-```{r}
+```{r metadata}
 ## check actual colnames length
 cat("read.count has", ncol(read.count), "samples\n")
 print(colnames(read.count))
+
 sample_info <- data.frame(row.names = colnames(read.count))  
 
 ## set bulk (CLE samples)
@@ -167,39 +167,45 @@ sample_info$line[rownames(sample_info) %in%
 sample_info$line[rownames(sample_info) %in% 
   c("UM-204", "UM-208", "UM-213", "UM-214", "UM-215")] <- "35SpPETEp"  
 
-##CLE and TRAP 
-sample_info$extraction <- "CLE"  # Default
+## CLE and TRAP 
+sample_info$extraction <- "CLE"
 sample_info$extraction[rownames(sample_info) %in% 
-  c("H-107", "H-108", "H-109", "H-110", "H-111",    # DIT-TRAP  
+  c("H-107", "H-108", "H-109", "H-110", "H-111",
     "IM-206", "IM-207", "IM-208", "IM-209", "IM-210",
     "UM-204", "UM-208", "UM-213", "UM-214", "UM-215")] <- "TRAP"
-# Factors
-sample_info$line <- factor(sample_info$line, levels = c("bulk", "35SpPETEp", "DMR6pPETEp"))
-sample_info$extraction <- factor(sample_info$extraction)
-```
 
-```{r}
-## Verify perfect match
+## H, IM, UM
+## TRAP samples
+sample_info$trt <- "TRT"
+sample_info$trt[rownames(sample_info) %in% 
+  c("H-107", "H-108", "H-109", "H-110", "H-111")] <- "H"
+sample_info$trt[rownames(sample_info) %in% 
+  c("IM-206", "IM-207", "IM-208", "IM-209", "IM-210")] <- "IM" 
+sample_info$trt[rownames(sample_info) %in% 
+  c("UM-204", "UM-208", "UM-213", "UM-214", "UM-215")] <- "UM" 
+sample_info$trt[rownames(sample_info) %in% 
+  c("IT-107", "IT-108", "IT-109", "IT-110", "IT-206", "IT-207", "IT-208", "IT-209")] <- "IT" 
+sample_info$trt[rownames(sample_info) %in% 
+  c("UT-106", "UT-108", "UT-114", "UT-204", "UT-208", "UT-213", "UT-214")] <- "UT" 
+
+
+## Factors
+sample_info$trt <- factor(sample_info$trt, levels = c("UM", "UT", "IM", "IT", "H"))
+
+
+## Check
 stopifnot(all(rownames(sample_info) == colnames(read.count)))
-print("✅ Metadata summary:")
-print(table(sample_info$line, sample_info$extraction))
+print(table(sample_info$trt, sample_info$extraction))
 ```
 
 
 ```{r}
-## TRAP DESeq2 (clean haustoria signal)
-trap_samples   <- sample_info$extraction == "TRAP"
+## TRAP DESeq2
+trap_samples <- sample_info$extraction == "TRAP"
 trap_cols <- rownames(sample_info)[trap_samples]
-
-cat("TRAP samples:", length(trap_cols), "\n")
-print(trap_cols)
 
 counts_trap <- round(as.matrix(read.count[, trap_cols, drop = FALSE]))
 col_data_trap <- sample_info[trap_samples, , drop = FALSE]
-
-
-print("Match check:", all(colnames(counts_trap) == rownames(col_data_trap)))
-
 
 ## DESeq2
 dds_trap <- DESeqDataSetFromMatrix(
@@ -244,7 +250,7 @@ h_summary <- sample_info_trap %>%
     .groups = "drop"
   ) %>%
   mutate(
-    baseline = mean_h[line == "35SpPETEp"],  # Store 35S value
+    baseline = mean_h[trt == "UM"],  # Store 35S value
     H_index = mean_h / baseline
   ) %>%
   select(-baseline)  # Clean up
@@ -252,17 +258,17 @@ print("🚀 HAUSTORIA H-INDEX (TRAP):")
 print(h_summary)
 
 # Export key results
-write_csv(h_summary, file.path(tables_dir, "HAUSTORIA_INDEX.csv"))
-write_csv(sample_info_trap, file.path(tables_dir, "TRAP_METADATA.csv"))
+#write_csv(h_summary, file.path(tables_dir, "HAUSTORIA_INDEX.csv"))
+#write_csv(sample_info_trap, file.path(tables_dir, "TRAP_METADATA.csv"))
 
 
 # Plot
 library(ggplot2)
-ggplot(sample_info_trap, aes(line, h_index, fill = line)) +
+ggplot(sample_info_trap, aes(trt, h_index, fill = trt)) +
   geom_boxplot() +
   geom_jitter(width = 0.2, alpha = 0.7) +
-  labs(y = "H-index (mean rlog haustoria genes)",
-       title = "DMR6p;PETEp vs 35Sp;PETEp TRAP") +
+  labs(y = "Sample info",
+       title = "H vs IM vs UM") +
   theme_minimal()
 ```
 
