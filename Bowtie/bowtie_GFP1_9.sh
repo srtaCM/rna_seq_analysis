@@ -101,7 +101,8 @@ for sample in "${samples[@]}"; do
         -x $OUTDIR/pseudo_ref_index \
         -1 $FWD1 \
         -2 $REV2 \
-        --very-sensitive \
+        --very-sensitive-local \
+	-k 10 \
         -p ${SLURM_CPUS_PER_TASK} \
         -S $OUTDIR/${sample}.aligned.sam \
         2> $OUTDIR/${sample}.mapping_summary.log
