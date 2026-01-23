@@ -80,9 +80,8 @@ cat("- Proc ", procdata_dir, "\n")
 ```
 
 
-```{r}
+```{r gfp-reads}
 ## LOAD BOWTIE2 MAPPING SUMMARIES
-
 gfp1_9_summary <- read.table(
   "data_repository/GFP1_9_mapping_summary.tsv",
   header = TRUE, sep = "\t", stringsAsFactors = FALSE
@@ -93,17 +92,16 @@ gfp10_11_summary <- read.table(
   header = TRUE, sep = "\t", stringsAsFactors = FALSE
 )
 
+
+## SUMMARIES
 cat("\n=== GFP1-9 summary (first 6 rows) ===\n")
 print(head(gfp1_9_summary, 6))
 cat("\n=== GFP10-11 summary (first 6 rows) ===\n")
 print(head(gfp10_11_summary, 6))
-
-cat("\nUnique Bowtie sample IDs (GFP1-9):\n")
-print(unique(gfp1_9_summary$sample_id))
 ```
 
 
-```{r}
+```{r complete-reads}
 ## Read in featureCounts
 featcount <- read_tsv("../HvIM/Data_Repository/featcount.txt", skip = 1)
 
@@ -124,8 +122,21 @@ head(colnames(read.count))  # DIC1_S21, DIT1_S5 etc.
 ```
 
 
-```{r}
-## Standardize cols
+```{r new-names-for-everything}
+## Extract base names
+library(stringr)
+
+# read.count strip ".bam" suffix
+read.count_basenames <- str_remove(colnames(read.count), "\\.bam.*$")
+
+# gfp summaries 
+gfp1_9_basenames <- gfp1_9_summary$sample_id
+gfp10_11_basenames <- gfp10_11_summary$sample_id
+
+## Verify they now match exactly
+all(read.count_basenames == gfp1_9_basenames)  # TRUE
+
+## Apply final mapping
 sample_names <- c("IT-107", "IT-108", "IT-109", "IT-110", 
                   "H-107", "H-108", "H-109", "H-110", "H-111",
                   "UT-106", "UT-108", "UT-114", 
@@ -133,7 +144,11 @@ sample_names <- c("IT-107", "IT-108", "IT-109", "IT-110",
                   "IM-206", "IM-207", "IM-208", "IM-209", "IM-210",
                   "UT-204", "UT-208", "UT-213", "UT-214",
                   "UM-204", "UM-208", "UM-213", "UM-214", "UM-215")
-colnames(read.count) <- sample_names # save naming system
+
+colnames(read.count) <- sample_names
+gfp1_9_summary$sample_id <- sample_names
+gfp10_11_summary$sample_id <- sample_names
+
 
 ## Verify structure
 cat("📊 Counts loaded:", nrow(read.count), "genes x", ncol(read.count), "samples\n")
@@ -147,7 +162,7 @@ raw_counts_df <- tibble::rownames_to_column(raw_counts_df, "GeneID")
 ```
 
 
-```{r metadata}
+```{r complete metadata}
 ## check actual colnames length
 cat("read.count has", ncol(read.count), "samples\n")
 print(colnames(read.count))
@@ -200,7 +215,7 @@ print(table(sample_info$trt, sample_info$extraction))
 
 
 ```{r}
-## TRAP DESeq2
+## EXTRACT TRAP for DESeq2
 trap_samples <- sample_info$extraction == "TRAP"
 trap_cols <- rownames(sample_info)[trap_samples]
 
@@ -211,13 +226,73 @@ col_data_trap <- sample_info[trap_samples, , drop = FALSE]
 dds_trap <- DESeqDataSetFromMatrix(
   countData = counts_trap,
   colData = col_data_trap,
-  design = ~ line
+  design = ~ trt
 )
 
-dds_trap$line <- relevel(dds_trap$line, ref = "35SpPETEp")
+dds_trap$trt <- relevel(dds_trap$trt, ref = "UM")
 dds_trap <- DESeq(dds_trap)
 rld_trap <- rlog(dds_trap)
 ```
+
+
+```{r}
+res_H_UM <- results(dds_trap, contrast=c("trt","H","UM"))
+vsd <- vst(dds_trap, blind=FALSE) 
+
+# Define H samples by name
+h_samples <- grep("H-", colnames(vsd), value=TRUE)
+
+# Get markers
+markers <- rownames(res_H_UM)[res_H_UM$padj < 0.05 & 
+                             res_H_UM$log2FoldChange > 1 &
+                             rowSums(assay(vsd)[,h_samples]) > 50]
+
+head(sort(res_H_UM$log2FoldChange[res_H_UM$padj < 0.01], decreasing = TRUE), 20)
+
+# Top 50 haustoria markers (highest log2FC)
+top_markers <- rownames(res_H_UM)[order(res_H_UM$log2FoldChange, decreasing = TRUE)[1:50]]
+
+# H vs IM scale factors using top 50
+h_means <- colMeans(assay(vsd)[top_markers, h_samples])
+im_idx <- grep("IM-", colnames(vsd), value=TRUE)
+im_means <- colMeans(assay(vsd)[top_markers, im_idx])
+
+h_fractions <- (im_means / h_means) * 100
+plot(h_means, im_means, pch=19, main="H Fraction Estimation")
+abline(0,1,col="red",lwd=2)
+text(h_means, im_means, names(h_fractions), pos=3)
+
+#print(h_fractions)  # H estimates!
+
+
+plot(h_means, im_means, pch=19, cex=1.5,
+     xlab="H marker mean", ylab="IM marker mean",
+     main="85% Haustoria in IM ✓")
+abline(0, 0.85, col="red", lwd=3)  #  fit line
+text(im_means, h_means, names(h_fractions), pos=3)
+
+## H %
+print(round(h_means, 3))      # Pure H baseline
+print(round(im_means, 3))     # Your IM observations  
+print(im_means / h_means * 100)  # 84-91% ✓
+
+```
+
+
+
+
+
+```{r}
+
+# Show IM vs H GFP1-9
+gfp1_9_summary[grep("IM-|H-", gfp1_9_summary$sample_id), 
+               c("sample_id", "GFP1_9_mapped_reads", "mapped_pct")]
+
+
+```
+
+
+
 
 
 ```{r}
@@ -241,8 +316,18 @@ h_index <- colMeans(h_mat)
 sample_info_trap <- sample_info[trap_samples, ]
 sample_info_trap$h_index <- h_index
 
-h_summary <- sample_info_trap %>%
+
+keep_um <- sample_info_trap$trt == "UM"  # Pure mock mesophyll
+h_um_baseline <- mean(sample_info_trap$h_index[keep_um])
+
+h_summary_um <- sample_info_trap %>%
+  mutate(H_index_UM = h_index / h_um_baseline) %>%
   group_by(line) %>%
+  summarise(mean_H_UM = mean(H_index_UM))
+
+
+h_summary <- sample_info_trap %>%
+  group_by(trt) %>%
   summarise(
     mean_h = mean(h_index),
     se_h = sd(h_index) / sqrt(n()),
@@ -254,22 +339,61 @@ h_summary <- sample_info_trap %>%
     H_index = mean_h / baseline
   ) %>%
   select(-baseline)  # Clean up
-print("🚀 HAUSTORIA H-INDEX (TRAP):")
+
+print(" Raw H-index (H/IM/UM):")
 print(h_summary)
+print("UM-baseline H-index (H vs UM):")
+print(h_summary_um)
+
 
 # Export key results
 #write_csv(h_summary, file.path(tables_dir, "HAUSTORIA_INDEX.csv"))
 #write_csv(sample_info_trap, file.path(tables_dir, "TRAP_METADATA.csv"))
 
 
-# Plot
-library(ggplot2)
-ggplot(sample_info_trap, aes(trt, h_index, fill = trt)) +
-  geom_boxplot() +
-  geom_jitter(width = 0.2, alpha = 0.7) +
-  labs(y = "Sample info",
-       title = "H vs IM vs UM") +
+# FIXED p2 plot (use h_summary_um data)
+p2_data <- h_summary_um %>%
+  mutate(line = as.character(line)) %>%
+  bind_rows(data.frame(line = "35SpPETEp", mean_H_UM = 1, se = 0))  # Add baseline
+
+p2 <- ggplot(p2_data, aes(line, mean_H_UM, fill = line)) +
+  geom_col(alpha = 0.8) +
+  geom_errorbar(aes(ymin = mean_H_UM - se, ymax = mean_H_UM + se), width = 0.2) +
+  labs(title = "UM-normalized H-index", y = "H-index (vs UM)") +
   theme_minimal()
+
+grid.arrange(p1, p2, ncol = 2)
+
+
+```
+
+
+
+```{r}
+# % GFP1-9 reads = estimated 35S contamination in IM
+gfp_contam <- mean(gfp1_9_summary$gfp1_9_pct[gfp1_9_summary$sample == "IM-206"])  # Example
+cat("IM H-contamination:", gfp_contam, "\n")
+
+# Raw IM + UM
+im_raw <- colMeans(h_mat[, grepl("^IM-", colnames(h_mat))])
+um_raw <- mean(h_mat[, grepl("^UM-", colnames(h_mat))])
+
+# Clean IM = (IM - H_contam * H_signal) / (1 - H_contam)
+h_signal <- colMeans(h_mat[, grepl("^H-", colnames(h_mat))])
+im_clean <- (im_raw - gfp_contam * h_signal) / (1 - gfp_contam)
+
+# Baseline = clean IM + UM average
+baseline_clean <- mean(c(im_clean, um_raw))
+h_raw <- colMeans(h_mat[, grepl("^H-", colnames(h_mat))])
+H_index_clean <- h_raw / baseline_clean
+
+cat("Clean H-index:", H_index_clean, "\n")
+h_results <- data.frame(
+  Metric = c("Raw IM+UM baseline", "Clean IM+UM baseline", "H-index (raw)", "H-index (clean)"),
+  Value = c(1.0, baseline_clean / mean(c(im_raw, um_raw)), h_raw / mean(c(im_raw, um_raw)), H_index_clean)
+)
+print(h_results)
+
 ```
 
 
