@@ -3,22 +3,23 @@ title: "Haustoria TRAP-seq Index"
 author: "Iliana Castillo-Machuca | Virginia Tech SPES"
 date: "`r Sys.Date()`"
 output: 
-  html_document:
-    toc: true
-    toc_float: true
-    toc_depth: 3
-    code_folding: hide
-    theme: flatly
-    highlight: tango
-    df_print: paged
+  html_document:  # Creates HTML (not PDF/Word)
+    toc: true # Table of contents (clickable headers)
+    toc_float: true # TOC floats/stays visible when scrolling
+    toc_depth: 3 # Headers 1-3 included in TOC (#### excluded)  
+    code_folding: hide # Collapse code chunks (click to expand)
+    theme: flatly  # Clean dark theme (vs 'default', 'cerulean')
+    highlight: tango # Code syntax colors (vs 'default', 'zenburn')
+    df_print: paged # Data frames = paginated tables (vs 'kable')
 params:
   data_dir: "data/"
   graphics_dir: "Results/Graphics/"
   tables_dir: "Results/Tables/"
 ---
 
-```{r}
-## Clean Environment 
+## 1.Clean Environment
+```{r CLEAN ENVIRONMENT}
+## CLean Environment
 rm(list = ls(all.names = TRUE)) # Remove all objects from the workspace
 gc()  # Garbage collection to free memory
 
@@ -30,6 +31,7 @@ options(
   digits = 3 # Number of digits when printing numbers
 )
 
+## Print Info
 cat("\n")
 cat(strrep("=", 80), "\n")
 cat("SPLIT-GFP TRAP ANALYSIS + HAUSTORIAL ESTIMATION\n")
@@ -39,9 +41,10 @@ cat("Initial working directory:", getwd(), "\n")
 cat("Timestamp:", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "\n\n")
 ```
 
-
+## 2. Loading Packages
 ```{r}
 ## LOADING PACKAGES
+suppressPackageStartupMessages({
 library(readr)      # read_table, read_csv
 library(tidyverse)  # dplyr, ggplot2, tidyr, purrr, etc.
 library(ggplot2)
@@ -52,6 +55,8 @@ library(purrr)
 library(DESeq2)
 library(dplyr)
 library(tidyr)
+  library(stringr)
+})
 
 
 ## SET WKD
@@ -61,8 +66,9 @@ if (!dir.exists("results")) dir.create("results")  # Folder for all outputs
 cat("Working directory:", getwd(), "\n")
 ```
 
+## 3. Establish Directories
 ```{r}
-## Establish Results Folders
+## Establish Folders
 graphics_dir <- params$graphics_dir
 if (!dir.exists(graphics_dir)) dir.create(graphics_dir, recursive = TRUE)
 
@@ -79,28 +85,27 @@ cat("- Tables:   ", tables_dir, "\n")
 cat("- Proc ", procdata_dir, "\n")
 ```
 
-
+## 4. Load GFP Mapped Counts
 ```{r gfp-reads}
 ## LOAD BOWTIE2 MAPPING SUMMARIES
 gfp1_9_summary <- read.table(
-  "data_repository/GFP1_9_mapping_summary.tsv",
+  "../Bowtie/GFP1_9_mapping_summary.tsv",
   header = TRUE, sep = "\t", stringsAsFactors = FALSE
 )
 
 gfp10_11_summary <- read.table(
-  "data_repository/GFP10_11_mapping_summary.tsv",
+  "../Bowtie/GFP10_11_mapping_summary.tsv",
   header = TRUE, sep = "\t", stringsAsFactors = FALSE
 )
 
-
 ## SUMMARIES
-cat("\n=== GFP1-9 summary (first 6 rows) ===\n")
-print(head(gfp1_9_summary, 6))
-cat("\n=== GFP10-11 summary (first 6 rows) ===\n")
-print(head(gfp10_11_summary, 6))
+#cat("\n=== GFP1-9 summary (first 6 rows) ===\n")
+#print(head(gfp1_9_summary, 6))
+#cat("\n=== GFP10-11 summary (first 6 rows) ===\n")
+#print(head(gfp10_11_summary, 6))
 ```
 
-
+## 5. Load Featcounts (all data)
 ```{r complete-reads}
 ## Read in featureCounts
 featcount <- read_tsv("../HvIM/Data_Repository/featcount.txt", skip = 1)
@@ -116,25 +121,28 @@ rownames(read.count) <- gene_ids
 colnames(read.count) <- gsub(".*\\/|\\..*Aligned.*", "", colnames(read.count))
 
 ## Check
-dim(read.count) #check dimensions 
-head(rownames(read.count))  # AT1G00010 etc.
-head(colnames(read.count))  # DIC1_S21, DIT1_S5 etc.
+#dim(read.count) #check dimensions 
+#head(rownames(read.count))  # AT1G00010 etc.
+#head(colnames(read.count))  # DIC1_S21, DIT1_S5 etc.
 ```
 
-
+## 6. Rename featcounts and GFP summaries
 ```{r new-names-for-everything}
-## Extract base names
-library(stringr)
+## Read counts (all data)
+read.count_basenames <- colnames(read.count)
+read.count_basenames <- str_remove(read.count_basenames, "\\.bam$")
+read.count_basenames <- str_remove(read.count_basenames, "Aligned\\.sortedByCoord\\.out$")
+read.count_basenames <- str_remove(read.count_basenames, "out\\.bam$")
 
-# read.count strip ".bam" suffix
-read.count_basenames <- str_remove(colnames(read.count), "\\.bam.*$")
-
-# gfp summaries 
+## GFP Mapped
 gfp1_9_basenames <- gfp1_9_summary$sample_id
 gfp10_11_basenames <- gfp10_11_summary$sample_id
 
-## Verify they now match exactly
-all(read.count_basenames == gfp1_9_basenames)  # TRUE
+# Verify match
+all(read.count_basenames == gfp1_9_basenames)  # TRUE, breaks often
+# Find exact mismatches
+#setdiff(read.count_basenames, gfp1_9_basenames)
+#which(read.count_basenames != gfp1_9_basenames)
 
 ## Apply final mapping
 sample_names <- c("IT-107", "IT-108", "IT-109", "IT-110", 
@@ -144,7 +152,6 @@ sample_names <- c("IT-107", "IT-108", "IT-109", "IT-110",
                   "IM-206", "IM-207", "IM-208", "IM-209", "IM-210",
                   "UT-204", "UT-208", "UT-213", "UT-214",
                   "UM-204", "UM-208", "UM-213", "UM-214", "UM-215")
-
 colnames(read.count) <- sample_names
 gfp1_9_summary$sample_id <- sample_names
 gfp10_11_summary$sample_id <- sample_names
@@ -157,8 +164,8 @@ cat("Range:", format(min(read.count), scientific = TRUE), "→", max(read.count)
 summary(colSums(read.count))  # Lib sizes (total reads mapped per sample)
 
 ## Convert matrix → data frame with gene IDs
-raw_counts_df <- as.data.frame(read.count)
-raw_counts_df <- tibble::rownames_to_column(raw_counts_df, "GeneID")
+read_counts_df <- as.data.frame(read.count)
+read_counts_df <- tibble::rownames_to_column(read_counts_df, "GeneID")
 ```
 
 
@@ -212,6 +219,100 @@ sample_info$trt <- factor(sample_info$trt, levels = c("UM", "UT", "IM", "IT", "H
 stopifnot(all(rownames(sample_info) == colnames(read.count)))
 print(table(sample_info$trt, sample_info$extraction))
 ```
+
+
+```{r}
+# Extract IM and IT
+im_cols <- grep("^IM-", colnames(read.count), value=TRUE)
+it_cols <- grep("^IT-", colnames(read.count), value=TRUE)
+
+im_rows <- gfp10_11_summary$sample_id %in% im_cols
+haust_prop_im <- gfp10_11_summary[im_rows, "mapped_pct"] / 100
+
+clean_im<- read.count[, im_cols] <- pmax(1, read.count[, im_cols] * (1 - haust_prop_im))
+
+keep_trap <- sample_info$extraction == "TRAP"  # H/IM/UM only
+counts_trap <- round(read.count[, keep_trap])
+col_data_trap <- sample_info[keep_trap, ]
+
+dds_trap <- DESeqDataSetFromMatrix(counts_trap, col_data_trap, ~ trt)
+dds_trap <- DESeq(dds_trap)
+vsd <- vst(dds_trap)
+
+# Validate correlation (first 5 matching samples)
+n_match <- min(length(im_cols), length(it_cols))
+
+
+
+cor_im_it <- cor(t(assay(vsd)[, im_cols[1:n_match]]), 
+                 t(assay(vsd)[, it_cols[1:n_match]]), use="complete.obs")
+
+
+p1<- plotPCA(vsd, intgroup="trt")
+print(p1)
+
+print("Available:")
+resultsNames(dds)
+
+res_haus <- results(dds, contrast=c("trt", "H", "UM"))
+res_haus <- res_haus[order(res_haus$padj), ]
+
+# 3. H-genes (padj < 0.05 + LFC > 2)
+h_genes <- rownames(res_haus)[!is.na(res_haus$padj) & 
+                              res_haus$padj < 0.05 & 
+                              res_haus$log2FoldChange > 2]
+print(paste("Haustoria genes:", length(h_genes)))
+
+print(colnames(vsd))  
+
+h_mat <- assay(vsd)[h_genes, ]
+h_index <- colMeans(h_mat)
+# Match TRAP-only sample_info
+sample_info_trap <- sample_info[colnames(vsd), ]  # 15 rows only
+h_by_trt <- aggregate(h_index, by=list(sample_info_trap$trt), mean)
+colnames(h_by_trt) <- c("trt", "h_index")
+print(h_by_trt)
+
+# Visualize
+barplot(h_by_trt$h_index, names.arg=h_by_trt$trt, 
+        main="Haustoria H-index (TRAP)", ylab="Mean expression")
+
+print(h_by_trt)  # H >> IM > UM
+
+# 2. Clean PCA
+plotPCA(vsd, intgroup="trt")
+
+# 3. Results summary
+summary(res_haus)
+summary(res_inf_mes)
+
+
+# 4. PCA
+plotPCA(vsd, intgroup = "trt", nt=3)
+
+# Check lib sizes unchanged
+summary(colSums(read.count[, im_cols]))
+
+# Correlate cleaned IM vs IT (expect >0.95)
+cor_im_it <- cor(t(assay(vst(dds))[, im_cols]), 
+                 t(assay(vst(dds))[, grep("IT-", colnames(dds))]))
+
+```
+
+
+```{r}
+dds_clean <- DESeqDataSetFromMatrix(round(read.count), sample_info, ~ extraction + trt)
+dds_clean <- DESeq(dds_clean)
+
+# Key contrasts
+res_haus <- results(dds_clean, contrast = c("trt", "H", "UM"))  # Haustoria vs mock mesophyll
+res_im_it <- results(dds_clean, contrast = c("trt", "IM", "IT")) # Cleaned mesophyll effect
+
+plotPCA(vst(dds_clean), intgroup = "trt")  # Cleaned IM near IT
+volcanoPlot(res_haus)
+
+```
+
 
 
 ```{r}
@@ -279,20 +380,13 @@ print(im_means / h_means * 100)  # 84-91% ✓
 ```
 
 
-
-
-
 ```{r}
-
 # Show IM vs H GFP1-9
 gfp1_9_summary[grep("IM-|H-", gfp1_9_summary$sample_id), 
                c("sample_id", "GFP1_9_mapped_reads", "mapped_pct")]
 
 
 ```
-
-
-
 
 
 ```{r}
@@ -370,7 +464,7 @@ grid.arrange(p1, p2, ncol = 2)
 
 
 ```{r}
-# % GFP1-9 reads = estimated 35S contamination in IM
+# % GFP1-9 reads = estimated contamination in IM
 gfp_contam <- mean(gfp1_9_summary$gfp1_9_pct[gfp1_9_summary$sample == "IM-206"])  # Example
 cat("IM H-contamination:", gfp_contam, "\n")
 
