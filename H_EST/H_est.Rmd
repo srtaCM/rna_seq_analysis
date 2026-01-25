@@ -41,8 +41,12 @@ cat("Initial working directory:", getwd(), "\n")
 cat("Timestamp:", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "\n\n")
 ```
 
-## 2. Loading Packages
+## 2. Install and Load Packages
 ```{r}
+
+#install.packages("gt")
+
+
 ## LOADING PACKAGES
 suppressPackageStartupMessages({
 library(readr)      # read_table, read_csv
@@ -56,6 +60,7 @@ library(DESeq2)
 library(dplyr)
 library(tidyr)
   library(stringr)
+  library(gt)
 })
 
 
@@ -92,7 +97,6 @@ gfp1_9_summary <- read.table(
   "../Bowtie/GFP1_9_mapping_summary.tsv",
   header = TRUE, sep = "\t", stringsAsFactors = FALSE
 )
-
 gfp10_11_summary <- read.table(
   "../Bowtie/GFP10_11_mapping_summary.tsv",
   header = TRUE, sep = "\t", stringsAsFactors = FALSE
@@ -164,24 +168,21 @@ cat("Range:", format(min(read.count), scientific = TRUE), "→", max(read.count)
 summary(colSums(read.count))  # Lib sizes (total reads mapped per sample)
 
 ## Convert matrix → data frame with gene IDs
-read_counts_df <- as.data.frame(read.count)
-read_counts_df <- tibble::rownames_to_column(read_counts_df, "GeneID")
+#read_counts_df <- as.data.frame(read.count)
+#read_counts_df <- tibble::rownames_to_column(read_counts_df, "GeneID")
 ```
 
 
+## 7. METADATA
 ```{r complete metadata}
-## check actual colnames length
-cat("read.count has", ncol(read.count), "samples\n")
-print(colnames(read.count))
-
+## META DATA
 sample_info <- data.frame(row.names = colnames(read.count))  
 
-## set bulk (CLE samples)
+## set bulk (CLE samples) or TRAP 
 sample_info$line <- "bulk"  
 bulk_samples <- c("IT-107", "IT-108", "IT-109", "IT-110", "IT-206", "IT-207", "IT-208", "IT-209", "UT-106", "UT-108", "UT-114","UT-204", "UT-208", "UT-213", "UT-214")
 sample_info$line[rownames(sample_info) %in% bulk_samples] <- "bulk"
 
-## TRAP samples
 sample_info$line[rownames(sample_info) %in% 
   c("H-107", "H-108", "H-109", "H-110", "H-111")] <- "DMR6pPETEp"
 sample_info$line[rownames(sample_info) %in% 
@@ -189,15 +190,14 @@ sample_info$line[rownames(sample_info) %in%
 sample_info$line[rownames(sample_info) %in% 
   c("UM-204", "UM-208", "UM-213", "UM-214", "UM-215")] <- "35SpPETEp"  
 
-## CLE and TRAP 
 sample_info$extraction <- "CLE"
 sample_info$extraction[rownames(sample_info) %in% 
   c("H-107", "H-108", "H-109", "H-110", "H-111",
     "IM-206", "IM-207", "IM-208", "IM-209", "IM-210",
     "UM-204", "UM-208", "UM-213", "UM-214", "UM-215")] <- "TRAP"
 
-## H, IM, UM
-## TRAP samples
+
+## SET TREATMENT: IM H UM IT UT
 sample_info$trt <- "TRT"
 sample_info$trt[rownames(sample_info) %in% 
   c("H-107", "H-108", "H-109", "H-110", "H-111")] <- "H"
@@ -214,22 +214,194 @@ sample_info$trt[rownames(sample_info) %in%
 ## Factors
 sample_info$trt <- factor(sample_info$trt, levels = c("UM", "UT", "IM", "IT", "H"))
 
-
 ## Check
 stopifnot(all(rownames(sample_info) == colnames(read.count)))
 print(table(sample_info$trt, sample_info$extraction))
 ```
 
+## 8. Extraction of H v IM v UM From Summaries
+```{r}
+# Patterns for extraction
+h_pattern <- "^H-"
+im_pattern <- "^IM-"
+um_pattern <- "^UM-"
+
+# Extract from GFP1-9
+h_cols1 <- grep(h_pattern, gfp1_9_summary$sample_id, value = TRUE)
+im_cols1 <- grep(im_pattern, gfp1_9_summary$sample_id, value = TRUE)
+um_cols1 <- grep(um_pattern, gfp1_9_summary$sample_id, value = TRUE)
+
+gfp1_9_h_im_um <- gfp1_9_summary[gfp1_9_summary$sample_id %in% c(h_cols1, im_cols1, um_cols1), ]
+
+# Extract from GFP10-11
+h_cols2 <- grep(h_pattern, gfp10_11_summary$sample_id, value = TRUE)
+im_cols2 <- grep(im_pattern, gfp10_11_summary$sample_id, value = TRUE)
+um_cols2 <- grep(um_pattern, gfp10_11_summary$sample_id, value = TRUE)
+
+gfp10_11_h_im_um <- gfp10_11_summary[gfp10_11_summary$sample_id %in% c(h_cols2, im_cols2, um_cols2), ]
+
+cat("GFP1-9 subset:\n")
+cat("H:", length(h_cols1), "| IM:", length(im_cols1), "| UM:", length(um_cols1), "\n")
+cat("Dims:", nrow(gfp1_9_h_im_um), "x", ncol(gfp1_9_h_im_um), "\n\n")
+
+cat("GFP10-11 subset:\n")
+cat("H:", length(h_cols2), "| IM:", length(im_cols2), "| UM:", length(um_cols2), "\n")
+cat("Dims:", nrow(gfp10_11_h_im_um), "x", ncol(gfp10_11_h_im_um), "\n")
+
+# Export separately
+
+# View high-GFP H/IM samples for QC
+print("High GFP1-9 H/IM (>10%):")
+print(gfp1_9_h_im_um[grep("H-|IM-", gfp1_9_h_im_um$sample_id), "mapped_pct"])
+
+```
+
+## 9. What Fraction of Reads Align to the GFP1-9 Construct Rather Than Transcriptome?
+```{r}
+## Calculate GFP Reads 
+gfp1_9_percent <- gfp1_9_h_im_um %>%
+  mutate(mapped_pct = GFP1_9_mapped_reads / total_reads * 100)
+gfp10_11_percent <- gfp10_11_h_im_um %>%
+  mutate(mapped_pct = GFP10_11_mapped_reads / total_reads * 100)
+
+
+## Plot GFP1-9
+ggplot(gfp1_9_percent, aes(x = sample_id, y = mapped_pct, fill = sample_id)) +
+  geom_col() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ylab("Percent of reads mapping to GFP1-9") +
+  ggtitle("GFP1-9 Mapping Summary") +
+  theme(legend.position = "none")
+
+
+## Plot GFP10-11
+ggplot(gfp10_11_percent, aes(x = sample_id, y = mapped_pct, fill = sample_id)) +
+  geom_col() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ylab("Percent of reads mapping to GFP10-11") +
+  ggtitle("GFP10-11 Mapping Summary") +
+  theme(legend.position = "none")
+
+
+library(patchwork)  # For side-by-side
+df_combined <- bind_rows(gfp1_9_percent %>% mutate(Tag = "GFP1-9"), 
+                         gfp10_11_percent %>% mutate(Tag = "GFP10-11"))
+ggplot(df_combined, aes(sample_id, mapped_pct, fill = Tag)) + 
+  geom_col(position = "dodge") + 
+  facet_wrap(~ Tag, scales = "free_x") +  # Or "fixed" for same y
+  ylim(0, 1.5)  + # Force common scale
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+
+```
+
+## 10. Boxplot
+```{r}
+# Add "condition" column based on sample_id prefix
+gfp1_9_h_im_um <- gfp1_9_h_im_um %>%
+  mutate(condition = case_when(
+    grepl("^H", sample_id) ~ "H",
+    grepl("^IM", sample_id) ~ "IM",
+    TRUE ~ "other"
+  ),
+    GFP = "GFP1-19",
+    mapped_pct = GFP1_9_mapped_reads / total_reads * 100
+  )
+
+# Compute mean and SD per condition
+gfp1_9_h_im_um %>%
+  group_by(condition) %>%
+  summarise(
+    mean_pct = mean(mapped_pct),
+    sd_pct = sd(mapped_pct),
+    n = n()
+  )
+
+ggplot(gfp1_9_h_im_um %>% filter(condition %in% c("H","IM")),
+       aes(x = condition, y = mapped_pct, fill = condition)) +
+  geom_boxplot() +
+  geom_jitter(width = 0.2) +
+  ylab("Percent of reads mapping to GFP1-9") +
+  ggtitle("H vs IM GFP1-9 Enrichment")
+
+
+gfp10_11_h_im_um <- gfp10_11_h_im_um %>%
+  mutate(
+    condition = case_when(
+      grepl("^H", sample_id) ~ "H",
+      grepl("^IM", sample_id) ~ "IM",
+      TRUE ~ "other"
+    ),
+    GFP = "GFP10-11",
+    mapped_pct = GFP10_11_mapped_reads / total_reads * 100
+  )
+
+# Combine the two datasets
+gfp_combined <- bind_rows(
+  gfp1_9_h_im_um %>% dplyr::select(sample_id, condition, GFP, mapped_pct),
+  gfp10_11_h_im_um %>% dplyr::select(sample_id, condition, GFP, mapped_pct)
+)
+
+# Filter to just H and IM for clarity
+gfp_combined <- gfp_combined %>% filter(condition %in% c("H","IM", "UM"))
+
+# Plot grouped boxplots with jitter
+ggplot(gfp_combined, aes(x = condition, y = mapped_pct, fill = GFP)) +
+  geom_boxplot(alpha = 0.5, outlier.shape = NA) +
+  geom_jitter(aes(color = GFP), width = 0.2, size = 2, alpha = 0.8) +
+  facet_wrap(~GFP, scales = "free_y") +
+  ylab("Percent of reads mapping") +
+  xlab("Condition") +
+  ggtitle("H vs IM: GFP1-9 and GFP10-11 Mapping") +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+```{r}
+# QC table: medians by condition (H/IM/UM)
+gfp_stats <- gfp_combined %>% 
+  mutate(condition = case_when(
+    grepl("^H-", sample_id) ~ "H",
+    grepl("^IM-", sample_id) ~ "IM",
+    grepl("^UM-", sample_id) ~ "UM",
+    TRUE ~ "Other"
+  )) %>%
+  group_by(GFP, condition) %>%
+  summarise(
+    n = n(),
+    median_pct = median(mapped_pct, na.rm=TRUE),
+    mean_pct = mean(mapped_pct, na.rm=TRUE),
+    q25 = quantile(mapped_pct, 0.25, na.rm=TRUE),
+    q75 = quantile(mapped_pct, 0.75, na.rm=TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    reliable = ifelse(GFP=="GFP10-11" & median_pct < 0.01, "⚠️ Low signal", "✅ OK")
+  )
+
+print(gt(gfp_stats))  # Nicely formatted table
+
+# Flag failed reps (GFP10-11 H < 2x UM median)
+um_median_10_11 <- median(gfp10_11_h_im_um$mapped_pct[grepl("^UM-", gfp10_11_h_im_um$sample_id)])
+failed_h <- gfp10_11_h_im_um %>% 
+  filter(grepl("^H-", sample_id), mapped_pct < 2 * um_median_10_11)
+print(paste("Failed H reps (GFP10-11 <", round(2*um_median_10_11,4), "%):", failed_h$sample_id))
+
+```
+
+
 
 ```{r}
-# Extract IM and IT
-im_cols <- grep("^IM-", colnames(read.count), value=TRUE)
-it_cols <- grep("^IT-", colnames(read.count), value=TRUE)
+# Extract IM 
+#im_cols <- grep("^IM-", colnames(read.count), value=TRUE)
+#it_cols <- grep("^IT-", colnames(read.count), value=TRUE)
 
-im_rows <- gfp10_11_summary$sample_id %in% im_cols
-haust_prop_im <- gfp10_11_summary[im_rows, "mapped_pct"] / 100
+#im_rows <- gfp10_11_summary$sample_id %in% im_cols
+#haust_prop_im <- gfp10_11_summary[im_rows, "mapped_pct"] / 100
 
-clean_im<- read.count[, im_cols] <- pmax(1, read.count[, im_cols] * (1 - haust_prop_im))
+#clean_im<- read.count[, im_cols] <- pmax(1, read.count[, im_cols] * (1 - haust_prop_im))
 
 keep_trap <- sample_info$extraction == "TRAP"  # H/IM/UM only
 counts_trap <- round(read.count[, keep_trap])
