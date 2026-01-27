@@ -19,18 +19,16 @@ params:
 
 
 ```{r clear-env}
-# Clean environment
+## Clean environment
 rm (list = ls (all.names = TRUE)) # will clear all objects including hidden objects
 gc () # free up memory and report the memory usage
 options (max.print = .Machine$integer.max, scipen = 0, stringsAsFactors = F, dplyr.summarise.inform = F) # avoid truncated output in R console and keep scientific notation
 ```
 
-```{r load-install-packages, eval=FALSE, include=TRUE}
-# ===================
-# Package Management
-# ===================
+```{r install-packages, eval=FALSE, include=TRUE}
+## Package Management
 
-## Bioconductor
+# Bioconductor
 if (!require("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
@@ -64,9 +62,11 @@ cran_pkgs <- c(
 install.packages(cran_pkgs[!(cran_pkgs %in% installed.packages()[,"Package"])], 
                  dependencies = TRUE)
 cat("✅ All packages installed!\n")
+```
 
 
-## Packages (quiet load)
+```{r load-packages, eval=FALSE, include=TRUE}
+## Packages
 suppressPackageStartupMessages({
   library(DESeq2)
   library(apeglm)
@@ -92,39 +92,38 @@ suppressPackageStartupMessages({
 })
 ```
 
+
 ```{r setup-paths, include=FALSE}
-if (rstudioapi::isAvailable()) {
-  project_root <- normalizePath(rstudioapi::getActiveProject()[[1]])
-} else {
-  project_root <- "."  # Fallback to current dir
-}
+## ROOT
+project_root <- "."  # Fallback to current dir
+#getwd()
 
 ## Establish directories
 graphics_dir <- params$graphics_dir
 if (!dir.exists(graphics_dir)) {
-  graphics_dir <- file.path(project_root, "HvIM/Results/Graphics")
+  graphics_dir <- file.path(project_root, "/Results/Graphics")
 }
 
 tables_dir <- params$tables_dir
 if (!dir.exists(tables_dir)) {
-  tables_dir <- file.path(project_root, "HvIM/Results/Tables")
+  tables_dir <- file.path(project_root, "/Results/Tables")
 }
-procdata_dir <- params$procdata_dir %||% file.path(project_root, "HvIM/Results/Processed_data")
+procdata_dir <- params$procdata_dir %||% file.path(project_root, "/Results/Processed_data")
 
 ## Create if missing
 dir.create(graphics_dir, recursive = TRUE, showWarnings = FALSE)
 dir.create(tables_dir,   recursive = TRUE, showWarnings = FALSE)
 dir.create(procdata_dir,   recursive = TRUE, showWarnings = FALSE)
 
-
+## Print
 cat("📁 Project root:", project_root, "\n")
 cat("📁 Graphics:   ", graphics_dir, "\n") 
 cat("📁 Tables:    ", tables_dir, "\n")
 cat("📁 Processed: ", procdata_dir, "\n")
 ```
 
-```{r read-couts, message=FALSE}
 
+```{r read-couts, message=FALSE}
 ## Read in featureCounts
 featcount <- read_tsv("./Data_Repository/featcount.txt", skip = 1)
 
@@ -144,7 +143,7 @@ head(rownames(read.count))  # AT1G00010 etc.
 head(colnames(read.count))  # DIC1_S21, DIT1_S5 etc.
 ```
 
-```{r read-couts, message=FALSE}
+```{r read-counts, message=FALSE}
 ## Standardize colnames
 sample_names <- c("IT-107", "IT-108", "IT-109", "IT-110", 
                   "H-107", "H-108", "H-109", "H-110", "H-111",
@@ -153,14 +152,12 @@ sample_names <- c("IT-107", "IT-108", "IT-109", "IT-110",
                   "IM-206", "IM-207", "IM-208", "IM-209", "IM-210",
                   "UT-204", "UT-208", "UT-213", "UT214",
                   "UM-204", "UM-208", "UM-213", "UM-214", "UM-215")
-
 colnames(read.count) <- sample_names #save naming system
 
 ## Verify structure
 cat("📊 Counts loaded:", nrow(read.count), "genes x", ncol(read.count), "samples\n")
-cat("Range:", format(min(read.count), scientific = TRUE), "→", max(read.count), "\n") #printing the range of counts per gene
+cat("Range:", format(min(read.count), scientific = TRUE), "→", max(read.count), "\n") # printing the range of counts per gene
 summary(colSums(read.count))  # Lib sizes (total reads mapped per sample)
-
 
 ## Convert matrix → data frame with gene IDs
 raw_counts_df <- as.data.frame(read.count)
@@ -171,11 +168,7 @@ write_csv(raw_counts_df, file.path(tables_dir, "raw_counts_clean.csv"))
 writexl::write_xlsx(raw_counts_df, file.path(tables_dir, "raw_counts_clean.xlsx"))
 ```
 
-```{r Subsetting-im-h}
-# =============
-# IM + H + UM 
-# ============
-
+```{r setup-count-data}
 ## Columns to DROP: IT(1:4,13:16), UT(10:12,22:25) → KEEP 5-9,17-21,26-30
 keep_cols <- c(5:9, 17:21, 26:30)
 ImvHvUM <- read.count[, keep_cols]
@@ -345,6 +338,7 @@ p_dist <- pheatmap(dist_mat,
 )
 ```
 
+
 ```{r PCA}
 ## PCA Set Up
 pca_data <- DESeq2::plotPCA(vsd, 
@@ -474,6 +468,7 @@ export_list <- list(
 writexl::write_xlsx(export_list, path = file.path(tables_dir, "DESeq2_results.xlsx"))
 cat("✅ DESeq2 results saved as Excel at:", file.path(tables_dir, "DESeq2_results.xlsx"), "\n")
 ```
+
 
 ```{r}
 ## Single wide tibble (LFC shrunk)
@@ -610,7 +605,7 @@ deg_IM <- res_IM_UM %>%
 shared_tair <- intersect(deg_H$TAIR, deg_IM$TAIR)
 deg_shared <- deg_H %>%
   filter(TAIR %in% shared_tair) %>%
-  left_join(select(deg_IM, TAIR, log2FoldChange_IM = log2FoldChange, padj_IM = padj), by = "TAIR") %>%
+  left_join(dplyr::select(deg_IM, TAIR, log2FoldChange_IM = log2FoldChange, padj_IM = padj), by = "TAIR") %>%
   mutate(avg_lfc = (log2FoldChange + coalesce(log2FoldChange_IM, 0)) / 2) %>%
   arrange(desc(avg_lfc))
 
@@ -860,9 +855,8 @@ head(pure_haustoria, 15)
 
 pure_df <- df_four %>%
   filter(id %in% pure_haustoria) %>%
-  select(id, logFC_x, logFC_y, padj_x, padj_y) %>%
+  dplyr::select(id, logFC_x, logFC_y, padj_x, padj_y) %>%
   arrange(desc(logFC_x))
-
 
 write_csv(pure_df, file.path(tables_dir, "pure_haustoria_H_specific.csv"))
 write_xlsx(pure_df, 
@@ -884,37 +878,23 @@ ego_pureH <- enrichGO(
   minGSSize = 5
 )
 
-
 ## Color by raw pvalue (ALL terms)
-p1 <- dotplot(ego_pureH, showCategory = 25, color = "pvalue") + 
+p1 <- dotplot(ego_pureH, 
+              showCategory = 25,  # ↓ from 25
+              label_format = 30,  # Truncate long labels
+              font.size = 10) +   # Smaller text
   scale_color_gradient(low = "red", high = "blue") +
-  ggtitle("Pure Haustoria GO BP") +
-  scale_color_continuous(low = "red", high = "blue")
+  ggtitle("Pure Haustoria GO BP (Top 25)") +
+  theme(axis.text.y = element_text(size = 9))  # Tighter y-axis
 print(p1)
+
 ggsave(file.path(graphics_dir, "pure_haustoria_GO_pvalue.png"), p1, width=12, height=10)
-
-## Top 20 by index
-top_idx <- ego_pureH@result %>%
-  arrange(p.adjust) %>%
-  slice_head(n = 20) %>%
-  rownames() %>%
-  as.numeric()
-
-p2 <- dotplot(
-  ego_pureH,
-  showCategory = 20
-) +
-  ggtitle("Top 20 Pure Haustoria GO")
-
-print(p2)
 ```
 
 
 ```{r}
 ## KEGG
-entrez <- bitr(pure_haustoria, from="TAIR", to="ENTREZID",
-               OrgDb=org.At.tair.db) %>%
-  distinct(ENTREZID)
+entrez <- bitr(pure_haustoria, from="TAIR", to="ENTREZID", OrgDb=org.At.tair.db) %>% distinct(ENTREZID)
 
 kegg_pureH <- enrichKEGG(
   gene = pure_haustoria,
