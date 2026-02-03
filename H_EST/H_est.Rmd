@@ -296,7 +296,9 @@ ggsave(file.path(graphics_dir, "GFP_mapping_stats.png"), width = 10, height = 8,
 
 ## 9. IM Clean Up by GFP-DMR6 Reads
 ```{r IM Clean Up}
-# Subset TRAP
+## -----------------------------
+## Subset TRAP
+## -----------------------------
 trap_cols <- grep("^(H|IM|UM)-", colnames(read.count), value = TRUE)
 trap.count <- read.count[, trap_cols, drop = FALSE]
 
@@ -304,36 +306,87 @@ trap.count <- read.count[, trap_cols, drop = FALSE]
 h_idx  <- grep("^H-",  colnames(trap.count))
 im_idx <- grep("^IM-", colnames(trap.count))
 
-# H profile
+# Sample names (authoritative)
+h_samples  <- colnames(trap.count)[h_idx]
+im_samples <- colnames(trap.count)[im_idx]
+
+## -----------------------------
+## H profile (composition)
+## -----------------------------
 h_mat     <- trap.count[, h_idx, drop = FALSE]
 h_profile <- rowMeans(h_mat, na.rm = TRUE)
 h_comp    <- h_profile / sum(h_profile, na.rm = TRUE)
 
-# Ensure h_comp matches trap.count row order
+# Ensure correct row order
 h_comp_vec <- h_comp[rownames(trap.count)]
-h_comp_vec[is.na(h_comp_vec)] <- 0  # safety
+h_comp_vec[is.na(h_comp_vec)] <- 0
 
-# GFP fractions
-gfp_h  <- gfp1_9_percent$mapped_pct[str_detect(gfp1_9_percent$sample_id, "^H-")]
-gfp_im <- gfp1_9_percent$mapped_pct[str_detect(gfp1_9_percent$sample_id, "^IM-")]
-gfp_um <- gfp1_9_percent$mapped_pct[str_detect(gfp1_9_percent$sample_id, "^UM-")]
+## -----------------------------
+## GFP fractions (ALIGNED)
+## -----------------------------
 
-# UM baseline
+# H GFP (ordered to match trap.count)
+gfp_h <- gfp1_9_percent %>%
+  dplyr::filter(sample_id %in% h_samples) %>%
+  dplyr::arrange(match(sample_id, h_samples)) %>%
+  dplyr::pull(mapped_pct)
+
+
+## Build named GFP vector aligned to trap.count
+gfp_im <- gfp1_9_percent %>%
+  filter(sample_id %in% im_samples) %>%
+  select(sample_id, mapped_pct) %>%
+  deframe() %>%                    # named vector
+  .[im_samples]                    # reorder explicitly
+
+stopifnot(
+  length(gfp_im) == length(im_idx),
+  identical(names(gfp_im), im_samples)
+)
+
+
+# UM GFP (baseline only; ordering irrelevant)
+gfp_um <- gfp1_9_percent %>%
+  dplyr::filter(str_detect(sample_id, "^UM-")) %>%
+  dplyr::pull(mapped_pct)
+
+## -----------------------------
+## Baseline correction
+## -----------------------------
 um_ref <- median(gfp_um, na.rm = TRUE)
 
-# Baseline-corrected fractions
-gfp_h_corr  <- pmax(0, gfp_h - um_ref)   # H baseline-corrected
-gfp_im_corr <- pmax(0, gfp_im - um_ref)  # IM baseline-corrected
+gfp_h_corr  <- pmax(0, gfp_h - um_ref)
+gfp_im_corr <- pmax(0, gfp_im - um_ref)
 
-# H reference
+## -----------------------------
+## H reference & IM contamination
+## -----------------------------
 h_ref <- median(gfp_h_corr, na.rm = TRUE)
 
-# Compute contamination fractions for IM
-im_extra   <- gfp_im_corr
-haust_frac <- pmin(im_extra / h_ref, 1)  # Cap at 100%
-stopifnot(length(haust_frac) == length(im_idx))
+if (h_ref > 0) {
+  haust_frac <- pmin(gfp_im_corr / h_ref, 1)
+} else {
+  haust_frac <- rep(0, length(gfp_im_corr))
+}
 
+# FORCE authoritative naming
+names(haust_frac) <- im_samples
+
+# Safety checks (now should PASS)
+stopifnot(
+  length(haust_frac) == length(im_idx),
+  all(is.finite(haust_frac)),
+  all(haust_frac >= 0 & haust_frac <= 1),
+  identical(names(haust_frac), im_samples)
+)
+
+
+## -----------------------------
+## Initialize cleaned matrix
+## -----------------------------
 trap.count.clean <- trap.count
+stopifnot(!any(is.na(trap.count.clean[, im_idx])))
+
 ```
 
 
@@ -376,6 +429,7 @@ cat("Top100 H genes in IM:",
     "→", 
     round(mean(rowMeans(trap.count[top100, im_idx, drop = FALSE])), 2), "\n")
 ```
+
 ```{r}
 ## EXTRACT TRAP for DESeq2
 HvUMvIM_info <- HvUMvIM_info[match(colnames(trap.count), rownames(HvUMvIM_info)), , drop=FALSE]
@@ -425,7 +479,7 @@ ggplot(pca_data, aes(PC1, PC2, color=trt, shape=trt)) +
   theme_minimal()
 ggsave("TRAP_PCA_labeled.pdf", width=10, height=8)
 ```
-```
+
 
 
 ```{r}
