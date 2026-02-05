@@ -186,104 +186,31 @@ genome_total_reads <- colSums(trap.count)
 
 ## 6. QC GFP
 ```{r}
-## Functions
-add_condition_norm <- function(df, mapped_col, genome_reads, pseudocount = 1) {
-  df$condition <- ifelse(grepl("^H-", df$sample_id), "H",
-                   ifelse(grepl("^IM-", df$sample_id), "IM",
-                   ifelse(grepl("^UM-", df$sample_id), "UM", NA)))
-  
-  df$genome_mapped_reads <- genome_reads[df$sample_id]
-  df$norm_reads <- (df[[mapped_col]] + pseudocount) / df$genome_mapped_reads
-  
-  df
-}
-
-estimate_haustorial_signal <- function(gfp1_9_df, gfp10_11_df, read_count_matrix, pseudocount = 1) {
-  
-# Total reads per sample
-genome_reads <- colSums(read_count_matrix)
-  
-# Add condition to both data frames
-gfp1_9_df$condition <- ifelse(grepl("^H-", gfp1_9_df$sample_id), "H",
-                          ifelse(grepl("^IM-", gfp1_9_df$sample_id), "IM",
-                          ifelse(grepl("^UM-", gfp1_9_df$sample_id), "UM", NA)))
-  
-gfp10_11_df$condition <- ifelse(grepl("^H-", gfp10_11_df$sample_id), "H",
-                            ifelse(grepl("^IM-", gfp10_11_df$sample_id), "IM",
-                            ifelse(grepl("^UM-", gfp10_11_df$sample_id), "UM", NA)))
-  
-# Add genome mapped reads
-gfp1_9_df$genome_mapped_reads <- genome_reads[gfp1_9_df$sample_id]
-gfp10_11_df$genome_mapped_reads <- genome_reads[gfp10_11_df$sample_id]
-  
-# Normalized GFP reads
-gfp1_9_df$GFP1_9_norm <- (gfp1_9_df$GFP1_9_mapped_reads + pseudocount) /
-                            gfp1_9_df$genome_mapped_reads
-gfp10_11_df$GFP10_11_norm <- (gfp10_11_df$GFP10_11_mapped_reads + pseudocount) /
-                               gfp10_11_df$genome_mapped_reads
-  
-# Merge
-df <- merge(
-    gfp1_9_df[, c("sample_id", "condition", "GFP1_9_mapped_reads", "GFP1_9_norm", "genome_mapped_reads")],
-    gfp10_11_df[, c("sample_id", "GFP10_11_mapped_reads", "GFP10_11_norm")],
+## Prepare data for plotting (raw counts)
+gfp1_9_h_im_um <- gfp1_9_h_im_um %>%
+  left_join(
+    sample_info %>% select(sample_id, condition = trt),
     by = "sample_id"
   )
-  
-# PETE threshold (raw reads): 1.1 × max UM GFP10-11 reads
-pete_threshold <- max(gfp10_11_df$GFP10_11_mapped_reads[gfp10_11_df$condition == "UM"], na.rm = TRUE) * 1.1
-  
-# Flag infected samples
-df$infected <- df$GFP10_11_mapped_reads > pete_threshold
-  
-# GFP1-9 / GFP10-11 ratio for infected samples
-df_inf <- df[df$infected, ]
-df_inf$gfp_ratio <- df_inf$GFP1_9_norm / df_inf$GFP10_11_norm
-  
-# Median ratio in H samples
-median_h_ratio <- median(df_inf$gfp_ratio[df_inf$condition == "H"], na.rm = TRUE)
-  
-# IM estimates
-im_estimates <- df_inf[df_inf$condition == "IM", c("sample_id", "gfp_ratio")]
-im_estimates$haust_frac <- im_estimates$gfp_ratio / median_h_ratio
-im_estimates$haust_pct  <- im_estimates$haust_frac * 100
-  
-# Return list
-list(
-    merged_data    = df,
-    infected_data  = df_inf,
-    im_estimates   = im_estimates,
-    pete_threshold = pete_threshold,
-    median_h_ratio = median_h_ratio
+
+gfp10_11_h_im_um <- gfp10_11_h_im_um %>%
+  left_join(
+    sample_info %>% select(sample_id, condition = trt),
+    by = "sample_id"
   )
-}
-
-
-## Run function
-
-res <- estimate_haustorial_signal(
-  gfp1_9_df  = gfp1_9_h_im_um,
-  gfp10_11_df = gfp10_11_h_im_um,
-  read_count_matrix = trap.count
-)
-
-pete_threshold <- res$pete_threshold
 
 
 ## Prepare data for plotting (raw counts)
-gfp_long <- rbind(
-  data.frame(
+gfp_long <- bind_rows(
+  tibble(
     sample_id = gfp1_9_h_im_um$sample_id,
-    condition = ifelse(grepl("^H-", gfp1_9_h_im_um$sample_id), "H",
-                  ifelse(grepl("^IM-", gfp1_9_h_im_um$sample_id), "IM",
-                  ifelse(grepl("^UM-", gfp1_9_h_im_um$sample_id), "UM", NA))),
+    condition = gfp1_9_h_im_um$condition,
     GFP = "GFP1-9",
     mapped_reads = gfp1_9_h_im_um$GFP1_9_mapped_reads
   ),
-  data.frame(
+  tibble(
     sample_id = gfp10_11_h_im_um$sample_id,
-    condition = ifelse(grepl("^H-", gfp10_11_h_im_um$sample_id), "H",
-                  ifelse(grepl("^IM-", gfp10_11_h_im_um$sample_id), "IM",
-                  ifelse(grepl("^UM-", gfp10_11_h_im_um$sample_id), "UM", NA))),
+    condition = gfp10_11_h_im_um$condition,
     GFP = "GFP10-11",
     mapped_reads = gfp10_11_h_im_um$GFP10_11_mapped_reads
   )
@@ -291,22 +218,24 @@ gfp_long <- rbind(
 
 gfp_long$condition <- factor(gfp_long$condition, levels = c("UM","IM","H"))
 
+
+gfp_long$condition <- factor(gfp_long$condition, levels = c("UM","IM","H"))
+colors <- c("H"="#56B4E9", "IM"="#E69FBC", "UM"="#8C8C8C", "UT"="gray", "IT"="gray")
 library(scales)
 
 ## Plot raw counts
-ggplot(gfp_long, aes(condition, mapped_reads, fill = GFP)) +
-  geom_boxplot(alpha = 0.5, outlier.shape = NA) +
-  geom_jitter(aes(color = GFP), width = 0.2, size = 2, alpha = 0.8) +
+ggplot(gfp_long, aes(condition, mapped_reads)) +
+  geom_boxplot(aes(fill = condition), alpha = 0.5, outlier.shape = NA) +
+  geom_jitter(aes(color = condition), width = 0.2, size = 2, alpha = 0.8) +
   facet_wrap(~GFP, scales = "free_y") +
-  geom_hline(yintercept = pete_threshold, linetype = "dashed", color = "red") +
-  scale_y_continuous(labels = comma) +  # whole numbers with commas
+  #geom_hline(yintercept = pete_threshold, linetype = "dashed", color = "red") +
+  scale_fill_manual(values = colors) +
+  scale_color_manual(values = colors) +
+  scale_y_continuous(labels = scales::comma) +
   theme_minimal() +
-  theme(legend.position = "none") +
-  labs(
-    title = "TRAP GFP mapping by condition",
-    y = "Mapped reads (raw counts)",
-    x = "Condition"
-  )
+  theme(legend.position = "none")
+
+ggsave(file.path(graphics_dir, "GFP_Counts_Comb.png"), width=10, height=8, dpi=300)
 ```
 
 
