@@ -14,7 +14,7 @@ output:
 ---
 
 ## 1.Clean Environment
-```{r CLEAN ENVIRONMENT}
+```{r CLEAN-ENVIRONMENT}
 ## CLean Environment
 rm(list = ls(all.names = TRUE)) # Remove all objects from the workspace
 gc()  # Garbage collection to free memory
@@ -27,80 +27,96 @@ options(
   digits = 3 # Number of digits when printing numbers
 )
 
-## Print Info
-cat("\n")
-cat(strrep("=", 80), "\n")
-cat("SPLIT-GFP TRAP ANALYSIS + HAUSTORIAL ESTIMATION\n")
-cat(strrep("=", 80), "\n")
-cat("R Version:", R.version$version.string, "\n")
-cat("Initial working directory:", getwd(), "\n")
-cat("Timestamp:", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "\n\n")
+## Print project info
+info <- list(
+  Title = "SPLIT-GFP TRAP ANALYSIS + HAUSTORIAL ESTIMATION",
+  R_Version = R.version$version.string,
+  Working_Directory = getwd(),
+  Timestamp = format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+)
+
+separator <- strrep("=", 80)
+cat("\n", separator, "\n", info$Title, "\n", separator, "\n")
+cat("R Version:", info$R_Version, "\n")
+cat("Working Directory:", info$Working_Directory, "\n")
+cat("Timestamp:", info$Timestamp, "\n\n")
+
+## Optional: show session info for reproducibility
+# sessionInfo()
+
 ```
 
 ## 2. Install & Load Packages
-```{r packages, message=FALSE, warning=FALSE}
-## INSTALL PACKAGES
-#install.packages("gt")
-
-## LOAD PACKAGES
-suppressPackageStartupMessages({
-#library(readr)      # read_table, read_csv
-library(tidyverse)  # dplyr, ggplot2, tidyr, purrr, stringr, readr 
-#library(ggplot2)
-library(gridExtra)
-library(readxl)     # read_excel for DESeq2 summary
-#library(dplyr)
-#library(purrr)
-library(DESeq2)
-#library(tidyr)
-#  library(stringr)
-  library(gt)
-  library(patchwork)
-  library(ggrepel)
-})
+```{r Packages, message=FALSE, warning=FALSE}
+## Load Required Packages
+required_packages <- c(
+  "tidyverse",   # dplyr, ggplot2, tidyr, purrr, stringr, readr
+  "gridExtra",   # Arrange multiple ggplots
+  "readxl",      # read_excel for DESeq2 summaries
+  "DESeq2",      # Differential expression analysis
+  "gt",          # Beautiful tables
+  "patchwork",   # Combine ggplots
+  "ggrepel"  ,    # Avoid overlapping ggplot labels
+  "ggfortify"
+)
 
 ## SET WKD
+# Install missing packages (optional)
+# new_packages <- required_packages[!(required_packages %in% installed.packages()[,"Package"])]
+# if(length(new_packages)) install.packages(new_packages)
+
+# Load all packages quietly
+invisible(
+  suppressPackageStartupMessages({
+    lapply(required_packages, library, character.only = TRUE)
+  })
+)
+
+#install.packages("ggfortify")
+
+## Set working directory
 cat("Working directory:", getwd(), "\n")
 ```
 
 ## 3. Establish Directories
 ```{r Directories}
-## Replace params with hardcoded paths
+## Set up output directories
 graphics_dir <- file.path("Results/Graphics")
 tables_dir   <- file.path("Results/Tables") 
 procdata_dir <- file.path("Results/Processed_data")
 
-## Create directories
-dir_create <- function(x) if (!dir.exists(x)) dir.create(x, recursive = TRUE)
-dir_create(graphics_dir)
-dir_create(tables_dir) 
-dir_create(procdata_dir)
+dirs <- c(graphics_dir, tables_dir, procdata_dir)
 
-## PRINT
-cat("✅ Directories ready:\n")
+# Create directories if they don't exist
+sapply(dirs, function(d) if (!dir.exists(d)) dir.create(d, recursive = TRUE))
+
+## Print confirmation
+cat("Directories ready:\n")
 cat("- Graphics: ", graphics_dir, "\n")
-cat("- Tables:   ", tables_dir, "\n") 
-cat("- Proc ", procdata_dir, "\n")
+cat("- Tables:   ", tables_dir, "\n")
+cat("- Proc:     ", procdata_dir, "\n")
 ```
 
 ## 4. Load Files
-```{r load-data}
+```{r Load-Files}
 ## GFP Summaries
-gfp1_9_summary  <- read.table("../Bowtie/GFP1_9_mapping_summary.tsv",  header=TRUE, sep="\t")
-gfp10_11_summary <- read.table("../Bowtie/GFP10_11_mapping_summary.tsv", header=TRUE, sep="\t")
-### maybe change this to readr::read_tsv() for safer load
-
+library(readr)
+gfp1_9_summary  <- read_tsv("../Bowtie/GFP1_9_mapping_summary.tsv")
+gfp10_11_summary <- read_tsv("../Bowtie/GFP10_11_mapping_summary.tsv")
 
 ## featureCounts
 featcount <- read_tsv("../HvIM/Data_Repository/featcount.txt", skip = 1)
-gene_ids <- featcount[[1]]
-read.count <- as.matrix(featcount[, 7:ncol(featcount)]) ##this line may break
-rownames(read.count) <- gene_ids
+library(dplyr)
+count_cols <- colnames(featcount)[7:ncol(featcount)]
+read.count <- as.matrix(featcount %>% select(all_of(count_cols)))
+rownames(read.count) <- featcount[[1]]
+
+stopifnot(ncol(featcount) > 6)
 ```
 
 ## 5. Clean Data
 ```{r Clean-Data}
-## Clean colnames (remove .bam paths)
+  ## Clean colnames (remove .bam paths)
 colnames(read.count) <- gsub(".*\\/|\\..*Aligned.*", "", colnames(read.count))
 sample_names <- c(
   "IT-107","IT-108","IT-109","IT-110",
@@ -122,7 +138,7 @@ gfp10_11_summary$sample_id <- sample_names
 
 cat("Counts:", nrow(read.count), "genes x", ncol(read.count), "samples\n")
 
-## METADATA
+  ## METADATA
 sample_info <- tibble(sample_id = colnames(read.count)) %>%
   mutate(
     extraction = if_else(str_detect(sample_id, "^(H|IM|UM)-"), "TRAP", "CLE"),
@@ -152,245 +168,648 @@ table(sample_info$trt, sample_info$extraction)
 #writexl::write_xlsx(gfp1_9_summary, file.path(tables_dir, "gfp1_9_summary.xlsx"))
 #writexl::write_xlsx(gfp10_11_summary, file.path(tables_dir, "gfp10_11_summary.xlsx"))
 
-## SUBSET
+  ## SUBSET
 subset_groups <- function(df) df %>% filter(str_detect(sample_id, "^(H|IM|UM)-"))
 gfp1_9_h_im_um  <- subset_groups(gfp1_9_summary)
 gfp10_11_h_im_um <- subset_groups(gfp10_11_summary)
 
 subset_info <- function(sample_info) sample_info %>% filter(str_detect(sample_id, "^(H|IM|UM)-"))
 HvUMvIM_info <- subset_info(sample_info)
+
+  ## SET Up For Estimation
+#TRAP Only
+trap_cols <- grep("^(H|IM|UM)-", colnames(read.count), value = TRUE)
+stopifnot(length(trap_cols) > 0)
+trap.count <- read.count[, trap_cols, drop = FALSE]
+genome_total_reads <- colSums(trap.count)
 ```
 
-## 6. QC Barplot
+## 6. QC GFP
 ```{r}
-## ADD PERCENTS
-add_pct <- function(df, mapped_col) {
-  stopifnot("total_reads" %in% colnames(df))
-  stopifnot(mapped_col %in% colnames(df))
-
-  df %>%
-    mutate(mapped_pct = .data[[mapped_col]] / total_reads * 100)
+## Functions
+add_condition_norm <- function(df, mapped_col, genome_reads, pseudocount = 1) {
+  df$condition <- ifelse(grepl("^H-", df$sample_id), "H",
+                   ifelse(grepl("^IM-", df$sample_id), "IM",
+                   ifelse(grepl("^UM-", df$sample_id), "UM", NA)))
+  
+  df$genome_mapped_reads <- genome_reads[df$sample_id]
+  df$norm_reads <- (df[[mapped_col]] + pseudocount) / df$genome_mapped_reads
+  
+  df
 }
 
-gfp1_9_percent <- add_pct(gfp1_9_h_im_um, "GFP1_9_mapped_reads") 
-gfp10_11_percent <- add_pct(gfp10_11_h_im_um, "GFP10_11_mapped_reads")
-
-# Define Colors
-colors <- c(
-  "H"  = "#56B4E9",
-  "IM" = "#E69FBC",
-  "UM" = "#8C8C8C",
-  "UT" = "gray",
-  "IT" = "gray"
-)
-
-# Extract sample group for each sample
-gfp1_9_percent <- gfp1_9_percent %>%
-  mutate(trt = str_extract(sample_id, "^(H|IM|UM)"))
-gfp10_11_percent <- gfp10_11_percent %>%
-  mutate(trt = str_extract(sample_id, "^(H|IM|UM)"))
-
-## PLOTTING
-ggplot(gfp1_9_percent,
-       aes(x = sample_id, y = mapped_pct, fill = trt)) +
-  geom_col() +
-  scale_fill_manual(values = colors) +
-  theme_classic() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  labs(
-    title = "GFP1-9 Mapping Summary",
-    y = "Percent of reads mapping to GFP1-9",
-    x = NULL,
-    fill = "Sample type"
+estimate_haustorial_signal <- function(gfp1_9_df, gfp10_11_df, read_count_matrix, pseudocount = 1) {
+  
+# Total reads per sample
+genome_reads <- colSums(read_count_matrix)
+  
+# Add condition to both data frames
+gfp1_9_df$condition <- ifelse(grepl("^H-", gfp1_9_df$sample_id), "H",
+                          ifelse(grepl("^IM-", gfp1_9_df$sample_id), "IM",
+                          ifelse(grepl("^UM-", gfp1_9_df$sample_id), "UM", NA)))
+  
+gfp10_11_df$condition <- ifelse(grepl("^H-", gfp10_11_df$sample_id), "H",
+                            ifelse(grepl("^IM-", gfp10_11_df$sample_id), "IM",
+                            ifelse(grepl("^UM-", gfp10_11_df$sample_id), "UM", NA)))
+  
+# Add genome mapped reads
+gfp1_9_df$genome_mapped_reads <- genome_reads[gfp1_9_df$sample_id]
+gfp10_11_df$genome_mapped_reads <- genome_reads[gfp10_11_df$sample_id]
+  
+# Normalized GFP reads
+gfp1_9_df$GFP1_9_norm <- (gfp1_9_df$GFP1_9_mapped_reads + pseudocount) /
+                            gfp1_9_df$genome_mapped_reads
+gfp10_11_df$GFP10_11_norm <- (gfp10_11_df$GFP10_11_mapped_reads + pseudocount) /
+                               gfp10_11_df$genome_mapped_reads
+  
+# Merge
+df <- merge(
+    gfp1_9_df[, c("sample_id", "condition", "GFP1_9_mapped_reads", "GFP1_9_norm", "genome_mapped_reads")],
+    gfp10_11_df[, c("sample_id", "GFP10_11_mapped_reads", "GFP10_11_norm")],
+    by = "sample_id"
   )
-ggsave(file.path(graphics_dir, "GFP1-9_percentage.png"), width = 10, height = 8, dpi = 300)
-
-ggplot(gfp10_11_percent,
-       aes(x = sample_id, y = mapped_pct, fill = trt)) +
-  geom_col() +
-  scale_fill_manual(values = colors) +
-  theme_classic() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  labs(
-    title = "GFP10-11 Mapping Summary",
-    y = "Percent of reads mapping to GFP10-11",
-    x = NULL,
-    fill = "Sample type"
+  
+# PETE threshold (raw reads): 1.1 × max UM GFP10-11 reads
+pete_threshold <- max(gfp10_11_df$GFP10_11_mapped_reads[gfp10_11_df$condition == "UM"], na.rm = TRUE) * 1.1
+  
+# Flag infected samples
+df$infected <- df$GFP10_11_mapped_reads > pete_threshold
+  
+# GFP1-9 / GFP10-11 ratio for infected samples
+df_inf <- df[df$infected, ]
+df_inf$gfp_ratio <- df_inf$GFP1_9_norm / df_inf$GFP10_11_norm
+  
+# Median ratio in H samples
+median_h_ratio <- median(df_inf$gfp_ratio[df_inf$condition == "H"], na.rm = TRUE)
+  
+# IM estimates
+im_estimates <- df_inf[df_inf$condition == "IM", c("sample_id", "gfp_ratio")]
+im_estimates$haust_frac <- im_estimates$gfp_ratio / median_h_ratio
+im_estimates$haust_pct  <- im_estimates$haust_frac * 100
+  
+# Return list
+list(
+    merged_data    = df,
+    infected_data  = df_inf,
+    im_estimates   = im_estimates,
+    pete_threshold = pete_threshold,
+    median_h_ratio = median_h_ratio
   )
-ggsave(file.path(graphics_dir, "GFP10_11_percentage.png"), width = 10, height = 8, dpi = 300)
-
-## COMBINED PLOT
-df_combined <- bind_rows(
-  gfp1_9_percent  %>% mutate(GFP = "GFP1-9"),
-  gfp10_11_percent %>% mutate(GFP = "GFP10-11")
-)
-df_combined$trt <- factor(df_combined$trt, levels = c("UM","IM","H"))
-
-ggplot(df_combined, aes(x = trt, y = mapped_pct, fill = trt)) +
-  geom_boxplot(alpha = 0.5, outlier.shape = NA) +
-  geom_jitter(aes(color = trt), width = 0.2, size = 2, alpha = 0.8) +
-  facet_wrap(~GFP, scales = "free_y") +
-  scale_fill_manual(values = colors) +
-  scale_color_manual(values = colors) +
-  theme_minimal() +
-  theme(legend.position = "none") +
-  labs(
-    title = "H vs IM vs UM: GFP mapping",
-    y = "Percent of reads mapping",
-    x = "Condition"
-  )
-
-ggsave(file.path(graphics_dir, "combined_percentage.png"), width = 10, height = 8, dpi = 300)
-
-```
-
-## 7. Boxplot
-```{r}
-add_condition <- function(df, mapped_col, gfp_label){
-  stopifnot(mapped_col %in% colnames(df))
-  stopifnot("total_reads" %in% colnames(df))
-  stopifnot("sample_id" %in% colnames(df))
-  df %>%
-    mutate(
-      condition = case_when(
-        str_detect(sample_id, "^H-")  ~ "H",
-        str_detect(sample_id, "^IM-") ~ "IM",
-        str_detect(sample_id, "^UM-") ~ "UM",
-        TRUE ~ NA_character_
-      ),
-      GFP = gfp_label,
-      mapped_pct = .data[[mapped_col]] / total_reads * 100
-    )
 }
 
-gfp1_9_long  <- add_condition(gfp1_9_h_im_um,  "GFP1_9_mapped_reads",  "GFP1-9")   # fixed label
-gfp10_11_long <- add_condition(gfp10_11_h_im_um, "GFP10_11_mapped_reads", "GFP10-11")
 
-gfp_long <- bind_rows(gfp1_9_long, gfp10_11_long) %>%
-  mutate(condition = factor(condition, levels = c("UM", "IM", "H")))
-#levels(gfp_long$condition)
+## Run function
+
+res <- estimate_haustorial_signal(
+  gfp1_9_df  = gfp1_9_h_im_um,
+  gfp10_11_df = gfp10_11_h_im_um,
+  read_count_matrix = trap.count
+)
+
+pete_threshold <- res$pete_threshold
 
 
-ggplot(gfp_long, aes(condition, mapped_pct, fill = GFP)) +
+## Prepare data for plotting (raw counts)
+gfp_long <- rbind(
+  data.frame(
+    sample_id = gfp1_9_h_im_um$sample_id,
+    condition = ifelse(grepl("^H-", gfp1_9_h_im_um$sample_id), "H",
+                  ifelse(grepl("^IM-", gfp1_9_h_im_um$sample_id), "IM",
+                  ifelse(grepl("^UM-", gfp1_9_h_im_um$sample_id), "UM", NA))),
+    GFP = "GFP1-9",
+    mapped_reads = gfp1_9_h_im_um$GFP1_9_mapped_reads
+  ),
+  data.frame(
+    sample_id = gfp10_11_h_im_um$sample_id,
+    condition = ifelse(grepl("^H-", gfp10_11_h_im_um$sample_id), "H",
+                  ifelse(grepl("^IM-", gfp10_11_h_im_um$sample_id), "IM",
+                  ifelse(grepl("^UM-", gfp10_11_h_im_um$sample_id), "UM", NA))),
+    GFP = "GFP10-11",
+    mapped_reads = gfp10_11_h_im_um$GFP10_11_mapped_reads
+  )
+)
+
+gfp_long$condition <- factor(gfp_long$condition, levels = c("UM","IM","H"))
+
+library(scales)
+
+## Plot raw counts
+ggplot(gfp_long, aes(condition, mapped_reads, fill = GFP)) +
   geom_boxplot(alpha = 0.5, outlier.shape = NA) +
   geom_jitter(aes(color = GFP), width = 0.2, size = 2, alpha = 0.8) +
   facet_wrap(~GFP, scales = "free_y") +
+  geom_hline(yintercept = pete_threshold, linetype = "dashed", color = "red") +
+  scale_y_continuous(labels = comma) +  # whole numbers with commas
   theme_minimal() +
   theme(legend.position = "none") +
-  labs(title = "H vs IM vs UM: GFP mapping", y = "Percent of reads mapping", x = "Condition")
+  labs(
+    title = "TRAP GFP mapping by condition",
+    y = "Mapped reads (raw counts)",
+    x = "Condition"
+  )
+```
 
-gfp_stats <- gfp_long %>%
-  group_by(GFP, condition) %>%
-  summarise(
-    n = n(),
-    median_pct = median(mapped_pct, na.rm = TRUE),
-    mean_pct   = mean(mapped_pct, na.rm = TRUE),
-    q25 = quantile(mapped_pct, 0.25, na.rm = TRUE),
-    q75 = quantile(mapped_pct, 0.75, na.rm = TRUE),
-    .groups = "drop"
+
+```{r}
+bootstrap_im_haustorial_signal <- function(
+  infected_data,
+  n_boot = 1000,
+  seed = 123
+) {
+  set.seed(seed)
+
+  # Separate H and IM
+  h_data  <- infected_data %>% filter(condition == "H")
+  im_data <- infected_data %>% filter(condition == "IM")
+
+  stopifnot(nrow(h_data) >= 3)
+
+  boot_mat <- replicate(n_boot, {
+    h_ref <- median(
+      sample(h_data$gfp_ratio, replace = TRUE),
+      na.rm = TRUE
+    )
+    im_data$gfp_ratio / h_ref
+  })
+
+  boot_df <- as_tibble(t(boot_mat))
+  colnames(boot_df) <- im_data$sample_id
+
+  boot_summary <- boot_df %>%
+    pivot_longer(everything(), names_to = "sample_id") %>%
+    group_by(sample_id) %>%
+    summarise(
+      haust_frac_mean = mean(value),
+      haust_frac_lo   = quantile(value, 0.025),
+      haust_frac_hi   = quantile(value, 0.975),
+      .groups = "drop"
+    ) %>%
+    mutate(
+      haust_pct_mean = haust_frac_mean * 100,
+      haust_pct_lo   = haust_frac_lo * 100,
+      haust_pct_hi   = haust_frac_hi * 100
+    )
+
+  boot_summary
+}
+
+boot_ci <- bootstrap_im_haustorial_signal(
+  infected_data = res$infected_data,
+  n_boot = 1000
+)
+
+im_results <- res$im_estimates %>%
+  left_join(boot_ci, by = "sample_id")
+
+ggplot(res$merged_data, aes(
+  x = GFP10_11_PETE_mapped_reads / genome_mapped_reads,
+  y = GFP1_9_mapped_reads / genome_mapped_reads,
+  shape = condition
+)) +
+  geom_point(size = 3, alpha = 0.8) +
+  geom_vline(
+    xintercept = res$pete_threshold /
+      median(res$merged_data$genome_mapped_reads, na.rm = TRUE),
+    linetype = "dashed"
+  ) +
+  scale_shape_manual(values = c(16, 17, 15)) +
+  theme_minimal(base_size = 13) +
+  labs(
+    title = "Infection status vs haustorial GFP signal",
+    x = "PETE signal (genome-normalized)",
+    y = "GFP1–9 signal (genome-normalized)",
+    shape = "Sample type"
   )
 
-gt(gfp_stats)
-ggsave(file.path(graphics_dir, "GFP_mapping_stats.png"), width = 10, height = 8, dpi = 300)
+ggplot(im_results, aes(sample_id, haust_pct_mean)) +
+  geom_col(fill = "steelblue") +
+  geom_errorbar(
+    aes(ymin = haust_pct_lo, ymax = haust_pct_hi),
+    width = 0.2
+  ) +
+  theme_minimal(base_size = 13) +
+  labs(
+    title = "Estimated haustorial signal in IM samples",
+    y = "% of H reference signal",
+    x = "IM sample"
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
 ```
+
+
+
+
+
+
+
+
+```{r A Relative GFP1-9 Signal Comparison}
+## Define IM/H Samples
+im_samples <- grep("^IM-", gfp1_9_h_im_um$sample_id)
+h_samples  <- grep("^H-",  gfp1_9_h_im_um$sample_id)
+
+# Median H GFP in H samples
+median_h_gfp <- median(gfp1_9_h_im_um$GFP1_9_mapped_reads[h_samples], na.rm = TRUE)
+
+# Fraction of H in IM (estimate contamination)
+haustorial_frac <- gfp1_9_h_im_um$GFP1_9_mapped_reads[im_samples] / median_h_gfp
+
+# Combine into tibble
+im_haust_fraction <- tibble(
+  sample = gfp1_9_h_im_um$sample_id[im_samples],
+  haust_frac = haustorial_frac
+)
+
+# Estimated H reads in IM
+im_haust_fraction <- im_haust_fraction %>%
+  mutate(estimated_H_reads = round(haust_frac / 100 * median_h_gfp))
+
+# Display results
+cat("Median H GFP (reference):", median_h_gfp, "\n")
+cat("Haustorial fractions (IM samples):\n")
+print(im_haust_fraction)
+cat("\nStatistics:\n")
+print(summary(im_haust_fraction$haust_frac))
+```
+
+
+```{r Extraction}
+## Subtract H contamination from genome counts
+read.count_clean <- read.count
+
+for(i in seq_along(im_samples)){
+  read.count_clean[, im_samples[i]] <- read.count_clean[, im_samples[i]] - im_haust_fraction$estimated_H_reads[i]
+}
+
+# Avoid negative counts
+read.count_clean[read.count_clean < 0] <- 0
+
+
+## Library-Level QC
+library(pheatmap)
+library(ggfortify)
+
+# Total reads per sample
+total_reads <- colSums(read.count)
+barplot(total_reads, las=2, col="steelblue", main="Total reads per sample")
+
+# Log2 counts distribution
+log_counts <- log2(read.count_clean + 1)
+boxplot(log_counts, las=2, col="orange", main="Log2 counts per sample")
+
+## Gene-level QC
+
+# Keep genes expressed in at least 2 samples
+keep_genes <- rowSums(read.count_clean > 1) >= 2
+read.count_qc <- read.count_clean[keep_genes, ]
+cat("\nGenes after low-count filter:", nrow(read.count_qc), "\n")
+
+
+## Sample-level QC: PCA & Correlation
+
+# Top 500 most variable genes
+library(matrixStats)
+top_var_genes <- head(order(rowVars(as.matrix(read.count_qc)), decreasing = TRUE), 500)
+pca_data <- prcomp(t(read.count_qc[top_var_genes, ]))
+
+autoplot(pca_data, data=sample_info, colour="trt", label=TRUE) +
+  ggtitle("PCA of top 500 variable genes")
+
+# Sample correlation heatmap
+cor_mat <- cor(log_counts)
+pheatmap(cor_mat, clustering_distance_rows="correlation", clustering_distance_cols="correlation",
+         main="Sample correlation heatmap")
+
+## GFP Mapping QC
+
+add_pct <- function(df, mapped_col){
+  df %>% mutate(mapped_pct = .data[[mapped_col]] / total_reads * 100)
+}
+
+gfp1_9_percent <- add_pct(gfp1_9_h_im_um, "GFP1_9_mapped_reads")
+gfp10_11_percent <- add_pct(gfp10_11_h_im_um, "GFP10_11_mapped_reads")
+
+# Sample group
+gfp1_9_percent <- gfp1_9_percent %>% mutate(trt = str_extract(sample_id, "^(H|IM|UM)"))
+gfp10_11_percent <- gfp10_11_percent %>% mutate(trt = str_extract(sample_id, "^(H|IM|UM)"))
+
+colors <- c("H"="#56B4E9", "IM"="#E69FBC", "UM"="#8C8C8C", "UT"="gray", "IT"="gray")
+
+# Individual plots
+plot_gfp <- function(df, gfp_name){
+  ggplot(df, aes(x=sample_id, y=mapped_pct, fill=trt)) +
+    geom_col() +
+    scale_fill_manual(values=colors) +
+    theme_classic() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    labs(title = paste0(gfp_name, " Mapping Summary"),
+         y = "Percent of reads mapping to GFP",
+         x = NULL, fill = "Sample type")
+}
+
+ggsave(file.path(graphics_dir, "GFP1-9_percentage.png"), plot_gfp(gfp1_9_percent, "GFP1-9"), width=10, height=8, dpi=300)
+ggsave(file.path(graphics_dir, "GFP10-11_percentage.png"), plot_gfp(gfp10_11_percent, "GFP10-11"), width=10, height=8, dpi=300)
+
+# Combined boxplot
+df_combined <- bind_rows(
+  gfp1_9_percent %>% mutate(GFP="GFP1-9"),
+  gfp10_11_percent %>% mutate(GFP="GFP10-11")
+)
+df_combined$trt <- factor(df_combined$trt, levels=c("UM","IM","H"))
+
+p_combined <- ggplot(df_combined, aes(x=trt, y=mapped_pct, fill=trt)) +
+  geom_boxplot(alpha=0.5, outlier.shape=NA) +
+  geom_jitter(aes(color=trt), width=0.2, size=2, alpha=0.8) +
+  facet_wrap(~GFP, scales="free_y") +
+  scale_fill_manual(values=colors) +
+  scale_color_manual(values=colors) +
+  theme_minimal() +
+  theme(legend.position="none") +
+  labs(title="H vs IM vs UM: GFP mapping", y="Percent of reads mapping", x="Condition")
+
+ggsave(file.path(graphics_dir, "combined_percentage.png"), p_combined, width=10, height=8, dpi=300)
+
+
+## Save IM Contamination QC
+writexl::write_xlsx(im_haust_fraction, file.path(tables_dir, "IM_Haustorial_QC.xlsx"))
+
+```
+```{r}
+library(tidyverse)
+
+# Flatten counts for plotting
+raw_counts <- as.vector(read.count[, im_samples])
+clean_counts <- as.vector(read.count_clean[, im_samples])
+
+# Repeat sample names for each gene
+sample_names_raw <- rep(gfp1_9_h_im_um$sample_id[im_samples], each = nrow(read.count))
+sample_names_clean <- rep(gfp1_9_h_im_um$sample_id[im_samples], each = nrow(read.count))
+
+# Combine into tibble
+df_im_qc <- tibble(
+  sample = c(sample_names_raw, sample_names_clean),
+  counts = c(raw_counts, clean_counts),
+  type = rep(c("Raw", "Cleaned"), each = length(raw_counts))
+)
+
+# Boxplot: raw vs cleaned counts
+ggplot(df_im_qc, aes(x = sample, y = counts, fill = type)) +
+  geom_boxplot(alpha = 0.7, outlier.shape = NA) +
+  scale_fill_manual(values = c("Raw" = "tomato", "Cleaned" = "forestgreen")) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(
+    title = "IM Samples: Raw vs Cleaned Counts",
+    y = "Counts",
+    x = "IM Sample",
+    fill = "Data Type"
+  )
+
+# Save plot
+ggsave(file.path(graphics_dir, "IM_raw_vs_cleaned_counts.png"),
+       width = 10, height = 6, dpi = 300)
+
+# Summary stats
+cat("\nSummary statistics for raw IM counts:\n")
+print(summary(raw_counts))
+
+cat("\nSummary statistics for cleaned IM counts:\n")
+print(summary(clean_counts))
+
+```
+
+```{r}
+# -----------------------------
+# 8. IM Sample Percent Reduction
+# -----------------------------
+
+# Compute total counts per sample before and after cleaning
+total_raw   <- colSums(read.count[, im_samples])
+total_clean <- colSums(read.count_clean[, im_samples])
+
+# Percent reduction
+pct_reduction <- (total_raw - total_clean) / total_raw * 100
+
+# Tibble for plotting
+df_pct <- tibble(
+  sample = gfp1_9_h_im_um$sample_id[im_samples],
+  pct_reduction = pct_reduction
+)
+
+# Barplot: percent reduction
+ggplot(df_pct, aes(x = sample, y = pct_reduction)) +
+  geom_col(fill = "steelblue") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(
+    title = "Estimated H Contamination: Percent Reduction per IM Sample",
+    y = "Percent reduction (%)",
+    x = "IM Sample"
+  )
+
+# Save plot
+ggsave(file.path(graphics_dir, "IM_percent_reduction.png"),
+       width = 8, height = 5, dpi = 300)
+
+# Print stats
+cat("\nPercent reduction per IM sample:\n")
+print(df_pct)
+cat("\nSummary statistics:\n")
+print(summary(df_pct$pct_reduction))
+
+```
+
 
 ## 9. IM Clean Up by GFP-DMR6 Reads
 ```{r IM Clean Up}
-## -----------------------------
-## Subset TRAP
-## -----------------------------
+## Fail early if missing
+stopifnot(
+  exists("read.count"),
+  exists("gfp1_9_summary")
+)
+
+## SUBSET TRAP COUNTS
 trap_cols <- grep("^(H|IM|UM)-", colnames(read.count), value = TRUE)
+stopifnot(length(trap_cols) > 0)
 trap.count <- read.count[, trap_cols, drop = FALSE]
 
-# Indices
-h_idx  <- grep("^H-",  colnames(trap.count))
-im_idx <- grep("^IM-", colnames(trap.count))
+h_samples  <- grep("^H-",  colnames(trap.count), value = TRUE)
+im_samples <- grep("^IM-", colnames(trap.count), value = TRUE)
 
-# Sample names (authoritative)
-h_samples  <- colnames(trap.count)[h_idx]
-im_samples <- colnames(trap.count)[im_idx]
+stopifnot(
+  length(h_samples) > 0,
+  length(im_samples) > 0
+)
 
-## -----------------------------
-## H profile (composition)
-## -----------------------------
-h_mat     <- trap.count[, h_idx, drop = FALSE]
-h_profile <- rowMeans(h_mat, na.rm = TRUE)
-h_comp    <- h_profile / sum(h_profile, na.rm = TRUE)
+im_idx <- match(im_samples, colnames(trap.count))
+im_mat <- trap.count[, im_idx, drop = FALSE]
+im_lib_sizes <- colSums(im_mat)
 
-# Ensure correct row order
-h_comp_vec <- h_comp[rownames(trap.count)]
-h_comp_vec[is.na(h_comp_vec)] <- 0
+## H EXPRESSION PROFILE / COMPOSITION
+h_idx <- match(h_samples, colnames(trap.count))
+h_mat <- trap.count[, h_idx, drop = FALSE]
 
-## -----------------------------
-## GFP fractions (ALIGNED)
-## -----------------------------
+# Average H expression across samples
+h_profile <- rowMeans(h_mat)
+h_profile[!is.finite(h_profile)] <- 0
+if (sum(h_profile) == 0) stop("H profile sums to zero — cannot proceed.")
 
-# H GFP (ordered to match trap.count)
-gfp_h <- gfp1_9_percent %>%
-  dplyr::filter(sample_id %in% h_samples) %>%
-  dplyr::arrange(match(sample_id, h_samples)) %>%
-  dplyr::pull(mapped_pct)
+# Normalize to fractions
+h_comp <- h_profile / sum(h_profile)
+h_comp <- h_comp[rownames(trap.count)]
+h_comp[is.na(h_comp)] <- 0
+
+stopifnot(
+  length(h_comp) == nrow(trap.count),
+  all(is.finite(h_comp)),
+  abs(sum(h_comp) - 1) < 1e-6
+)
+
+haust_frac <- colSums(im_mat * h_comp) / im_lib_sizes
+haust_frac[!is.finite(haust_frac)] <- 0
+haust_frac <- pmin(pmax(haust_frac, 0), 1)
+
+# Only H GFP1-9 defines reference
+gfp_h <- gfp1_9_summary %>%
+  filter(sample_id %in% h_samples) %>%
+  mutate(mapped_pct = GFP1_9_mapped_reads / total_reads * 100) %>%
+  select(sample_id, mapped_pct) %>%  # only 2 columns for deframe
+  deframe()
+gfp_h <- gfp_h[h_samples]  # enforce order
 
 
-## Build named GFP vector aligned to trap.count
-gfp_im <- gfp1_9_percent %>%
+# IM GFP1-9 is used for scaling contamination, but not as profile
+gfp_im <- gfp1_9_summary %>%
   filter(sample_id %in% im_samples) %>%
+  mutate(mapped_pct = GFP1_9_mapped_reads / total_reads * 100) %>%
   select(sample_id, mapped_pct) %>%
-  deframe() %>%                    # named vector
-  .[im_samples]                    # reorder explicitly
+  deframe()
+gfp_im <- gfp_im[im_samples]  # enforce order
+
 
 stopifnot(
-  length(gfp_im) == length(im_idx),
-  identical(names(gfp_im), im_samples)
+  length(gfp_h) == length(h_samples),
+  length(gfp_im) == length(im_samples)
 )
 
 
-# UM GFP (baseline only; ordering irrelevant)
-gfp_um <- gfp1_9_percent %>%
-  dplyr::filter(str_detect(sample_id, "^UM-")) %>%
-  dplyr::pull(mapped_pct)
+##  HAUSTORIAL FRACTION PER IM SAMPLE
+h_ref <- median(gfp_h)
+stopifnot(h_ref > 0) # H GFP must be non-zero
 
-## -----------------------------
-## Baseline correction
-## -----------------------------
-um_ref <- median(gfp_um, na.rm = TRUE)
 
-gfp_h_corr  <- pmax(0, gfp_h - um_ref)
-gfp_im_corr <- pmax(0, gfp_im - um_ref)
+## CLEAN IM COUNTS
+im_idx <- match(im_samples, colnames(trap.count))
+im_lib_sizes <- colSums(trap.count[, im_idx, drop = FALSE])
 
-## -----------------------------
-## H reference & IM contamination
-## -----------------------------
-h_ref <- median(gfp_h_corr, na.rm = TRUE)
-
-if (h_ref > 0) {
-  haust_frac <- pmin(gfp_im_corr / h_ref, 1)
-} else {
-  haust_frac <- rep(0, length(gfp_im_corr))
-}
-
-# FORCE authoritative naming
-names(haust_frac) <- im_samples
-
-# Safety checks (now should PASS)
-stopifnot(
-  length(haust_frac) == length(im_idx),
-  all(is.finite(haust_frac)),
-  all(haust_frac >= 0 & haust_frac <= 1),
-  identical(names(haust_frac), im_samples)
+# Subtract H contribution scaled by haust_frac
+im_subtract <- sweep(
+  matrix(h_comp, nrow = nrow(trap.count), ncol = length(im_idx)),
+  2,
+  im_lib_sizes * haust_frac,
+  `*`
 )
 
-
-## -----------------------------
-## Initialize cleaned matrix
-## -----------------------------
 trap.count.clean <- trap.count
-stopifnot(!any(is.na(trap.count.clean[, im_idx])))
+trap.count.clean[, im_idx] <- pmax(
+  0,
+  trap.count.clean[, im_idx] - im_subtract
+)
 
+
+## VALIDATION
+cat("Median H GFP (reference):", h_ref, "\n")
+cat("Haustorial fractions (IM samples):\n")
+print(haust_frac)
+
+# Top 100 H genes in IM before vs after cleanup
+top100 <- names(sort(h_profile, decreasing = TRUE))[1:100]
+cat("Top100 H genes in IM (before → after):",
+    round(mean(rowMeans(trap.count[top100, im_idx])), 2),
+    "→",
+    round(mean(rowMeans(trap.count.clean[top100, im_idx])), 2), "\n")
 ```
 
 
 ```{r IM Clean Up}
+
+## DIAGNOSTIC PLOTS: IM CLEANUP USING H-ONLY GFP1-9
+
+#  GFP percentages: H vs IM
+
+df_gfp <- tibble(
+  sample = c(names(gfp_h), names(gfp_im)),
+  GFP_pct = c(gfp_h, gfp_im),
+  group = c(rep("H", length(gfp_h)), rep("IM", length(gfp_im)))
+)
+
+ggplot(df_gfp, aes(group, GFP_pct)) +
+  geom_boxplot(fill = c("#56B4E9", "#E69FBC"), alpha = 0.5) +
+  geom_jitter(width = 0.1, size = 2, color = "black", alpha = 0.7) +
+  theme_classic() +
+  labs(
+    title = "GFP1-9 mapping percentages",
+    y = "Percent of reads",
+    x = "Sample group"
+  )
+
+
+
+# Convert named vector into tibble safely
+df_hf <- enframe(haust_frac, name = "sample", value = "haust_frac")
+print(df_hf)
+str(df_hf)
+
+
+
+# Optional: order IM samples correctly
+df_hf <- df_hf %>%
+  mutate(sample = factor(sample, levels = unique(sample)))
+
+
+ggplot(df_hf, aes(x = sample, y = haust_frac)) +
+  geom_col(fill = "#E69FBC") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(
+    title = "Estimated H contamination fraction per IM sample",
+    y = "Haustorial fraction",
+    x = "IM sample"
+  )
+summary(haust_frac)
+plot(haust_frac, type="b", pch=16, col="#E69FBC", main="IM contamination fractions")
+
+
+
+
+
+# Top H genes in IM before vs after cleanup
+top100 <- names(sort(h_profile, decreasing = TRUE))[1:100]
+
+df_top <- tibble(
+  gene = rep(top100, 2),
+  mean_counts = c(
+    rowMeans(trap.count[top100, im_idx]),
+    rowMeans(trap.count.clean[top100, im_idx])
+  ),
+  state = rep(c("Before cleanup", "After cleanup"), each = length(top100))
+)
+
+ggplot(df_top, aes(x = state, y = mean_counts)) +
+  geom_boxplot(fill = c("#E69FBC", "#56B4E9"), alpha = 0.5) +
+  geom_jitter(width = 0.1, size = 1, color = "black", alpha = 0.7) +
+  theme_classic() +
+  labs(
+    title = "Top 100 H genes in IM samples",
+    y = "Mean counts per gene",
+    x = ""
+  )
+
+```
+
+
+```{r IM Clean Up Estimation}
 ## Clean Up
 # IM cleanup: subtract H contamination per replicate
 im_lib_sizes <- colSums(trap.count.clean[, im_idx, drop = FALSE])
@@ -427,7 +846,7 @@ top100 <- names(sort(h_profile, decreasing = TRUE))[1:100]
 cat("Top100 H genes in IM:", 
     round(mean(rowMeans(read.count[top100, im_idx, drop = FALSE])), 2),
     "→", 
-    round(mean(rowMeans(trap.count[top100, im_idx, drop = FALSE])), 2), "\n")
+    round(mean(rowMeans(trap.count.clean[top100, im_idx, drop = FALSE])), 2), "\n")
 ```
 
 ```{r}
@@ -495,7 +914,7 @@ im_data <- data.frame(
 
 
 # Library sizes (working)
-lib_sizes <- colSums(trap.count[, grep("^IM-", colnames(trap.count))])
+lib_sizes <- colSums(trap.count.clean[, grep("^IM-", colnames(trap.count.clean))])
 print(data.frame(Sample=names(lib_sizes), LibSize=round(lib_sizes/1e6, 1), Haust_frac=round(haust_frac*100,1)))
 
 # FIXED: Cosine similarity per SAMPLE (not per gene)
@@ -546,12 +965,12 @@ print(results_table[order(results_table$Clean_Hsim), ])
 ## 10. DESeq
 ```{r}
 ## EXTRACT TRAP for DESeq2
-HvUMvIM_inf <- HvUMvIM_inf[match(colnames(trap.count), rownames(HvUMvIM_inf)), , drop=FALSE]
+HvUMvIM_inf <- HvUMvIM_inf[match(colnames(trap.count.clean), rownames(HvUMvIM_inf)), , drop=FALSE]
 # simply:
 HvUMvIM_inf <- HvUMvIM_inf[trap_samples, , drop=FALSE]
 
 dds_trap <- DESeqDataSetFromMatrix(
-  countData = round(trap.count),
+  countData = round(trap.count.clean),
   colData   = sample_info_trap,
   design    = ~ trt
 )
@@ -900,114 +1319,6 @@ gfp_combined <- gfp1_9_clean %>%
 cat("\n=== Combined GFP counts (first 8 rows) ===\n")
 print(head(gfp_combined, 8))
 cat("\nTotal Bowtie samples:", nrow(gfp_combined), "\n\n")
-```
-
-
-```{r}
-# 5. MAP sample_id -> Original name -> NewName -------------------------------
-# Bowtie sample_id looks like DIC1_S22_L002; we keep DIC1 and map to IT-107, etc.
-
-name_map <- data.frame(
-  Original = c(
-    "DIC1","DIC2","DIC3","DIC4","DIC5",
-    "DIT1","DIT2","DIT3","DIT4","DIT5",
-    "DMC1","DMC2","DMC3",
-    "PIC1","PIC2","PIC3","PIC4","PIC5",
-    "PIT1","PIT2","PIT3","PIT4","PIT5",
-    "PMC1","PMC2","PMC3","PMC4","PMC5",
-    "PMT1","PMT2","PMT3","PMT4","PMT5"
-  ),
-  NewName = c(
-    "IT-107","IT-108","IT-109","IT-110","IT-111",
-    "H-107","H-108","H-109","H-110","H-111",
-    "UT-106","UT-108","UT-114",
-    "IT-206","IT-207","IT-208","IT-209","IT-210",
-    "IM-206","IM-207","IM-208","IM-209","IM-210",
-    "UT-204","UT-208","UT-213","UT-214","UT-215",
-    "UM-204","UM-208","UM-213","UM-214","UM-215"
-  ),
-  stringsAsFactors = FALSE
-)
-
-# Strip lane/index suffix from sample_id (e.g. "DIC1_S22_L002" -> "DIC1")
-gfp_combined <- gfp_combined %>%
-  mutate(Original = sub("_S.*$", "", sample_id)) %>%   # keep prefix before "_S"
-  inner_join(name_map, by = "Original") %>%            # attach NewName
-  rename(Sample = NewName)                             # final biological sample ID
-
-cat("\n=== gfp_combined with Sample names (first 8 rows) ===\n")
-print(head(gfp_combined, 8))
-
-# 6. DEFINE SAMPLE METADATA (sample_info1) -----------------------------------
-# Sample -> Group (IT/H/IM/UT/UM), Condition (Infected/Uninfected), Replicate
-
-sample_info1 <- data.frame(
-  Sample = c(
-    "IT-107","IT-108","IT-109","IT-110",
-    "H-107","H-108","H-109","H-110","H-111",
-    "UT-106","UT-108","UT-114",
-    "IT-206","IT-207","IT-208","IT-209",
-    "IM-206","IM-207","IM-208","IM-209","IM-210",
-    "UT-204","UT-208","UT-213","UT-214",
-    "UM-204","UM-208","UM-213","UM-214","UM-215"
-  ),
-  Groups = c(
-    "IT","IT","IT","IT",
-    "H","H","H","H","H",
-    "UT","UT","UT",
-    "IT","IT","IT","IT",
-    "IM","IM","IM","IM","IM",
-    "UT","UT","UT","UT",
-    "UM","UM","UM","UM","UM"
-  ),
-  Condition = c(
-    "Infected","Infected","Infected","Infected",
-    "Infected","Infected","Infected","Infected","Infected",
-    "Uninfected","Uninfected","Uninfected",
-    "Infected","Infected","Infected","Infected",
-    "Infected","Infected","Infected","Infected","Infected",
-    "Uninfected","Uninfected","Uninfected","Uninfected",
-    "Uninfected","Uninfected","Uninfected","Uninfected","Uninfected"
-  ),
-  Replicate = c(
-    "IT-107","IT-108","IT-109","IT-110",
-    "H-107","H-108","H-109","H-110","H-111",
-    "UT-106","UT-108","UT-114",
-    "IT-206","IT-207","IT-208","IT-209",
-    "IM-206","IM-207","IM-208","IM-209","IM-210",
-    "UT-204","UT-208","UT-213","UT-214",
-    "UM-204","UM-208","UM-213","UM-214","UM-215"
-  ),
-  stringsAsFactors = FALSE
-)
-
-sample_info1$Groups    <- factor(sample_info1$Groups,
-                                 levels = c("IT","H","IM","UT","UM"))
-sample_info1$Condition <- factor(sample_info1$Condition,
-                                 levels = c("Uninfected","Infected"))
-
-cat("\n=== sample_info1 (first 15 rows) ===\n")
-print(head(sample_info1, 15))
-cat("\nSummary of Groups:\n");    print(table(sample_info1$Groups))
-cat("\nSummary of Condition:\n"); print(table(sample_info1$Condition))
-```
-
-
-```{r}
-# 7. BUILD gfp_df (MAPPING STATS + METADATA) ---------------------------------
-# Join mapping stats and sample metadata by Sample ID
-
-gfp_df <- gfp_combined %>%
-  full_join(sample_info1, by = "Sample")
-
-cat("\n=== gfp_df (first 8 rows) ===\n")
-print(head(gfp_df, 8))
-cat("\nCondition counts in gfp_df:\n")
-print(table(gfp_df$Condition))
-
-
-setdiff(sample_info1$Sample, gfp_combined$Sample)
-
 ```
 
 
