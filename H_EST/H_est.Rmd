@@ -611,66 +611,6 @@ im_top_de <- res %>%
 
 top_genes <- im_top_de$gene_id
 
-# UM and H raw fractions
-um_h_raw <- gfp1_9_h_im_um %>%
-  filter(condition %in% c("UM", "H")) %>%
-  mutate(mapped_frac = GFP1_9_mapped_reads / total_reads,
-         version = "raw")
-
-# IM raw fractions
-im_raw <- gfp1_9_h_im_um %>%
-  filter(condition == "IM") %>%
-  mutate(mapped_frac = GFP1_9_mapped_reads / total_reads,
-         version = "raw")
-
-# IM UM-corrected fractions
-im_corr <- im_haust %>%
-  mutate(mapped_frac = haust_frac,
-         version = "UM-corrected") %>%
-  select(sample_id, gene_id, mapped_frac, version)
-
-# IM top DE genes
-im_top <- im_haust %>%
-  filter(gene_id %in% top_genes) %>%
-  mutate(mapped_frac = haust_frac,
-         version = "Top_DE") %>%
-  select(sample_id, gene_id, mapped_frac, version)
-# Combine all
-plot_data <- bind_rows(
-  um_h_raw %>% select(sample_id, gene_id, mapped_frac, version),
-  im_raw %>% select(sample_id, gene_id, mapped_frac, version),
-  im_corr,
-  im_top
-)
-ggplot(plot_data, aes(x = sample_id, y = mapped_frac, fill = condition)) +
-  geom_bar(stat = "identity", color = "black",
-           width = 0.6,
-           position = position_dodge2(preserve = "single")) +
-  geom_jitter(aes(color = condition),
-              position = position_dodge2(width = 0.6, preserve = "single"),
-              size = 2, alpha = 0.9) +
-  geom_hline(yintercept = 1, linetype = "dashed", color = "red", size = 0.8) + # H reference
-  facet_wrap(~version, ncol = 3, scales = "fixed") +
-  scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(0, NA)) +
-  scale_fill_manual(values = c("Other Genes" = "#E69FBC", "Top DE Genes" = "#D55E00")) +
-  scale_color_manual(values = c("Other Genes" = "#E69FBC", "Top DE Genes" = "#D55E00")) +
-  theme_minimal(base_size = 14) +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1),
-    legend.position = "top"
-  ) +
-  labs(
-    title = "IM Samples: Raw, UM-Corrected, and Top DE Genes",
-    subtitle = "UM background removed; H = reference haustoria fraction",
-    x = "Sample",
-    y = "Mapped Fraction",
-    fill = "Gene Category",
-    color = "Gene Category"
-  )
-
-ggsave(file.path(graphics_dir, "IM_Raw_UMcorrected_TopDE.png"),
-       width = 16, height = 6, dpi = 300)
-
 # Factor ordering for plotting
 plot_data$condition <- factor(plot_data$gene_id %in% top_genes, levels = c(FALSE, TRUE), labels = c("Other Genes", "Top DE Genes"))
 plot_data$version <- factor(plot_data$version, levels = c("raw", "UM-corrected", "Top_DE"))
@@ -829,152 +769,6 @@ write.csv(expr_matrix, file.path(graphics_dir, "IM_topDE_WGCNA_expression_matrix
 
 ```
 
-
-```{r Extraction}
-## Subtract H contamination from genome counts
-read.count_clean <- read.count
-
-for(i in seq_along(im_samples)){
-  read.count_clean[, im_samples[i]] <- read.count_clean[, im_samples[i]] - im_haust_fraction$estimated_H_reads[i]
-}
-
-# Avoid negative counts
-read.count_clean[read.count_clean < 0] <- 0
-
-
-## Library-Level QC
-library(pheatmap)
-library(ggfortify)
-
-# Total reads per sample
-total_reads <- colSums(read.count)
-barplot(total_reads, las=2, col="steelblue", main="Total reads per sample")
-
-# Log2 counts distribution
-log_counts <- log2(read.count_clean + 1)
-boxplot(log_counts, las=2, col="orange", main="Log2 counts per sample")
-
-## Gene-level QC
-
-# Keep genes expressed in at least 2 samples
-keep_genes <- rowSums(read.count_clean > 1) >= 2
-read.count_qc <- read.count_clean[keep_genes, ]
-cat("\nGenes after low-count filter:", nrow(read.count_qc), "\n")
-
-
-## Sample-level QC: PCA & Correlation
-
-# Top 500 most variable genes
-library(matrixStats)
-top_var_genes <- head(order(rowVars(as.matrix(read.count_qc)), decreasing = TRUE), 500)
-pca_data <- prcomp(t(read.count_qc[top_var_genes, ]))
-
-autoplot(pca_data, data=sample_info, colour="trt", label=TRUE) +
-  ggtitle("PCA of top 500 variable genes")
-
-# Sample correlation heatmap
-cor_mat <- cor(log_counts)
-pheatmap(cor_mat, clustering_distance_rows="correlation", clustering_distance_cols="correlation",
-         main="Sample correlation heatmap")
-
-## GFP Mapping QC
-
-add_pct <- function(df, mapped_col){
-  df %>% mutate(mapped_pct = .data[[mapped_col]] / total_reads * 100)
-}
-
-gfp1_9_percent <- add_pct(gfp1_9_h_im_um, "GFP1_9_mapped_reads")
-gfp10_11_percent <- add_pct(gfp10_11_h_im_um, "GFP10_11_mapped_reads")
-
-# Sample group
-gfp1_9_percent <- gfp1_9_percent %>% mutate(trt = str_extract(sample_id, "^(H|IM|UM)"))
-gfp10_11_percent <- gfp10_11_percent %>% mutate(trt = str_extract(sample_id, "^(H|IM|UM)"))
-
-colors <- c("H"="#56B4E9", "IM"="#E69FBC", "UM"="#8C8C8C", "UT"="gray", "IT"="gray")
-
-# Individual plots
-plot_gfp <- function(df, gfp_name){
-  ggplot(df, aes(x=sample_id, y=mapped_pct, fill=trt)) +
-    geom_col() +
-    scale_fill_manual(values=colors) +
-    theme_classic() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-    labs(title = paste0(gfp_name, " Mapping Summary"),
-         y = "Percent of reads mapping to GFP",
-         x = NULL, fill = "Sample type")
-}
-
-ggsave(file.path(graphics_dir, "GFP1-9_percentage.png"), plot_gfp(gfp1_9_percent, "GFP1-9"), width=10, height=8, dpi=300)
-ggsave(file.path(graphics_dir, "GFP10-11_percentage.png"), plot_gfp(gfp10_11_percent, "GFP10-11"), width=10, height=8, dpi=300)
-
-# Combined boxplot
-df_combined <- bind_rows(
-  gfp1_9_percent %>% mutate(GFP="GFP1-9"),
-  gfp10_11_percent %>% mutate(GFP="GFP10-11")
-)
-df_combined$trt <- factor(df_combined$trt, levels=c("UM","IM","H"))
-
-p_combined <- ggplot(df_combined, aes(x=trt, y=mapped_pct, fill=trt)) +
-  geom_boxplot(alpha=0.5, outlier.shape=NA) +
-  geom_jitter(aes(color=trt), width=0.2, size=2, alpha=0.8) +
-  facet_wrap(~GFP, scales="free_y") +
-  scale_fill_manual(values=colors) +
-  scale_color_manual(values=colors) +
-  theme_minimal() +
-  theme(legend.position="none") +
-  labs(title="H vs IM vs UM: GFP mapping", y="Percent of reads mapping", x="Condition")
-
-ggsave(file.path(graphics_dir, "combined_percentage.png"), p_combined, width=10, height=8, dpi=300)
-
-
-## Save IM Contamination QC
-writexl::write_xlsx(im_haust_fraction, file.path(tables_dir, "IM_Haustorial_QC.xlsx"))
-
-```
-```{r}
-library(tidyverse)
-
-# Flatten counts for plotting
-raw_counts <- as.vector(read.count[, im_samples])
-clean_counts <- as.vector(read.count_clean[, im_samples])
-
-# Repeat sample names for each gene
-sample_names_raw <- rep(gfp1_9_h_im_um$sample_id[im_samples], each = nrow(read.count))
-sample_names_clean <- rep(gfp1_9_h_im_um$sample_id[im_samples], each = nrow(read.count))
-
-# Combine into tibble
-df_im_qc <- tibble(
-  sample = c(sample_names_raw, sample_names_clean),
-  counts = c(raw_counts, clean_counts),
-  type = rep(c("Raw", "Cleaned"), each = length(raw_counts))
-)
-
-# Boxplot: raw vs cleaned counts
-ggplot(df_im_qc, aes(x = sample, y = counts, fill = type)) +
-  geom_boxplot(alpha = 0.7, outlier.shape = NA) +
-  scale_fill_manual(values = c("Raw" = "tomato", "Cleaned" = "forestgreen")) +
-  theme_classic() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  labs(
-    title = "IM Samples: Raw vs Cleaned Counts",
-    y = "Counts",
-    x = "IM Sample",
-    fill = "Data Type"
-  )
-
-# Save plot
-ggsave(file.path(graphics_dir, "IM_raw_vs_cleaned_counts.png"),
-       width = 10, height = 6, dpi = 300)
-
-# Summary stats
-cat("\nSummary statistics for raw IM counts:\n")
-print(summary(raw_counts))
-
-cat("\nSummary statistics for cleaned IM counts:\n")
-print(summary(clean_counts))
-
-```
-
 ```{r}
 # -----------------------------
 # 8. IM Sample Percent Reduction
@@ -1017,7 +811,7 @@ print(summary(df_pct$pct_reduction))
 ```
 
 
-## 9. IM Clean Up by GFP-DMR6 Reads
+##  IM Clean Up by GFP-DMR6 Reads
 ```{r IM Clean Up}
 ## Fail early if missing
 stopifnot(
@@ -1258,7 +1052,6 @@ im_data <- data.frame(
   Haust_frac = paste0(round(haust_frac * 100, 1), "%")
 )
 
-
 # Library sizes (working)
 lib_sizes <- colSums(trap.count.clean[, grep("^IM-", colnames(trap.count.clean))])
 print(data.frame(Sample=names(lib_sizes), LibSize=round(lib_sizes/1e6, 1), Haust_frac=round(haust_frac*100,1)))
@@ -1303,75 +1096,10 @@ results_table <- data.frame(
 )
 
 print(results_table[order(results_table$Clean_Hsim), ])
-
-
 ```
 
 
-
 ```{r}
-library(ggplot2)
-
-# Volcano (IM vs UM)
-res_df <- as.data.frame(res_IM_UM) %>%
-  mutate(sig = padj < 0.05 & !is.na(padj))
-
-ggplot(res_df, aes(log2FoldChange, -log10(pvalue), color=sig)) +
-  geom_point(alpha=0.6) +
-  scale_color_manual(values=c("grey", "red")) +
-  labs(title="IM vs UM (cleaned TRAP)") +
-  theme_minimal()
-
-```
-
-```{r}
-# H-marker heatmap (before/after cleanup)
-library(pheatmap)
-top100_h <- names(sort(rowMeans(counts(dds_trap)[,grep("^H-", colnames(dds_trap))]), decreasing=TRUE))[1:100]
-pheatmap(assay(vsd)[top100_h,], scale="row", main="Top100 H genes (cleaned TRAP)")
-
-library(clusterProfiler)
-library(org.At.tair.db)
-
-deg_h_UM <- rownames(res_H_UM)[res_H_UM$padj < 0.05 & !is.na(res_H_UM$padj)]
-ego_h <- enrichGO(deg_h_UM, OrgDb="org.At.tair.db", keyType="TAIR", ont="BP")
-dotplot(ego_h)
-
-# Your cleanup metrics as publication table
-#frac_table <- data.frame(
-#  Sample = paste0("IM-",206:210),
-#  haust_frac = round(haust_frac, 3),
-#  GFP_extra = round(im_extra, 3),
-#  removed_pct = round(100*haust_frac, 1)
-#)
-#write_csv(frac_table, "haustoria_fractions.csv")
-
-```
-
-
-
-
-```{r}
-dds_clean <- DESeqDataSetFromMatrix(round(read.count), sample_info, ~ extraction + trt)
-dds_clean <- DESeq(dds_clean)
-
-# Key contrasts
-res_haus <- results(dds_clean, contrast = c("trt", "H", "UM"))  # Haustoria vs mock mesophyll
-res_im_it <- results(dds_clean, contrast = c("trt", "IM", "IT")) # Cleaned mesophyll effect
-
-plotPCA(vst(dds_clean), intgroup = "trt")  # Cleaned IM near IT
-volcanoPlot(res_haus)
-
-```
-
-
-
-
-
-
-```{r}
-
-
 # Define H samples by name
 h_samples <- grep("H-", colnames(vsd), value=TRUE)
 
@@ -1489,10 +1217,7 @@ p2 <- ggplot(p2_data, aes(line, mean_H_UM, fill = line)) +
   theme_minimal()
 
 grid.arrange(p1, p2, ncol = 2)
-
-
 ```
-
 
 
 ```{r}
@@ -1519,56 +1244,14 @@ h_results <- data.frame(
   Value = c(1.0, baseline_clean / mean(c(im_raw, um_raw)), h_raw / mean(c(im_raw, um_raw)), H_index_clean)
 )
 print(h_results)
-
 ```
 
-
-
-
-```{r}
-# 4. CLEAN AND MERGE GFP1-9 AND GFP10-11 COUNTS ------------------------------
-# Rename columns to consistent names and compute GFP10-11 / GFP1-9 ratio
-
-gfp1_9_clean <- gfp1_9_summary %>%
-  rename(
-    GFP1_9_mapped     = GFP1_9_mapped_reads,  # mapped GFP1-9 reads
-    GFP1_9_total      = total_reads,          # total reads in library
-    GFP1_9_pct_mapped = mapped_pct            # % of reads mapping to GFP1-9
-  ) %>%
- dplyr::select(sample_id, GFP1_9_mapped, GFP1_9_total, GFP1_9_pct_mapped)
-
-gfp10_11_clean <- gfp10_11_summary %>%
-  rename(
-    GFP10_11_mapped     = GFP10_11_mapped_reads, # mapped GFP10-11 reads
-    GFP10_11_total      = total_reads,           # total reads in library
-    GFP10_11_pct_mapped = mapped_pct             # % of reads mapping to GFP10-11
-  ) %>%
-  dplyr::select(sample_id, GFP10_11_mapped, GFP10_11_total, GFP10_11_pct_mapped)
-
-gfp_combined <- gfp1_9_clean %>%
-  inner_join(gfp10_11_clean, by = "sample_id") %>%
-  mutate(
-    GFP10_11_GFP1_9_ratio = GFP10_11_mapped / pmax(GFP1_9_mapped, 1)
-  )
-
-
-cat("\n=== Combined GFP counts (first 8 rows) ===\n")
-print(head(gfp_combined, 8))
-cat("\nTotal Bowtie samples:", nrow(gfp_combined), "\n\n")
-```
 
 
 ```{r}
 # 8. BASIC TESTS ON MAPPED READS --------------------------------------------
 
-cat(strrep("=", 80), "\n")
-cat("T-TESTS: Infected vs Uninfected (GFP-mapped reads)\n")
-cat(strrep("=", 80), "\n")
-
-cat("\nGFP1-9: Infected vs Uninfected\n")
 print(t.test(GFP1_9_mapped ~ Condition, data = gfp_df))
-
-cat("\nGFP10-11: Infected vs Uninfected\n")
 print(t.test(GFP10_11_mapped ~ Condition, data = gfp_df))
 
 wilcox.test(GFP1_9_mapped ~ Condition, data = gfp_df)
@@ -1578,11 +1261,6 @@ wilcox.test(GFP10_11_mapped ~ Condition, data = gfp_df)
 
 
 ```{r}
-# 9. PLOTS: MAPPED READ DISTRIBUTIONS ---------------------------------------
-
-cat(strrep("=", 80), "\n")
-cat("PLOTS\n")
-cat(strrep("=", 80), "\n")
 
 # Boxplot of GFP1-9 mapped reads by Condition and Group
 p1 <- ggplot(gfp_df, aes(x = Condition, y = GFP1_9_mapped, fill = Groups)) +
@@ -1646,81 +1324,14 @@ pdf("results/p2.pdf", width = 12, height = 10); print(p2); dev.off()
 pdf("results/p3.pdf", width = 12, height = 10); print(p3); dev.off()
 pdf("results/p4.pdf", width = 12, height = 10); print(p4); dev.off()
 
-cat("\nIndividual plots saved to results/p1.pdf, p2.pdf, p3.pdf, p4.pdf\n")
-
-# ============================================================================
-# PART 2: HAUSTORIAL GFP1-9 ESTIMATION FROM FEATURECOUNTS + DESEQ2
-# ============================================================================
-
-cat("\n")
-cat(strrep("=", 80), "\n")
-cat("PART 2: HAUSTORIAL GFP1-9 ESTIMATION\n")
-cat(strrep("=", 80), "\n")
-
-# 10. BUILD GFP1_9 GENE-LEVEL MATRIX FROM FEATURECOUNTS ---------------------
-# featcount.txt is the featureCounts gene x sample output for all libraries
-
-fc <- read.table(
-  "~/Desktop/Lab/TRAPseq/HvIM/Data_Repository/featcount.txt",
-  header = TRUE, sep = "\t", stringsAsFactors = FALSE
-)
-
-# Identify IM and H columns by BAM name patterns (IM: DMC*, H: DIC* with S21-24)
-im_cols <- grep("DMC|S19|S20", colnames(fc), value = TRUE)
-h_cols  <- grep("DIC|S21|S22|S23|S24", colnames(fc), value = TRUE)
-
-# Rename those columns to match biological names used in sample_info1
-colnames(fc)[colnames(fc) %in% im_cols] <- c("IM-206", "IM-207", "IM-208")
-colnames(fc)[colnames(fc) %in% h_cols]  <- c("H-107", "H-108", "H-109", "H-110")
-
-# Extract only Geneid and IM/H columns for GFP1-9 haustorial analysis
-gfp_counts <- fc[, c("Geneid", "IM-206", "IM-207", "IM-208", "H-107", "H-108", "H-109", "H-110")]
-
-# Save gene x sample GFP1-9 count matrix
-write.csv(gfp_counts, "GFP1_9_gene_counts.csv", row.names = FALSE)
-cat("Created GFP1_9_gene_counts.csv with", nrow(gfp_counts), "genes\n")
-
-# 11. ESTIMATE HAUSTORIAL GFP1-9 PER GENE (IM - scaled H) -------------------
-
-cat("\n")
-cat(strrep("-", 80), "\n")
-cat("11. Estimating haustorial GFP1-9 reads (IM minus scaled H)\n")
-cat(strrep("-", 80), "\n")
-
-# Load GFP1-9 counts; first column is gene ID
-gfp19_counts_file <- "GFP1_9_gene_counts.csv"
-gfp19_counts <- read_csv(gfp19_counts_file)
-colnames(gfp19_counts)[1] <- "gene_id"
-
 # 11.1 library sizes (total GFP1-9 counts per sample)
 lib_sizes <- gfp19_counts %>%
   pivot_longer(-gene_id, names_to = "Sample", values_to = "counts") %>%
   group_by(Sample) %>%
   summarize(lib_gfp19 = sum(counts), .groups = "drop")
 
-cat("\n=== GFP1-9 library sizes (first 10 rows) ===\n")
 print(head(lib_sizes, 10))
 
-# 11.2 define IM and H sample vectors from sample_info1
-im_samples <- sample_info1 %>%
-  filter(Groups == "IM") %>%
-  arrange(Replicate) %>%
-  pull(Sample)
-
-h_samples <- sample_info1 %>%
-  filter(Groups == "H") %>%
-  arrange(Replicate) %>%
-  pull(Sample)
-
-if (length(im_samples) != length(h_samples)) {
-  stop("IM and H sample counts differ; adjust pairing logic.")
-}
-
-# Pair IM and H samples in order
-pairing <- tibble(
-  IM = im_samples,
-  H  = h_samples
-)
 
 # 11.3 add library sizes per pair; compute scaling factor s = lib(IM)/lib(H)
 pairing <- pairing %>%
@@ -1728,8 +1339,6 @@ pairing <- pairing %>%
   left_join(lib_sizes %>% rename(lib_H  = lib_gfp19, H  = Sample), by = "H") %>%
   mutate(scale_s = lib_IM / lib_H)
 
-cat("\n=== IM-H pairing and scale factors ===\n")
-print(pairing)
 
 # 11.4 compute G_haust = G_IM - s * G_H for each gene and IM-H pair
 counts_long <- gfp19_counts %>%
@@ -1778,21 +1387,11 @@ haust_counts <- haust_counts_list %>%
     haust_mean = rowMeans(dplyr::select(., starts_with("haust_")), na.rm = TRUE)
   )
 
-cat("\n=== haustorial GFP1-9 counts (first 10 genes) ===\n")
+
 print(head(haust_counts, 10))
 
 # 12. LOAD DESEQ2 SUMMARY AND COMPUTE HAUSTORIA INDEX -----------------------
-
-cat("\n")
-cat(strrep("-", 80), "\n")
-cat("12. Computing per-gene haustoria index from DESeq2 contrasts\n")
-cat(strrep("-", 80), "\n")
-
-# DESeq2 summary from separate script; contains IT vs UT, IM vs UM, H vs UM, IM vs H
-deseq_file <- "~/Desktop/Lab/TRAPseq/Deseq2_all_info.xlsx"
-deseq_summary <- read_excel(deseq_file, sheet = "Sheet1")
-
-# Rename columns to simpler names (must match what you wrote out)
+# Rename columns to simpler names
 deseq_summary <- deseq_summary %>%
   rename(
     gene_id       = GeneID,
@@ -1809,13 +1408,10 @@ deseq_summary <- deseq_summary %>%
     # Haustoria index: how much more IM is enriched vs UM than H is vs UM
     haustoria_index_LFC = lfc_IM_vs_UM - lfc_H_vs_UM
   )
-
-cat("\n=== DESeq2 summary with haustoria_index_LFC (first 10 rows) ===\n")
 print(head(deseq_summary, 10))
 
-# 13. MERGE HAUSTORIAL COUNTS WITH DESEQ2 AND FILTER GENES ------------------
 
-# 13.1 combined haustorial table
+#  combined haustorial table
 final_haust_table <- haust_counts %>%
   left_join(deseq_summary, by = "gene_id") %>%
   dplyr::select(
@@ -1827,7 +1423,6 @@ final_haust_table <- haust_counts %>%
     everything()
   )
 
-cat("\n=== final haustorial table (first 10 rows) ===\n")
 print(head(final_haust_table, 10))
 
 # 13.2 example: high-confidence haustorial genes (IM-biased by index)
@@ -1839,7 +1434,6 @@ good_haust_genes <- final_haust_table %>%
   ) %>%
   arrange(desc(haustoria_index_LFC))
 
-cat("\n=== high-confidence haustorial genes (IM-biased; first 20) ===\n")
 print(head(good_haust_genes, 20))
 
 # 13.3 stricter list: truly haustoria-enriched vs mesophyll
@@ -1854,16 +1448,12 @@ haustoria_enriched_genes <- final_haust_table %>%
   ) %>%
   arrange(desc(haust_mean))
 
-cat("\n=== haustoria-enriched vs mesophyll genes (first 20) ===\n")
 print(head(haustoria_enriched_genes, 20))
 
 # 13.4 write outputs
 write_csv(final_haust_table,            "results/haustorial_GFP1-9_table.csv")
 write_csv(good_haust_genes,            "results/haustorial_GFP1-9_high_confidence.csv")
 write_csv(haustoria_enriched_genes,    "results/haustorial_GFP1-9_haustoria_enriched_vs_mesophyll.csv")
-
-cat("\nHaustorial GFP1-9 estimation and haustoria index computation complete.\n")
-cat("Output tables written to ./results\n")
 
 ```
 
