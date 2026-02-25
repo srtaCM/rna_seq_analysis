@@ -16,7 +16,7 @@ output:
 ## 1. CLEAR ENVIRONMENT
 ```{r clear-env}
   ######################### CLEAN ENVIRONMENT   ######################### 
-rm(list = ls(all.names = TRUE)) # Remove all objects from the workspace
+rm(list = ls(all.names = TRUE)) # Remove all objects from the work space
 gc()  # Garbage collection to free memory
 
 options(
@@ -52,12 +52,12 @@ required_packages <- c(
   "DESeq2", # Differential expression analysis
   "patchwork", # Combine multiple ggplot objects
   "ggrepel", # Add non-overlapping text labels to ggplot2
-  "pheatmap", # Clustered heatmaps
+  "pheatmap", # Clustered heat maps
   "AnnotationDbi", # Gene annotation framework
   "org.At.tair.db", # Arabidopsis thaliana annotations
   "clusterProfiler", # GO/KEGG enrichment analysis and GSEA
   "enrichplot", # Visualization of enrichment results
-  "vidger", # RNA-seq vis helpers         
+  "vidger", # RNA-seq viz helpers         
   "apeglm", # LFC shrinkage  
   "RColorBrewer", # Color palettes
   "reshape2", # Data reshaping
@@ -147,8 +147,6 @@ colnames(read.count) <- sample_names #save naming system
 
 ## Verify structure
 cat("📊 Counts loaded:", nrow(read.count), "genes x", ncol(read.count), "samples\n")
-cat("Range:", format(min(read.count), scientific = TRUE), "→", max(read.count), "\n") # printing the range of counts per gene
-summary(colSums(read.count))  # Lib sizes (total reads mapped per sample)
 
 ## Convert matrix → data frame with gene IDs
 raw_counts_df <- as.data.frame(read.count)
@@ -165,6 +163,7 @@ writexl::write_xlsx(raw_counts_df, file.path(tables_dir, "raw_counts_clean.xlsx"
 keep_cols <- c(5:9, 17:21, 26:30)
 ImvHvUM <- read.count[, keep_cols]
 colnames(ImvHvUM)  # Confirm order
+cat("📊 Counts loaded:", nrow(ImvHvUM), "genes x", ncol(ImvHvUM), "samples\n")
 
 sample_info<- data.frame(
   row.names = c("H-107", "H-108", "H-109", "H-110", "H-111", 
@@ -186,7 +185,7 @@ table(sample_info$Groups)
 
 ## 7. SET COLORS
 ```{r Colors}
-colors <- c("H"="#56B4E9", "IM"="#E69FBC", "UM"="#8C8C8C", "UT"="gray", "IT"="gray")
+colors <- c("H"="blue", "IM"="hotpink", "UM"="black", "UT"="lightgreen", "IT"="purple")
 ```
 
 ## 8. RUN DESeq
@@ -202,6 +201,7 @@ keep <- rowSums(counts(dds)) >= 10
 dds <- dds[keep, ]
 ## UM reference
 dds$Groups <- relevel(dds$Groups, ref = "UM")
+cat("📊 Counts loaded:", nrow(dds), "genes x", ncol(dds), "samples\n")
 
 ## Run DESeq2
 dds <- DESeq(dds, sfType = "poscounts")
@@ -219,9 +219,6 @@ res_H_UM  <- results(dds, name = "Groups_H_vs_UM", alpha = 0.05)
 
 cat("IM vs UM DEGs (padj<0.05):", sum(res_IM_UM$padj < 0.05, na.rm = TRUE), "\n")
 cat("H vs UM DEGs (padj<0.05): ", sum(res_H_UM$padj < 0.05, na.rm = TRUE), "\n")
-
-cat("H vs UM:", sum(res_H_UM$padj < 0.05, na.rm = TRUE), "DE genes at padj < 0.05\n")
-cat("IM vs UM:", sum(res_IM_UM$padj < 0.05, na.rm = TRUE), "DE genes at padj < 0.05\n")
 ```
 
 ## 10. VOLCANO PLOTS
@@ -264,9 +261,9 @@ ggsave(file.path(graphics_dir, "Volcano_IM_vs_UM.png"), width = 10, height = 8, 
 
 ## Write Results
 writexl::write_xlsx(list(
-  "H_vs_UM" = res_H_UM,
-  "IM_vs_UM" = res_IM_UM
-), file.path(tables_dir, "DESeq2_Results.xlsx"))
+  "H_vs_UM" = res_H_UM_df,
+  "IM_vs_UM" = res_IM_UM_df),
+  file.path(tables_dir, "DESeq2_Results.xlsx"))
 ```
 
 ## 11. VST NORMALIZATION
@@ -292,7 +289,7 @@ write_csv(as.data.frame(norm_counts),
 writexl::write_xlsx(
   list(
     Normalized = as.data.frame(round(norm_counts, 2)),  # Round for readability
-    VST        = as.data.frame(assay(vsd))), 
+    VST = as.data.frame(assay(vsd))), 
   path = file.path(tables_dir, "H_IM_UM_normalized_VST.xlsx"))
 cat("✅ Exported Normalized + VST matrices to Tables/\n")
 
@@ -310,60 +307,46 @@ boxplot(log2(assay(vsd)[1:25, ] + 1),
 ```{r clustering-heatmeps}
 ## Sample correlation heatmap (Spearman, raw counts >=1)
 sim_mat <- ImvHvUM[rowSums(ImvHvUM) >= 1, ]
-cor_samps <- round(cor(sim_mat, method = "spearman"), 2)
-melted_cor <- melt(cor_samps)
-
+cor_samps <- cor(assay(vsd), method = "spearman")
+melted_cor <- reshape2::melt(cor_samps)
 
 ## Correlation Plot
 p_cor <- ggplot(melted_cor, aes(Var1, Var2, fill = value)) +
   geom_tile(color = "white", linewidth = 0.5) +
   geom_text(aes(label = value), color = "black", size = 3.2) +
-  scale_fill_gradient2(low = "blue", mid = "white", high = "red", midpoint = 0.9,
-                       limits = c(0.5, 1), name = "Spearman ρ") +
+  scale_fill_gradient2(low = "white", high = "red", midpoint = 0.75, limits = c(0.5, 1), name = "Spearman ρ") +
   labs(title = "Sample Correlation (Raw Counts, Spearman)", x = "", y = "") +
   theme_minimal(base_size = 11) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
         axis.text.y = element_text(size = 9),
         panel.grid = element_blank(),
         legend.position = "bottom")
-
 print(p_cor)
 ggsave(file.path(graphics_dir, "sample_correlation_spearman.png"), p_cor, width = 10, height = 8, dpi = 300)
 
-## Hierarchical clustering (VST normalized, Euclidean distance)
-sample_dist <- dist(t(assay(vsd)))  # (t) samples as rows
-hc <- hclust(sample_dist, method = "ward.D2")
-dend_data <- dendro_data(hc)
 
-# Add colors to labels
-label_df <- label(dend_data) %>%
-  mutate(
-    Group = sample_info$Groups[match(label, rownames(sample_info))],
-    color = case_when(
-      Group == "H" ~ "#56B4E9",    # Haustoria
-      Group == "IM" ~ "#E69FBC",     # Mesophyll  
-      Group == "UM" ~ "#8C8C8C",    # Uninfected
-      TRUE ~ "lightgreen"
-    )
-  )
+## Hierarchical clustering (VST normalized, Euclidean distance)
+sample_dist <- dist(t(assay(vsd)))  # t samples as rows
+hc <- hclust(sample_dist, method = "ward.D2")
+dend_data <- ggdendro::dendro_data(hc)
+
 
 p_dend <- ggplot() +
-  geom_segment(data = segment(dend_data), 
+  geom_segment(data = ggdendro::segment(dend_data), 
                aes(x = x, y = y, xend = xend, yend = yend)) +
-  geom_text(data = label_df, 
-            aes(x = x, y = y, label = label, colour = color), 
+  geom_text(aes(x = x, y = y, label = label, colour = color), 
             hjust = -0.1, size = 3.5) +
   scale_colour_identity() +  # Use exact colors
   coord_flip() + 
   scale_y_reverse(expand = c(0.2, 0)) +
-  theme_dendro() + 
+  ggdendro::theme_dendro() + 
   labs(title = "VST Clustering (Ward.D2)", 
        subtitle = "Labels colored by Groups (Haustoria/Infected Mesophyll/Uninfected Mesophyll)") +
   theme(plot.title = element_text(hjust = 0.5))
-print(p_dend)
+#print(p_dend)
 
-ggsave(file.path(graphics_dir, "sample_clustering_colored.png"), 
-       p_dend, width = 12, height = 8, dpi = 300)
+#ggsave(file.path(graphics_dir, "sample_clustering_colored.png"), 
+#       p_dend, width = 12, height = 8, dpi = 300)
 
 
 ## Sample distance matrix heatmap
@@ -401,7 +384,7 @@ p_pca <- ggplot(pca_data, aes(PC1, PC2, color = Groups, shape = Condition)) +
                   box.padding = 0.35, 
                   max.overlaps = Inf,  # Show all labels
                   size = 3.5, 
-                  segment.color = "grey60",
+                  segment.color = "red",
                   segment.size = 0.3,
                   bg.color = "white", 
                   bg.r = 0.1) +
@@ -424,7 +407,7 @@ ggsave(file.path(graphics_dir, "TRAPseq_PCA_vst.png"),
 
 ## LFC SHRINKAGE + ARRANGEMENT + CLEAN
 ```{r DESeq-results-lfc}
-  #########################  LFC SHRINKAGE   #########################  
+#########################  LFC SHRINKAGE   #########################  
 lfc_H_UM <- tryCatch({
   lfcShrink(dds, coef = "Groups_H_vs_UM", type = "apeglm")
 }, error = function(e) {
@@ -485,6 +468,56 @@ export_list <- list(
 
 writexl::write_xlsx(export_list, path = file.path(tables_dir, "DESeq2_results.xlsx"))
 cat("✅ DESeq2 results saved as Excel at:", file.path(tables_dir, "DESeq2_results.xlsx"), "\n")
+
+
+sum(lfc_H_UM_df$padj < pad & abs(lfc_H_UM_df$log2FoldChange) >= lfc_cutoff)
+
+sum(lfc_IM_UM_df$padj < pad & abs(lfc_IM_UM_df$log2FoldChange) >= lfc_cutoff)
+```
+
+
+```{r DESeq-results-lfc}
+library(DESeq2)
+
+# --- H vs UM ---
+lfc_H_UM_raw <- tryCatch({
+  lfcShrink(dds, coef = "Groups_H_vs_UM", type = "apeglm")
+}, error = function(e) {
+  warning("apeglm failed for H_vs_UM, using normal: ", e$message)
+  lfcShrink(dds, contrast = c("Groups", "H", "UM"), type = "normal")
+})
+
+# Base MA plot
+plotMA(lfc_H_UM_raw, ylim = c(-5,5), alpha = 0.05, main = "H vs UM")
+
+# Highlight significant genes in red
+sig_H <- lfc_H_UM_raw$padj < 0.05 & abs(lfc_H_UM_raw$log2FoldChange) >= 1
+points(
+  log2(lfc_H_UM_raw$baseMean[sig_H] + 1),   # x-axis: mean expression
+  lfc_H_UM_raw$log2FoldChange[sig_H],       # y-axis: LFC
+  col = "red",
+  pch = 16,
+  cex = 0.6
+)
+
+# --- IM vs UM ---
+lfc_IM_UM_raw <- tryCatch({
+  lfcShrink(dds, coef = "Groups_IM_vs_UM", type = "apeglm")
+}, error = function(e) {
+  warning("apeglm failed for IM_vs_UM, using normal: ", e$message)
+  lfcShrink(dds, contrast = c("Groups", "IM", "UM"), type = "normal")
+})
+
+plotMA(lfc_IM_UM_raw, ylim = c(-5,5), alpha = 0.05, main = "IM vs UM")
+
+sig_IM <- lfc_IM_UM_raw$padj < 0.05 & abs(lfc_IM_UM_raw$log2FoldChange) >= 1
+points(
+  log2(lfc_IM_UM_raw$baseMean[sig_IM] + 1),
+  lfc_IM_UM_raw$log2FoldChange[sig_IM],
+  col = "red",
+  pch = 16,
+  cex = 0.6
+)
 ```
 
 
@@ -516,12 +549,19 @@ write_csv(deseq_all, file.path(tables_dir, "DESeq2_LFC_shrunk_all_contrasts.csv"
 writexl::write_xlsx(deseq_all, path = file.path(tables_dir, "DESeq2_LFC_shrunk_all_contrast.xlsx"))
 
 # Full DE summary table
-de_summary <- tibble(
+summary_tbl <- tibble::tibble(
   contrast = c("IM_vs_UM", "H_vs_UM"),
-  n_DEG_IM = map_int(list(res_IM_UM, res_H_UM), ~sum(.$padj < 0.05, na.rm = TRUE)),
-  n_DEG_H  = c(sum(res_H_UM$padj < 0.05, na.rm = TRUE), NA),
-  n_LFC1_IM = map_int(list(lfc_IM_UM, lfc_H_UM), ~sum(abs(.$log2FoldChange) > 1, na.rm = TRUE))
-) %>% print()
+  n_DEG = c(
+    sum(res_IM_UM$padj < 0.05, na.rm = TRUE),
+    sum(res_H_UM$padj < 0.05, na.rm = TRUE)
+  ),
+  n_LFC1 = c(
+    sum(res_IM_UM$padj < 0.05 & abs(res_IM_UM$log2FoldChange) >= 1, na.rm = TRUE),
+    sum(res_H_UM$padj < 0.05 & abs(res_H_UM$log2FoldChange) >= 1, na.rm = TRUE)
+  )
+)
+
+summary_tbl
 ```
 
 
@@ -576,6 +616,43 @@ p_deg <- pheatmap(deg_mat,
 }
 writexl::write_xlsx(data.frame(Gene = top_DE_genes), 
               file.path(tables_dir, "top_shared_DE_genes.xlsx"))
+library(dplyr)
+library(tibble)
+
+# Set LFC and padj thresholds
+padj_cut <- 0.05
+lfc_cut <- 1
+
+# Function to summarize one contrast
+summarize_DEGs <- function(res_df, contrast_name) {
+  total_genes <- nrow(res_df)
+  
+  n_DEG <- sum(res_df$padj < padj_cut, na.rm = TRUE)
+  n_LFC1 <- sum(res_df$padj < padj_cut & abs(res_df$log2FoldChange) >= lfc_cut, na.rm = TRUE)
+  
+  n_up <- sum(res_df$padj < padj_cut & res_df$log2FoldChange >= lfc_cut, na.rm = TRUE)
+  n_down <- sum(res_df$padj < padj_cut & res_df$log2FoldChange <= -lfc_cut, na.rm = TRUE)
+  
+  percent_sig <- round(100 * n_LFC1 / total_genes, 1)
+  
+  tibble(
+    contrast = contrast_name,
+    total_genes = total_genes,
+    DEGs_padj05 = n_DEG,
+    DEGs_padj05_LFC1 = n_LFC1,
+    upregulated = n_up,
+    downregulated = n_down,
+    percent_sig = percent_sig
+  )
+}
+
+# Apply to your contrasts
+summary_tbl <- bind_rows(
+  summarize_DEGs(res_IM_UM_df, "IM_vs_UM"),
+  summarize_DEGs(res_H_UM_df, "H_vs_UM")
+)
+
+summary_tbl
 ```
 
 
@@ -656,6 +733,37 @@ summary_stats <- tibble(
   Contrast = c("H vs UM UP", "H vs UM DOWN", "IM vs UM UP", "IM vs UM DOWN", "Shared"),
   n_genes = c(nrow(H_UP), nrow(H_DOWN), nrow(IM_UP), nrow(IM_DOWN), nrow(deg_shared))
 )
+
+library(dplyr)
+
+# Identify significant genes (padj < 0.05 & |LFC| >= 1)
+sig_H <- lfc_H_UM_df %>%
+  filter(padj < padj_cut & abs(log2FoldChange) >= lfc_cut) %>%
+  pull(Gene)
+
+sig_IM <- lfc_IM_UM_df %>%
+  filter(padj < padj_cut & abs(log2FoldChange) >= lfc_cut) %>%
+  pull(Gene)
+
+# Overlap and unique genes
+overlap_genes <- intersect(sig_H, sig_IM)
+unique_H <- setdiff(sig_H, sig_IM)
+unique_IM <- setdiff(sig_IM, sig_H)
+
+# Summary table
+comparison_tbl <- tibble(
+  Category = c("H_vs_IM_overlap", "Unique_H_vs_UM", "Unique_IM_vs_UM"),
+  n_genes  = c(length(overlap_genes), length(unique_H), length(unique_IM))
+)
+
+# Percentages relative to total DEGs in each set
+comparison_tbl <- comparison_tbl %>%
+  mutate(
+    percent_of_H = round(100 * n_genes / length(sig_H), 1),
+    percent_of_IM = round(100 * n_genes / length(sig_IM), 1)
+  )
+
+comparison_tbl
 ```
 
 ```{r}
@@ -678,7 +786,7 @@ go_compare <- compareCluster(
   pvalueCutoff = pad, qvalueCutoff = pad,
   minGSSize = 10
 )
-p_go_dot <- dotplot(go_compare, showCategory = 25, font.size = 11, label_format = 60) + 
+p_go_dot <- dotplot(go_compare, showCategory = 10, font.size = 11, label_format = 60) + 
   ggtitle("GO BP Terms: 4-way Comparison (IM_UP/H_UP/IM_DOWN/H_DOWN)")
 print(p_go_dot)
 
@@ -742,7 +850,7 @@ kegg_compare <- compareCluster(
   use_internal_data = FALSE
 )
 
-p_kegg_dot <- dotplot(kegg_compare, showCategory = 20, font.size = 11, label_format = 60) + 
+p_kegg_dot <- dotplot(kegg_compare, showCategory = 10, font.size = 11, label_format = 60) + 
   ggtitle("KEGG Pathways: 4-way Comparison (IM_UP/H_UP/IM_DOWN/H_DOWN)")
 print(p_kegg_dot)
 
@@ -818,7 +926,7 @@ cat("- COMPLETE_GO_KEGG_4way.xlsx\n")
 ```{r VIDGER}
 FW_df <- vsFourWay(
   x = "H", y = "IM", control = "UM", 
-  data = dds_UM,
+  data = dds,
   d.factor = "Groups", 
   type = "deseq", padj = pad, lfc = 1,
   title = TRUE, grid = TRUE, legend = TRUE,
@@ -863,7 +971,7 @@ pure_haustoria <- df_four %>%
  filter(
   padj_x < pad,
   padj_y >= pad,
-  logFC_x > 1.5,
+  logFC_x > 1,
   abs(logFC_y) < 0.5) %>%
   arrange(desc(logFC_x)) %>%   # Rank by H strength
   pull(id)
@@ -898,11 +1006,11 @@ ego_pureH <- enrichGO(
 
 ## Color by raw pvalue (ALL terms)
 p1 <- dotplot(ego_pureH, 
-              showCategory = 25,  # ↓ from 25
+              showCategory = 10,  # ↓ from 25
               label_format = 30,  # Truncate long labels
               font.size = 10) +   # Smaller text
   scale_color_gradient(low = "red", high = "blue") +
-  ggtitle("Pure Haustoria GO BP (Top 25)") +
+  ggtitle("Pure Haustoria GO BP (Top 10)") +
   theme(axis.text.y = element_text(size = 9))  # Tighter y-axis
 print(p1)
 
@@ -943,4 +1051,7 @@ ggplot(kegg_df,
     y = NULL
   ) +
   theme_bw()
+
+ggsave(file.path(graphics_dir, "pure_haustoria_KEGG_pvalue.png"), width=12, height=10)
+
 ```
