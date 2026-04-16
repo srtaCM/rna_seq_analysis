@@ -182,7 +182,7 @@ ImvHvUM_df <- tibble::rownames_to_column(as.data.frame(as.matrix(ImvHvUM)), "Gen
 #write_csv(ImvHvUM_df, file.path(tables_dir, "counts_IM_H_UM_cleansubset.csv"))
 #writexl::write_xlsx(ImvHvUM_df, file.path(tables_dir, "counts_IM_H_UM_cleansubset.xlsx"))
 
-cat("✅ IM/H/UM subset ready:", ncol(ImvHvUM), "samples\n")
+cat("IM/H/UM subset ready:", ncol(ImvHvUM), "samples\n")
 table(sample_info$Groups)
 ```
 
@@ -216,6 +216,7 @@ dds <- DESeq(dds)
 sf <- round(sizeFactors(dds), 3)
 kable(data.frame(Sample=names(sf), SizeFactor=sf), caption="Size Factors")
 ```
+
 
 ## 9. DESEQ Result Comparisons
 ```{r DESeq-results-summary}
@@ -802,6 +803,7 @@ cat("KEGG results exported successfully\n")
 ```
 
 ```{r VIDGER}
+library(vidger)
 #########################  FOUR-WAY PLOT WITH CUSTOM COLORS #########################
 FW_df <- vsFourWay( x = "H", y = "IM", control = "UM", 
                     data = dds, 
@@ -822,10 +824,6 @@ print(FW_df$plot) # View plot
 ```{r}
 library(dplyr)
 library(ggplot2)
-
-# Thresholds
-lfc_thresh <- 1
-pad <- 0.05
 
 # Categorize DEGs based on significance and LFC
 FW_df$plot$data <- FW_df$plot$data %>%
@@ -924,45 +922,172 @@ ego_H_up <- enrichGO(
   gene = green_H_up$id,
   OrgDb = org.At.tair.db,
   keyType = "TAIR",
-  ont = "BP",
+  ont = "MF",
   pAdjustMethod = "BH",
   pvalueCutoff = pad,
   qvalueCutoff = pad,
   minGSSize = 5
 )
+ego_H_up
 ego_H_down <- enrichGO(
   gene = green_H_down$id,
   OrgDb = org.At.tair.db,
   keyType = "TAIR",
-  ont = "BP",
+  ont = "MF",
   pAdjustMethod = "BH",
   pvalueCutoff = pad,
   qvalueCutoff = pad,
   minGSSize = 5
 )
 
+ego_H_down
   ######################### RED GENES, INFECTED MESOPHYLL  ######################### 
 ego_IM_up <- enrichGO(
   gene = red_IM_up$id,
   OrgDb = org.At.tair.db,
   keyType = "TAIR",
-  ont = "BP",
+  ont = "MF",
   pAdjustMethod = "BH",
   pvalueCutoff = pad,
   qvalueCutoff = pad,
   minGSSize = 5
 )
+ego_IM_up
 ego_IM_down <- enrichGO(
   gene = red_IM_down$id,
   OrgDb = org.At.tair.db,
   keyType = "TAIR",
-  ont = "BP",
+  ont = "MF",
   pAdjustMethod = "BH",
   pvalueCutoff = pad,
   qvalueCutoff = pad,
   minGSSize = 5
 )
+ego_IM_down
 ```
+
+```{r}
+library(clusterProfiler)
+library(org.At.tair.db)
+library(ggplot2)
+library(dplyr)
+
+#----------------------------
+# 1. Convert enrichGO → data.frame + add labels
+#----------------------------
+
+process_GO <- function(ego, label) {
+  if (is.null(ego)) return(NULL)
+  
+  df <- as.data.frame(ego)
+  
+  if (nrow(df) == 0) return(NULL)  # handles H_up case
+  
+  df$Group <- label
+  return(df)
+}
+
+H_up_df   <- process_GO(ego_H_up, "H Up")
+H_down_df <- process_GO(ego_H_down, "H Down")
+IM_up_df  <- process_GO(ego_IM_up, "IM Up")
+IM_down_df<- process_GO(ego_IM_down, "IM Down")
+
+#----------------------------
+# 2. Combine safely
+#----------------------------
+
+combined_GO <- bind_rows(
+  H_up_df,
+  H_down_df,
+  IM_up_df,
+  IM_down_df
+)
+
+#----------------------------
+# 3. Select top terms per group
+#----------------------------
+
+top_GO <- combined_GO %>%
+  group_by(Group) %>%
+  slice_min(p.adjust, n = 5) %>%
+  ungroup()
+
+#----------------------------
+# 4. Plot
+#----------------------------
+
+ggplot(top_GO, aes(x = Group, y = reorder(Description, -log10(p.adjust)))) +
+  geom_point(aes(size = Count, color = -log10(p.adjust))) +
+  facet_wrap(~Group, scales = "free_y") +
+  theme_minimal() +
+  labs(
+    title = "GO Molecular Function Enrichment",
+    x = "",
+    y = "GO Terms",
+    size = "Gene Count",
+    color = "-log10(adj p-value)"
+  )
+ggsave(file.path(graphics_dir, "GO_MF.png"), 
+       width = 20, 
+       height = 10, 
+       dpi = 300)
+
+```
+
+
+
+
+
+```{r}
+library(dplyr)
+
+extract_top_terms <- function(ego_obj, group_name, top_n = 8) {
+  df <- ego_obj@result
+  
+  if (nrow(df) == 0) return(NULL)
+  
+  df %>%
+    arrange(p.adjust) %>%
+    head(top_n) %>%
+    mutate(
+      Group = group_name,
+      GeneRatio_num = sapply(GeneRatio, function(x) eval(parse(text = x)))
+    )
+}
+
+H_up_df    <- extract_top_terms(ego_H_up, "Haustoria Up")
+H_down_df  <- extract_top_terms(ego_H_down, "Haustoria Down")
+IM_up_df   <- extract_top_terms(ego_IM_up, "Mesophyll Up")
+IM_down_df <- extract_top_terms(ego_IM_down, "Mesophyll Down")
+go_combined <- bind_rows(H_down_df, H_up_df, IM_down_df, IM_up_df)
+library(ggplot2)
+
+ggplot(go_combined, aes(x = reorder(Description, GeneRatio_num), 
+                        y = GeneRatio_num, 
+                        fill = Group)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  facet_wrap(~Group, scales = "free") +
+  labs(
+    title = "GO Term Trends Across Conditions (Exploratory)",
+    subtitle = "No terms passed BH-adjusted significance threshold (p.adjust < 0.05)",
+    x = "GO Term",
+    y = "Gene Ratio"
+  ) +
+  theme_bw() +
+  theme(
+    strip.text = element_text(face = "bold"),
+    axis.text.y = element_text(size = 8),
+    plot.title = element_text(face = "bold")
+  )
+
+ggsave(file.path(graphics_dir, "combined_GO_terms_BP.png"),
+  width = 10,
+  height = 6,
+  dpi = 300
+)
+```
+
 
 
 ```{r UP-Green-GO-genes}
@@ -1394,298 +1519,6 @@ ggsave(file.path(graphics_dir, "mirrored_GO_IM_down_comparison.png"),
 ```
 
 
-```{r}
-## ---------------------------------------
-## Load libraries
-## ---------------------------------------
-
-library(clusterProfiler)
-library(dplyr)
-library(ggplot2)
-library(stringr)
-
-## ---------------------------------------
-## 1. Extract enrichment tables
-## ---------------------------------------
-
-up_res <- ego_H_up@result
-down_res <- ego_H_down@result
-
-up_res$Direction <- "H-UP"
-down_res$Direction <- "H-DOWN"
-
-## ---------------------------------------
-## 2. Select top GO terms from H-UP
-## ---------------------------------------
-
-top_up <- up_res %>%
-  arrange(p.adjust) %>%
-  slice(1:10)
-
-## ---------------------------------------
-## 3. Extract the same GO terms from H-DOWN
-## ---------------------------------------
-
-down_match <- down_res %>%
-  filter(ID %in% top_up$ID)
-
-## ---------------------------------------
-## 4. Combine datasets
-## ---------------------------------------
-
-go_mirror <- bind_rows(top_up, down_match)
-
-## ---------------------------------------
-## 5. Convert GeneRatio to numeric
-## ---------------------------------------
-
-go_mirror <- go_mirror %>%
-  mutate(
-    GeneRatio_num = sapply(strsplit(GeneRatio, "/"),
-                           function(x) as.numeric(x[1]) / as.numeric(x[2]))
-  )
-
-## ---------------------------------------
-## 6. Ensure p.adjust is numeric
-## ---------------------------------------
-
-go_mirror$p.adjust <- as.numeric(go_mirror$p.adjust)
-
-## Calculate significance metric
-go_mirror$negLogP <- -log10(go_mirror$p.adjust)
-
-## ---------------------------------------
-## 7. Clean GO term labels
-## ---------------------------------------
-
-go_mirror <- go_mirror %>%
-  mutate(
-    Description = str_replace(Description, "^positive regulation of ", "+ "),
-    Description = str_replace(Description, "^negative regulation of ", "- "),
-    Description = str_replace(Description, "^regulation of ", ""),
-    Description = str_replace(Description, " process$", "")
-  )
-
-## Wrap long labels
-go_mirror <- go_mirror %>%
-  mutate(
-    Description = str_wrap(Description, width = 35)
-  )
-
-## ---------------------------------------
-## 8. Order GO terms by enrichment strength
-## ---------------------------------------
-
-go_mirror <- go_mirror %>%
-  mutate(
-    order_value = ifelse(Direction == "H-UP",
-                         GeneRatio_num,
-                         -GeneRatio_num)
-  )
-
-go_mirror$Description <- reorder(go_mirror$Description,
-                                 go_mirror$order_value)
-
-## ---------------------------------------
-## 9. Create paired GO bubble plot
-## ---------------------------------------
-
-p_dot <- ggplot(go_mirror,
-                aes(x = GeneRatio_num,
-                    y = Description,
-                    size = Count,
-                    color = negLogP)) +
-
-  geom_point(alpha = 0.9) +
-
-  facet_grid(Direction ~ ., scales = "free_y", space = "free_y") +
-
-  scale_color_gradient(
-    low = "skyblue",
-    high = "red",
-    name = "-log10(adj p-value)"
-  ) +
-
-  scale_size_continuous(
-    range = c(3,10),
-    name = "Gene Count"
-  ) +
-
-  labs(
-    x = "Gene Ratio",
-    y = "GO Biological Process",
-    title = "GO Enrichment in Haustoriated Cells"
-  ) +
-
-  theme_minimal(base_size = 12) +
-
-  theme(
-    strip.text = element_text(size = 11, face = "bold"),
-    axis.text.y = element_text(size = 10),
-    legend.position = "right",
-    plot.title = element_text(face = "bold", hjust = 0.5)
-  )
-
-print(p_dot)
-
-## ---------------------------------------
-## 10. Save the plot
-## ---------------------------------------
-
-ggsave(
-  file.path(graphics_dir, "GO_bubble_Haustoria.png"),
-  p_dot,
-  width = 10,
-  height = 8,
-  dpi = 300
-)
-```
-
-```{r}
-## ---------------------------------------
-## Load libraries
-## ---------------------------------------
-
-library(clusterProfiler)
-library(dplyr)
-library(ggplot2)
-library(stringr)
-
-## ---------------------------------------
-## 1. Extract enrichment tables
-## ---------------------------------------
-up_res <- ego_H_up@result
-down_res <- ego_H_down@result
-
-up_res$Direction <- "H-UP"
-down_res$Direction <- "H-DOWN"
-
-## ---------------------------------------
-## 2. Select top GO terms from H-UP
-## ---------------------------------------
-
-top_up <- up_res %>%
-  arrange(p.adjust) %>%
-  slice(1:10)
-
-## ---------------------------------------
-## 3. Extract the same GO terms from H-DOWN
-## ---------------------------------------
-
-down_match <- down_res %>%
-  filter(ID %in% top_up$ID)
-
-## ---------------------------------------
-## 4. Combine datasets
-## ---------------------------------------
-
-go_mirror <- bind_rows(top_up, down_match)
-
-## ---------------------------------------
-## 5. Convert GeneRatio to numeric
-## ---------------------------------------
-
-go_mirror <- go_mirror %>%
-  mutate(
-    GeneRatio_num = sapply(strsplit(GeneRatio, "/"),
-                           function(x) as.numeric(x[1]) / as.numeric(x[2]))
-  )
-
-## ---------------------------------------
-## 6. Ensure p.adjust is numeric
-## ---------------------------------------
-
-go_mirror$p.adjust <- as.numeric(go_mirror$p.adjust)
-
-## Calculate significance metric
-go_mirror$negLogP <- -log10(go_mirror$p.adjust)
-
-## ---------------------------------------
-## 7. Clean GO term labels
-## ---------------------------------------
-
-go_mirror <- go_mirror %>%
-  mutate(
-    Description = str_replace(Description, "^positive regulation of ", "+ "),
-    Description = str_replace(Description, "^negative regulation of ", "- "),
-    Description = str_replace(Description, "^regulation of ", ""),
-    Description = str_replace(Description, " process$", "")
-  )
-
-## Wrap long labels
-go_mirror <- go_mirror %>%
-  mutate(
-    Description = str_wrap(Description, width = 35)
-  )
-
-## ---------------------------------------
-## 8. Order GO terms by enrichment strength
-## ---------------------------------------
-
-go_mirror <- go_mirror %>%
-  mutate(
-    order_value = ifelse(Direction == "H-UP",
-                         GeneRatio_num,
-                         -GeneRatio_num)
-  )
-
-go_mirror$Description <- reorder(go_mirror$Description,
-                                 go_mirror$order_value)
-
-## ---------------------------------------
-## 9. Create paired GO bubble plot
-## ---------------------------------------
-
-p_dot <- ggplot(go_mirror,
-                aes(x = GeneRatio_num,
-                    y = Description,
-                    size = Count,
-                    color = negLogP)) +
-
-  geom_point(alpha = 0.9) +
-
-  facet_grid(Direction ~ ., scales = "free_y", space = "free_y") +
-
-  scale_color_gradient(
-    low = "skyblue",
-    high = "red",
-    name = "-log10(adj p-value)"
-  ) +
-
-  scale_size_continuous(
-    range = c(3,10),
-    name = "Gene Count"
-  ) +
-
-  labs(
-    x = "Gene Ratio",
-    y = "GO Biological Process",
-    title = "GO Enrichment in Haustoriated Cells"
-  ) +
-
-  theme_minimal(base_size = 12) +
-
-  theme(
-    strip.text = element_text(size = 11, face = "bold"),
-    axis.text.y = element_text(size = 10),
-    legend.position = "right",
-    plot.title = element_text(face = "bold", hjust = 0.5)
-  )
-
-print(p_dot)
-
-## ---------------------------------------
-## 10. Save the plot
-## ---------------------------------------
-
-ggsave(
-  file.path(graphics_dir, "GO_bubble_Haustoria.png"),
-  p_dot,
-  width = 10,
-  height = 8,
-  dpi = 300
-)
-```
 
 
 ```{r}
@@ -1715,6 +1548,8 @@ kegg_downIM <- enrichKEGG(
   keyType = "kegg",
   pvalueCutoff = 0.05
 )
+
+kegg_downH
 ```
 
 
@@ -1747,35 +1582,52 @@ ggplot(kegg_df,
 
 ```{r}
 # TRANSPORTERS
+library(readxl)
 #Extract transporters 
-transporter_list <- readxl::read_excel("../HvIM/Data_Repository/6_transporter_df.xlsx")
-transporter_genes <- transporter_list %>%
-  rename(id = TAIR)
+library(dplyr)
+library(readxl)
+
+transporter_genes <- read_excel("../HvIM/Data_Repository/6_transporter_df.xlsx") %>%
+  rename(id = TAIR) %>%
+  mutate(id = trimws(as.character(id)))  # make sure it's character, no spaces
+
+green_H_up <- green_H_up %>% mutate(id = trimws(as.character(id)))
+green_H_down <- green_H_down %>% mutate(id = trimws(as.character(id)))
 
 H_up_transporters <- green_H_up %>%
-  filter(id %in% transporter_list$id) %>%
-  left_join(transporter_list, by = "id")
+  semi_join(transporter_genes, by = "id") %>%
+  left_join(transporter_genes, by = "id")
 
-green_H_down_transporters <- green_H_down %>%
-  filter(id %in% transporter_genes)
+H_down_transporters <- green_H_down %>%
+  semi_join(transporter_genes, by = "id") %>%
+  left_join(transporter_genes, by = "id")
+
 
 red_IM_up_transporters <- red_IM_up %>%
   filter(id %in% transporter_genes)
 
 red_IM_down_transporters <- red_IM_down %>%
   filter(id %in% transporter_genes)
-
 ```
-```{r}
-#  Filter H-specific upregulated genes
 
-H_up_transporters <- green_H_up %>%        # green quadrant, H-specific UP
-  filter(id %in% transporter_genes$id) %>% # intersect with transporter genes
-  left_join(transporter_list, by = "id")    # add family info
+
+```{r}
+#  Keep relevant columns and rank
+H_up_transporters <- H_up_transporters %>%
+  select(id, logFC_x, padj_x, Family) %>%
+  arrange(desc(logFC_x)) %>%                # rank by log fold change
+  mutate(
+    rank = row_number(),                     # add rank
+    log10_padj = -log10(padj_x),            # significance for plotting
+    FC_label = round(logFC_x, 2)            # rounded fold change for table
+  )
+
+# Save table for dissertation
+#write_csv(H_up_transporters, file.path(tables_dir, "H_up_transporter_candidates.csv"))
+#write_xlsx(H_up_transporters, file.path(tables_dir, "transporter_4way.xlsx"))
 
 #  Keep relevant columns and rank
-
-H_up_transporters <- H_up_transporters %>%
+H_down_transporters <- H_down_transporters %>%
   select(id, logFC_x, padj_x, Family) %>%
   arrange(desc(logFC_x)) %>%                # rank by log fold change
   mutate(
@@ -1792,177 +1644,443 @@ H_up_transporters <- H_up_transporters %>%
 
 
 ```{r}
-# plot top transporters by fold change
-top_n <- 10
+# ===============================================
+# Transporter Family Summary and Bubble Barplot
+# ===============================================
 
-plot_df <- H_up_transporters %>%
-  slice(1:top_n) %>%
-  mutate(id = fct_reorder(id, logFC_x)) # reorder bars
+# Load packages
+library(dplyr)
+library(ggplot2)
+library(forcats)
+library(stringr)
 
+# -----------------------------
+# Summarize family-level stats
+# -----------------------------
 
-# Wrap legend labels to max 10 characters per line
-fam_plot <- ggplot(H_up_transporters, 
-                   aes(x = fct_reorder(id, logFC_x), 
-                       y = logFC_x, 
-                       size = -log10(padj_x), 
-                       color = Family)) +
-  geom_point() +
-  labs(
-    title = "Top H-Upregulated Transporters in Haustoriated Cells",
-    x = "Gene (ATG ID)",
-    y = "log2 Fold Change",
-    size = "-log10(padj)",
-    color = "Transporter\nFamily" # title of legend
+# Ensure one row per gene
+family_summary <- H_up_transporters %>%
+  distinct(id, Family, logFC_x, log10_padj) %>%   # avoid duplicates
+  group_by(Family) %>%
+  summarise(
+    gene_count = n(),
+    median_logFC = median(logFC_x),
+    median_log10_padj = median(log10_padj),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(gene_count))
+
+# Optional: filter out very small families (e.g., 1 gene)
+# family_summary <- family_summary %>% filter(gene_count >= 2)
+
+# -----------------------------
+# Plot bubble barplot
+# -----------------------------
+
+fam_plot <- ggplot(family_summary,
+                   aes(x = fct_reorder(Family, gene_count),
+                       y = gene_count)) +
+  
+  # Bars = number of genes per family
+  geom_col(fill = "grey85") +
+  
+  # Overlay bubbles = expression + significance
+  geom_point(aes(size = median_log10_padj,
+                 color = median_logFC)) +
+  
+  # Flip axes for readability
+  coord_flip() +
+  
+  # Color gradient: blue = down, white = neutral, red = up
+  scale_color_gradient2(
+    low = "#4575b4",   # lower induction
+    mid = "white",
+    high = "hotpink",  # stronger induction
+    midpoint = 0
   ) +
-  scale_color_discrete(labels = function(x) str_wrap(x, width = 20)) + # wrap legend text
-  theme_minimal(base_size = 10) +
+  
+  # Labels
+  labs(
+    title = "Transporter Family-Level Response in Haustoriated Cells",
+    x = "Transporter Family",
+    y = "Number of Genes",
+    color = "Median log2FC",
+    size = "Median -log10(padj)"
+  ) +
+  
+  # Theme adjustments
+  theme_minimal(base_size = 12) +
   theme(
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
-    plot.title = element_text(face = "bold", hjust = 0.5, size = 12),
-    legend.text = element_text(size = 6) # smaller legend text
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    axis.text.y = element_text(size = 8)
   )
 
+# Display plot
 print(fam_plot)
+
+# -----------------------------
 # Save the plot
-ggsave(file.path(graphics_dir, "H_up_trans.png"),
+# -----------------------------
+
+#ggsave(file.path(graphics_dir, "H_up_transporter_family_plot.png"),
+#       fam_plot,
+#       width = 10,
+#       height = 6,
+#       dpi = 300)
+
+# -----------------------------
+# save the family summary table
+# -----------------------------
+#write.csv(family_summary,
+#          file.path(tables_dir, "H_up_transporter_family_summary.csv"),
+#          row.names = FALSE)
+
+#write_xlsx(family_summary, file.path(tables_dir, "H_up_transporter_family_summary.xlsx"))
+```
+
+
+```{r}
+family_summary2 <- H_down_transporters %>%
+  distinct(id, Family, logFC_x, log10_padj) %>%   # avoid duplicates
+  group_by(Family) %>%
+  summarise(
+    gene_count = n(),
+    median_logFC = median(logFC_x),
+    median_log10_padj = median(log10_padj),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(gene_count))
+
+fam_plot <- ggplot(family_summary2,
+                   aes(x = fct_reorder(Family, gene_count),
+                       y = gene_count)) +
+  
+  # Bars = number of genes per family
+  geom_col(fill = "grey85") +
+  
+  # Overlay bubbles = expression + significance
+  geom_point(aes(size = median_log10_padj,
+                 color = median_logFC)) +
+  
+  # Flip axes for readability
+  coord_flip() +
+  
+  # Color gradient: blue = down, white = neutral, red = up
+  scale_color_gradient2(
+    low = "purple",   # lower induction
+    mid = "white",
+    high = "hotpink",  # stronger induction
+    midpoint = 0
+  ) +
+  
+  # Labels
+  labs(
+    title = "Transporter Family-Level Response in Haustoriated Cells",
+    x = "Transporter Family",
+    y = "Number of Genes",
+    color = "Median log2FC",
+    size = "Median -log10(padj)"
+  ) +
+  
+  # Theme adjustments
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    axis.text.y = element_text(size = 8)
+  )
+
+# Display plot
+print(fam_plot)
+
+# -----------------------------
+# Save the plot
+# -----------------------------
+
+ggsave(file.path(graphics_dir, "H_down_transporter_family_plot.png"),
        fam_plot,
        width = 10,
        height = 6,
        dpi = 300)
+
+# -----------------------------
+# save the family summary table
+# -----------------------------
+write.csv(family_summary2,
+          file.path(tables_dir, "H_down_transporter_family_summary.csv"),
+          row.names = FALSE)
+
+write_xlsx(family_summary2, file.path(tables_dir, "H_down_transporter_family_summary.xlsx"))
+
+#ggsave(file.path(graphics_dir, "H_down_family_summary.png"),
+#       famplot,
+#      width = 10,
+#       height = 6,
+#       dpi = 300)
 ```
 
-
 ```{r}
+library(dplyr)
 
-top_n <- 10
-
-heat_df <- H_up_transporters %>%
-  slice_max(logFC_x, n = top_n)
-
-expr_matrix <- heat_df %>%
-  select(id, logFC_x) %>%
-  column_to_rownames("id") %>%
-  as.matrix()
-
-annotation <- heat_df %>%
-  select(id, Family) %>%
-  column_to_rownames("id")
-
-annotation$Family <- factor(annotation$Family)
-
-
-family_levels <- levels(annotation$Family)
-
-family_colors <- setNames(
-  brewer.pal(max(3, length(family_levels)), "Set2")[seq_along(family_levels)],
-  family_levels
-)
-
-ann_colors <- list(Family = family_colors)
-
-png(file.path(graphics_dir, "H_up_trans_heatmap.png"),
-    width = 1600,
-    height = 1200,
-    res = 300)
-pheatmap(
-  expr_matrix,
-  cluster_rows = TRUE,
-  cluster_cols = FALSE,
-  annotation_row = annotation,
-  annotation_colors = ann_colors,
-  main = "Top H-Upregulated Transporters",
-  fontsize = 8
-)
-dev.off()
-```
-
-
-```{r}
-loli<- ggplot(plot_df, aes(x = fct_reorder(id, logFC_x), y = logFC_x, color = Family)) +
-  geom_segment(aes(x = id, xend = id, y = 0, yend = logFC_x), size = 1) +
-  geom_point(size = 4) +
-  labs(title = "Top H-Upregulated Transporters") +
-  theme_minimal() +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
-    plot.title = element_text(face = "bold", hjust = 0.5, size = 12),
-    legend.text = element_text(size = 6) # smaller legend text
-  )
-ggsave(file.path(graphics_dir, "H_up_trans_loli.png"),
-       loli,
-       width = 10,
-       height = 6,
-       dpi = 300)
-```
-
-
-```{r}
-family_summary <- H_up_transporters %>%
-  group_by(Family) %>%
+# Combine Up and Down transporter families
+H_up_summary <- H_up_transporters %>%
+  distinct(id, Family, logFC_x, log10_padj) %>%
+  mutate(Direction = "Up") %>%
+  group_by(Family, Direction) %>%
   summarise(
-    count = n(),
-    total_FC = sum(logFC_x, na.rm = TRUE),
-    mean_FC = mean(logFC_x, na.rm = TRUE),
+    gene_count = n(),
+    median_logFC = median(logFC_x),
+    median_log10_padj = median(log10_padj),
     .groups = "drop"
-  ) %>%
-  filter(total_FC > 0) %>%         # keep upregulated families
-  filter(count >= 3) %>%           # optional but recommended
-  arrange(desc(mean_FC))
-
-p_total <- ggplot(family_summary, 
-                  aes(x = reorder(Family, total_FC), y = total_FC)) +
-  geom_col(fill = "steelblue") +
-  coord_flip() +
-  labs(
-    title = "A. Total Transporter Signal",
-    x = "Family",
-    y = "Cumulative log2 Fold Change"
-  ) +
-  theme_minimal(base_size = 12) +
-  theme(
-    plot.title = element_text(face = "bold", hjust = 0),
-    axis.text.y = element_text(size = 8)
   )
 
-
-p_mean <- ggplot(family_summary, 
-                 aes(x = reorder(Family, mean_FC), y = mean_FC)) +
-  geom_col(fill = "darkorange") +
-  coord_flip() +
-  labs(
-    title = "B. Normalized Transporter Signal",
-    x = "Family",
-    y = "Mean log2 Fold Change (per gene)"
-  ) +
-  theme_minimal(base_size = 12) +
-  theme(
-    plot.title = element_text(face = "bold", hjust = 0),
-    axis.text.y = element_text(size = 8)
+H_down_summary <- H_down_transporters %>%
+  distinct(id, Family, logFC_x, log10_padj) %>%
+  mutate(Direction = "Down") %>%
+  group_by(Family, Direction) %>%
+  summarise(
+    gene_count = n(),
+    median_logFC = median(logFC_x),
+    median_log10_padj = median(log10_padj),
+    .groups = "drop"
   )
 
-library(patchwork)
+combined_summary <- bind_rows(H_up_summary, H_down_summary)
 
-final_plot <- p_total | p_mean
-final_plot
+# Make Direction a factor so Up is on top
+combined_summary$Direction <- factor(combined_summary$Direction, levels = c("Up", "Down"))
 
-famplot <- ggplot(family_summary, 
-                  aes(x = reorder(Family, mean_FC), y = mean_FC)) +
-  geom_col(fill = "steelblue") +
-  coord_flip() +
+
+```
+
+```{r}
+library(ggplot2)
+library(forcats)
+
+ggplot(combined_summary,
+       aes(x = gene_count, y = fct_reorder(Family, gene_count),
+           fill = median_logFC, size = median_log10_padj)) +
+  
+  geom_col() +  
+  scale_fill_gradient2(low = "purple", mid = "white", high = "hotpink", midpoint = 0) +
+  facet_wrap(~Direction, ncol = 1, scales = "free_y") +   # Up on top, Down on bottom
+  scale_x_continuous(breaks = seq(0, 10, 2), limits = c(0,10)) +  # set ticks from 0-10 by 2
   labs(
-    title = "Normalized Upregulated Transporter Families",
-    x = "Family",
-    y = "Mean log2 Fold Change (per gene)"
+    title = "Transporter Family-Level Response in Haustoriated Cells",
+    x = "Number of Genes",
+    y = "Transporter Family",
+    fill = "Median log2FC",
+    size = "Median -log10(padj)"
   ) +
   theme_minimal(base_size = 12) +
   theme(
     plot.title = element_text(face = "bold", hjust = 0.5),
-    axis.text.y = element_text(hjust = 1, size = 8)
+    axis.text.y = element_text(size = 8)
   )
-ggsave(file.path(graphics_dir, "H_up_trans_bar.png"),
-       famplot,
-       width = 10,
+
+ggsave(file.path(graphics_dir, "H_combined_families.png"),
+      width = 10,
        height = 6,
        dpi = 300)
+```
+```{r}
+summarize_families <- function(df, direction){
+  df %>%
+    distinct(id, Family, logFC_x, log10_padj) %>%
+    mutate(Direction = direction) %>%
+    group_by(Family, Direction) %>%
+    summarise(
+      gene_count = n(),
+      median_logFC = median(logFC_x),
+      median_log10_padj = median(log10_padj),
+      .groups = "drop"
+    )
+}
+
+H_up_summary <- summarize_families(H_up_transporters, "Up")
+H_down_summary <- summarize_families(H_down_transporters, "Down")
+combined_summary <- bind_rows(H_up_summary, H_down_summary)
+combined_summary$Direction <- factor(combined_summary$Direction, levels = c("Up", "Down"))
+
+family_order <- combined_summary %>%
+  group_by(Family) %>%
+  summarise(total_genes = sum(gene_count)) %>%
+  arrange(desc(total_genes)) %>%
+  pull(Family)
+
+
+
+combined_summary$Family <- factor(combined_summary$Family, levels = family_order)
+ggplot(combined_summary,
+       aes(x = gene_count, y = Family)) +
+  geom_col(fill = "grey85") +
+  geom_point(aes(size = median_log10_padj, color = median_logFC)) +
+  scale_color_gradient2(low = "purple", mid = "white", high = "hotpink", midpoint = 0) +
+  facet_wrap(~Direction, ncol = 1, scales = "free_y") +
+    scale_x_continuous(breaks = seq(0, 10, 2), limits = c(0,10)) +  # set ticks from 0-10 by 2
+  labs(
+    title = "Transporter Family-Level Response in Haustoriated Cells",
+    x = "Number of Genes",
+    y = "Transporter Family",
+    color = "Median log2FC",
+    size = "Median -log10(padj)"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    axis.text.y = element_text(size = 8)
+  )
+ggsave(file.path(graphics_dir, "H_combined_families.png"),
+      width = 10,
+       height = 6,
+       dpi = 300)
+```
+```{r}
+##############################
+# TRANSPORTER FAMILY PLOT
+##############################
+
+# Load packages
+library(dplyr)
+library(ggplot2)
+library(forcats)
+library(readxl)
+library(writexl)
+
+# -----------------------------
+# 1. Load transporter gene data
+# -----------------------------
+transporter_genes <- read_excel("../HvIM/Data_Repository/6_transporter_df.xlsx") %>%
+  rename(id = TAIR) %>%
+  mutate(id = trimws(as.character(id)))
+
+# Assuming your H_up/H_down tables already exist
+green_H_up <- green_H_up %>% mutate(id = trimws(as.character(id)))
+green_H_down <- green_H_down %>% mutate(id = trimws(as.character(id)))
+
+# -----------------------------
+# 2. Extract transporters
+# -----------------------------
+H_up_transporters <- green_H_up %>%
+  semi_join(transporter_genes, by = "id") %>%
+  left_join(transporter_genes, by = "id") %>%
+  select(id, logFC_x, padj_x, Family) %>%
+  arrange(desc(logFC_x)) %>%
+  mutate(
+    rank = row_number(),
+    log10_padj = -log10(padj_x),
+    FC_label = round(logFC_x, 2)
+  )
+
+H_down_transporters <- green_H_down %>%
+  semi_join(transporter_genes, by = "id") %>%
+  left_join(transporter_genes, by = "id") %>%
+  select(id, logFC_x, padj_x, Family) %>%
+  arrange(desc(logFC_x)) %>%
+  mutate(
+    rank = row_number(),
+    log10_padj = -log10(padj_x),
+    FC_label = round(logFC_x, 2)
+  )
+
+# -----------------------------
+# 3. Assign functional categories
+# -----------------------------
+family_function <- data.frame(
+  Family = c(
+    "ABC Superfamily", "DMT Superfamily", "MOP Flippase Superfamily",
+    "CPA2 Family", "MIP Family", "VIT Family", "MPT Family",
+    "MFS", "ENT Family", "AAAP Family", "ZIP Family", "P-ATPase Superfamily",
+    "OPT Family", "MC Family", "KUP Family", "HCC Family",
+    "FBT Family", "CDF Family", "ArAE Family", "Annexin Family", "AE Family"
+  ),
+  Function = c(
+    rep("Detox/Drug Export", 3),   # 3
+    rep("Ion Transport", 3),       # 3 → total 6
+    "Metabolite Transport",        # 1 → total 7
+    rep("Nutrient Transport", 8),  # 8 → total 15
+    rep("Other/Unknown", 6)        # 6 → total 21
+  )
+)
+
+# -----------------------------
+# 4. Combine up and down transporters
+# -----------------------------
+H_up_summary <- H_up_transporters %>%
+  distinct(id, Family, logFC_x, log10_padj) %>%
+  mutate(Direction = "Up") %>%
+  group_by(Family, Direction) %>%
+  summarise(
+    gene_count = n(),
+    median_logFC = median(logFC_x),
+    median_log10_padj = median(log10_padj),
+    .groups = "drop"
+  )
+
+H_down_summary <- H_down_transporters %>%
+  distinct(id, Family, logFC_x, log10_padj) %>%
+  mutate(Direction = "Down") %>%
+  group_by(Family, Direction) %>%
+  summarise(
+    gene_count = n(),
+    median_logFC = median(logFC_x),
+    median_log10_padj = median(log10_padj),
+    .groups = "drop"
+  )
+
+combined_summary <- bind_rows(H_up_summary, H_down_summary) %>%
+  left_join(family_function, by = "Family") %>%
+  mutate(Direction = factor(Direction, levels = c("Up", "Down")))
+
+# -----------------------------
+# 5. Plot transporter families
+# -----------------------------
+fam_plot <- ggplot(combined_summary,
+                   aes(x = gene_count,
+                       y = fct_reorder(Family, gene_count))) +
+  
+  # Bars = number of genes
+  geom_col(aes(fill = Function), color = "grey50") +
+  
+  # Overlay points = median logFC significance
+  geom_point(aes(size = median_log10_padj, color = median_logFC)) +
+  
+  # Facet Up vs Down
+  facet_wrap(~Direction, ncol = 1, scales = "free_y") +
+  
+  # Color scale for logFC
+  scale_color_gradient2(low = "purple", mid = "white", high = "hotpink", midpoint = 0) +
+  
+  # Labels
+  labs(
+    title = "Transporter Family-Level Response in Haustoriated Cells",
+    x = "Number of Genes",
+    y = "Transporter Family",
+    fill = "Functional Category",
+    color = "Median log2FC",
+    size = "Median -log10(padj)"
+  ) +
+  
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    axis.text.y = element_text(size = 8),
+    legend.position = "right"
+  )
+
+# Display plot
+print(fam_plot)
+
+# -----------------------------
+# 6. Save outputs
+# -----------------------------
+graphics_dir <- "../HvIM/Graphics"
+tables_dir <- "../HvIM/Tables"
+
+ggsave(file.path(graphics_dir, "H_combined_families_function.png"),
+       fam_plot, width = 10, height = 6, dpi = 300)
+
+write.csv(combined_summary, file.path(tables_dir, "H_combined_families_function.csv"),
+          row.names = FALSE)
+write_xlsx(combined_summary, file.path(tables_dir, "H_combined_families_function.xlsx"))
 ```
 
