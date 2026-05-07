@@ -14,7 +14,7 @@ output:
 ---
 
 ## 1. CLEAR ENVIRONMENT
-```{r CLEAR-env, include=FALSE}
+```{r CLEAR-ENVIRONMENT}
   ######################### CLEAN ENVIRONMENT   ######################### 
 rm(list = ls(all.names = TRUE)) # Remove all objects from the work space
 gc()  # Garbage collection to free memory
@@ -45,7 +45,7 @@ cat("Timestamp:", info$Timestamp, "\n\n")
 ```
 
 ## 2. INSTALL PACKAGES
-```{r INSTALL-packages, include=FALSE}
+```{r INSTALL-PACKAGES, include=FALSE}
 #could have added message=false
   ######################### LOAD REQ PACKAGES  ######################### 
 required_packages <- c(
@@ -67,14 +67,21 @@ required_packages <- c(
   "tibble", # Tibbles
   "ggdendro",
   "EnhancedVolcano",
-  "knitr"
+  "knitr",
+  "ComplexHeatmap",
+  "circlize"
 )
 
   ######################### INSTALL MISSING PACKAGES  ######################### 
-# new_packages <- required_packages[!(required_packages %in% installed.packages()[, "Package"])]
-# if (length(new_packages)) {
+ new_packages <- required_packages[!(required_packages %in% installed.packages()[, "Package"])]
+ if (length(new_packages)) {
 #   install.packages(new_packages)
-# }
+ }
+
+#if (!requireNamespace("BiocManager", quietly = TRUE))
+#    install.packages("BiocManager")
+#BiocManager::install("circlize")
+
 # Load packages quietly
 load_ok <- sapply(
   required_packages,
@@ -94,7 +101,7 @@ cat("Working directory:", getwd(), "\n")
 ```
 
 ## 3. SET DIRECTORIES
-```{r setup-paths, include=FALSE}
+```{r SET-paths, include=FALSE}
   ######################### SET OUTPUT DIRECTORY  ######################### 
 graphics_dir <- file.path("Results/Graphics")
 tables_dir   <- file.path("Results/Tables") 
@@ -113,17 +120,11 @@ invisible(
     }
   )
 )
-## Print confirmation
-cat("Directories ready:\n")
-cat("- Graphics: ", graphics_dir, "\n")
-cat("- Tables:   ", tables_dir, "\n")
-cat("- Proc:     ", procdata_dir, "\n")
 ```
 
 ## 4. READ IN FILES
-```{r read-couts, message=FALSE}
+```{r READ-COUNTS, message=FALSE}
   ######################### LOAD featureCounts WHOLE GENOME ALIGNMENT ######################### 
-library(readr)
 featcount <- read_tsv("../HvIM/Data_Repository/featcount.txt", skip = 1)
 count_cols <- colnames(featcount)[7:ncol(featcount)]
 read.count <- featcount %>%
@@ -137,7 +138,7 @@ stopifnot(is.numeric(read.count[1, ]))
 ```
 
 ## 5. META DATA
-```{r MetaDATA, message=FALSE}
+```{r ALL-META-DATA, message=FALSE}
 ## Standardize colnames
 sample_names <- c("IT-107", "IT-108", "IT-109", "IT-110", 
                   "H-107", "H-108", "H-109", "H-110", "H-111",
@@ -161,7 +162,7 @@ raw_counts_df <- tibble::rownames_to_column(raw_counts_df, "GeneID")
 ```
 
 ## 6. EXTRACT H IM UM
-```{r setup-count-data}
+```{r EXTRACT-count-data}
 ## Columns to DROP: IT(1:4,13:16), UT(10:12,22:25) → KEEP 5-9,17-21,26-30
 keep_cols <- c(5:9, 17:21, 26:30)
 ImvHvUM <- read.count[, keep_cols]
@@ -217,8 +218,7 @@ sf <- round(sizeFactors(dds), 3)
 kable(data.frame(Sample=names(sf), SizeFactor=sf), caption="Size Factors")
 ```
 
-
-## 9. DESEQ Result Comparisons
+## 9. DESEQ Results
 ```{r DESeq-results-summary}
   ######################### RESULTS   ######################### 
 res_IM_UM <- results(dds, name = "Groups_IM_vs_UM", alpha = 0.05)
@@ -244,15 +244,15 @@ for (cmp_name in names(comparisons)) {
 ```
 
 ## 10. VOLCANO PLOTS
-```{r Volcano Plots}
+```{r VOLCANO-PLOTS}
  #########################  VOLCANO PLOTS   #########################  
 res_H_UM_df <- res_H_UM %>% as.data.frame() %>% rownames_to_column(var = "Gene") %>% filter(!is.na(padj)) %>% arrange(padj)
 res_IM_UM_df <- res_IM_UM %>% as.data.frame() %>% rownames_to_column(var = "Gene") %>% filter(!is.na(padj)) %>% arrange(padj)
 ## Write Results
-writexl::write_xlsx(list(
-  "H_vs_UM" = res_H_UM_df,
-  "IM_vs_UM" = res_IM_UM_df),
-  file.path(tables_dir, "DESeq2_Results_pval.xlsx"))
+#writexl::write_xlsx(list(
+#  "H_vs_UM" = res_H_UM_df,
+#  "IM_vs_UM" = res_IM_UM_df),
+#  file.path(tables_dir, "DESeq2_Results_pval.xlsx"))
 
 
 # H vs UM volcano
@@ -269,7 +269,7 @@ EnhancedVolcano(
   subtitle = paste("Total DE:", sum(res_H_UM_df$padj < 0.05, na.rm = TRUE)),
   caption = "Haustoria TRAP-seq"
 )
-ggsave(file.path(graphics_dir, "Volcano_H_vs_UM.png"), width = 10, height = 8, dpi = 300)
+#ggsave(file.path(graphics_dir, "Volcano_H_vs_UM.png"), width = 10, height = 8, dpi = 300)
 
 # IM vs UM volcano  
 EnhancedVolcano(
@@ -285,14 +285,14 @@ EnhancedVolcano(
   subtitle = paste("Total DE:", sum(res_IM_UM_df$padj < 0.05, na.rm = TRUE)),
   caption = "Infection Result TRAP-seq"
 )
-ggsave(file.path(graphics_dir, "Volcano_IM_vs_UM.png"), width = 10, height = 8, dpi = 300)
+#ggsave(file.path(graphics_dir, "Volcano_IM_vs_UM.png"), width = 10, height = 8, dpi = 300)
 ```
 
 ## 11. VST NORMALIZATION
-```{r VST-Normalization}
+```{r VST-NORMALIZATION}
   #########################  VST   #########################  
 ## Variance stabilizing transformation
-vsd <- vst(dds, blind = FALSE, nsub = 1000)  # blind ignores design; subsample for speed
+vsd <- vst(dds, blind = FALSE)  # blind ignores design; subsample for speed
 
 ## Sample names, match to colData
 colnames(vsd) <- rownames(sample_info)
@@ -408,7 +408,7 @@ p_pca <- ggplot(pca_data, aes(PC1, PC2, color = Groups, shape = Condition)) +
                   segment.size = 0.3,
                   bg.color = "white", 
                   bg.r = 0.1) +
-  labs(title = "TRAP-seq PCA: Haustoria vs Mesophyll (VST)",
+  labs(title = "TRAP-seq Sample Clustering (Variance-Stabilized Counts)",
        subtitle = paste("PC1:", round(percentVar[1],1), "% variance |",
                        "PC2:", round(percentVar[2],1), "% variance"),
        caption = "Groups: UM (uninfected mesophyll), IM (infected mesophyll), H (haustoria)") +
@@ -421,8 +421,8 @@ p_pca <- ggplot(pca_data, aes(PC1, PC2, color = Groups, shape = Condition)) +
 print(p_pca)
 
 ## EXPORT
-ggsave(file.path(graphics_dir, "TRAPseq_PCA_vst.png"), 
-       p_pca, width = 8, height = 8, dpi = 300, bg = "white")
+#ggsave(file.path(graphics_dir, "TRAPseq_PCA_vst.png"), 
+#       p_pca, width = 8, height = 8, dpi = 300, bg = "white")
 ```
 
 ## 14. LFC SHRINKAGE + ARRANGEMENT + CLEAN
@@ -525,12 +525,12 @@ purrr::pwalk(
 )
 
 #########################  EXPORT #########################
-export_list <- c(
-  res_list,
-  setNames(deg_list, paste0(names(deg_list), "_DEGs"))
-)
+#export_list <- c(
+#  res_list,
+#  setNames(deg_list, paste0(names(deg_list), "_DEGs"))
+#)
 
-writexl::write_xlsx(export_list, file.path(tables_dir, "DESeq2_results_shrink.xlsx"))
+#writexl::write_xlsx(export_list, file.path(tables_dir, "DESeq2_results_shrink.xlsx"))
 ```
 
 ## 15. TOP 100 GENES & HEATMAP
@@ -539,55 +539,59 @@ set.seed(123)
 ######################### TOP 100 DEGs HEATMAP #########################
 topN <- 100  # Number of genes to display
 
-# Get top N DEGs for each contrast ranked by |LFC|
+# Rank DEGs by |LFC|
 top_DE_IM <- deg_list$IM_vs_UM %>%
-  filter(DEG) %>%
-  arrange(desc(abs(log2FoldChange))) %>%
-  slice_head(n = topN) %>%
-  pull(TAIR)
+  arrange(desc(abs(log2FoldChange))) #%>%
+ # slice_head(n = topN)
 
 top_DE_H <- deg_list$H_vs_UM %>%
-  filter(DEG) %>%
-  arrange(desc(abs(log2FoldChange))) %>%
-  slice_head(n = topN) %>%
-  pull(TAIR)
+  arrange(desc(abs(log2FoldChange)))#%>%
+#  slice_head(n = topN)
 
-# Option 1: intersection (shared DEGs)
-top_DE_genes <- intersect(top_DE_IM, top_DE_H)
+# Define shared gene sets
+top_shared_genes <- intersect(top_DE_IM$TAIR, top_DE_H$TAIR)
+all_shared_genes <- intersect(deg_list$IM_vs_UM$TAIR,
+                             deg_list$H_vs_UM$TAIR)
 
-# union of top N
-# top_DE_genes <- union(top_DE_IM, top_DE_H)
-
-cat("Top DE genes (padj<", pad, ", |LFC|≥", lfc_thresh, "):", length(top_DE_genes), "\n")
+cat("Top shared DEGs:", length(top_shared_genes), "\n")
+cat("All shared DEGs:", length(all_shared_genes), "\n")
 
 # Keep only genes present in normalized counts
-top_DE_genes <- intersect(top_DE_genes, rownames(norm_counts))
+top_shared_genes <- intersect(top_shared_genes, rownames(norm_counts))
 
-if(length(top_DE_genes) > 0){
+######################### HEATMAP #########################
 
-  # Subset normalized counts
-  deg_mat <- norm_counts[top_DE_genes, ]
+if(length(top_shared_genes) > 0){
 
-  # Create row annotation for direction
+  deg_mat <- norm_counts[top_shared_genes, ]
+
+  ######################### ROW ANNOTATION (FIXED) #########################
+# Include direction from BOTH contrasts
   direction_df <- deg_list$IM_vs_UM %>%
-    filter(TAIR %in% top_DE_genes) %>%
-    select(TAIR, direction) %>%
+    select(TAIR, direction_IM = direction) %>%
+    left_join(
+      deg_list$H_vs_UM %>%
+        select(TAIR, direction_H = direction),
+      by = "TAIR"
+    ) %>%
+    filter(TAIR %in% top_shared_genes) %>%
     column_to_rownames("TAIR")
-  
-  # Sample annotation
+
+ ######################### COLUMN ANNOTATION #########################
   ann_col <- data.frame(Groups = sample_info$Groups)
   rownames(ann_col) <- colnames(deg_mat)
-
-  # Define colors for annotations
+  ######################### COLORS #########################
   ann_colors <- list(
     Groups = c(IM = "hotpink", H = "blue", UM = "black"),
-    direction = c(UP = "#e41a1c", DOWN = "#377eb8")
+    direction_IM = c(UP = "#e41a1c", DOWN = "#377eb8", NS = "grey"),
+    direction_H  = c(UP = "#e41a1c", DOWN = "#377eb8", NS = "grey")
   )
 
-  # Generate heatmap
+
+  ######################### PLOT #########################
   pheatmap::pheatmap(
     deg_mat,
-    scale = "row",  # Z-score per gene
+    scale = "row",
     color = colorRampPalette(rev(RColorBrewer::brewer.pal(7, "RdYlBu")))(100),
     cluster_rows = TRUE,
     cluster_cols = TRUE,
@@ -597,74 +601,77 @@ if(length(top_DE_genes) > 0){
     annotation_col = ann_col,
     annotation_row = direction_df,
     annotation_colors = ann_colors,
-    show_rownames = ifelse(length(top_DE_genes) < 30, TRUE, FALSE),
+    show_rownames = ifelse(length(top_shared_genes) < 30, TRUE, FALSE),
     show_colnames = FALSE,
-    main = paste0("Top ", length(top_DE_genes), 
-                  " DE Genes (Top ", topN, " by |LFC| per contrast)"),
+    main = paste0("Top Shared DEGs (n=", 
+                  length(top_shared_genes), ")"),
     fontsize_row = 8,
-    filename = file.path(graphics_dir, "heatmap_top_DE_genes_direction.png"),
+    filename = file.path(graphics_dir, "heatmap_top_shared_DEGs.png"),
     width = 12, height = 10
   )
-
-  # Optional export
-  top_DE_df <- data.frame(Gene = top_DE_genes)
-  # write.csv(top_DE_df, file.path(tables_dir, "top_DE_genes.csv"), row.names = FALSE)
-  # writexl::write_xlsx(top_DE_df, file.path(tables_dir, "top_DE_genes.xlsx"))
-
 } else {
-  cat("No DE genes found in norm_counts.\n")
+  cat("No shared DEGs found in norm_counts.\n")
 }
-```
 
+######################### SHARED / UNIQUE ANALYSIS #########################
 
-```{r H v UM DEGS}
-######################### Shared DEGs #########################
-# Extract DEG tables
-deg_H <- deg_list$H_vs_UM
+# Use DEG-filtered tables directly
 deg_IM <- deg_list$IM_vs_UM
+deg_H  <- deg_list$H_vs_UM
 
-# Identify shared and unique genes
-shared_genes <- intersect(deg_H$TAIR, deg_IM$TAIR)
-unique_H <- setdiff(deg_H$TAIR, deg_IM$TAIR)
+# Gene sets
+shared_genes <- intersect(deg_IM$TAIR, deg_H$TAIR)
 unique_IM <- setdiff(deg_IM$TAIR, deg_H$TAIR)
+unique_H  <- setdiff(deg_H$TAIR, deg_IM$TAIR)
 
-# Shared DEGs with average LFC
-deg_shared <- deg_H %>%
-  filter(TAIR %in% shared_genes) %>%
-  left_join(
-    deg_IM %>% select(TAIR, log2FoldChange_IM = log2FoldChange, padj_IM = padj),
+######################### SHARED DEG TABLE #########################
+
+deg_shared <- deg_IM %>%
+  select(TAIR, log2FoldChange_IM = log2FoldChange, padj_IM = padj) %>%
+  inner_join(
+    deg_H %>%
+      select(TAIR, log2FoldChange_H = log2FoldChange, padj_H = padj),
     by = "TAIR"
   ) %>%
-  mutate(avg_lfc = (log2FoldChange + coalesce(log2FoldChange_IM, 0)) / 2) %>%
-  arrange(desc(abs(avg_lfc)))
-# Summary table: counts per contrast and shared/unique
-summary_tbl <- tibble(
-  Category = c("H_vs_UM", "IM_vs_UM", "Shared", "Unique_H", "Unique_IM"),
-  n_genes  = c(nrow(deg_H), nrow(deg_IM), length(shared_genes), length(unique_H), length(unique_IM))
-)
-
-# Optional: percentages of H/IM genes for shared/unique
-summary_tbl <- summary_tbl %>%
   mutate(
-    percent_of_H  = round(100 * n_genes / nrow(deg_H), 1),
-    percent_of_IM = round(100 * n_genes / nrow(deg_IM), 1)
+    avg_lfc = (log2FoldChange_IM + log2FoldChange_H) / 2,
+    concordance = case_when(
+      log2FoldChange_IM > 0 & log2FoldChange_H > 0 ~ "UP_UP",
+      log2FoldChange_IM < 0 & log2FoldChange_H < 0 ~ "DOWN_DOWN",
+      TRUE ~ "DISCORDANT"
+    )
+  ) %>%
+  arrange(desc(abs(avg_lfc)))
+######################### SUMMARY TABLE #########################
+
+summary_tbl <- tibble(
+  Category = c("IM_vs_UM", "H_vs_UM", "Shared", "Unique_IM", "Unique_H"),
+  n_genes  = c(nrow(deg_IM), nrow(deg_H),
+               length(shared_genes),
+               length(unique_IM),
+               length(unique_H))
+) %>%
+  mutate(
+    percent_of_IM = round(100 * n_genes / nrow(deg_IM), 1),
+    percent_of_H  = round(100 * n_genes / nrow(deg_H), 1)
   )
 
-# Excel export: all key DEG tables
+print(summary_tbl)
+
+######################### EXPORT #########################
+
 deg_workbook <- list(
-  H_vs_UM     = deg_H %>% arrange(padj),
   IM_vs_UM    = deg_IM %>% arrange(padj),
+  H_vs_UM     = deg_H %>% arrange(padj),
   Shared_DEGs = deg_shared,
-  Unique_H    = deg_H %>% filter(TAIR %in% unique_H),
-  Unique_IM   = deg_IM %>% filter(TAIR %in% unique_IM)
+  Unique_IM   = deg_IM %>% filter(TAIR %in% unique_IM),
+  Unique_H    = deg_H %>% filter(TAIR %in% unique_H)
 )
 
-# Uncomment to export
-# writexl::write_xlsx(deg_workbook, file.path(tables_dir, "DEG_summary.xlsx"))
-
-# Print summary
-summary_tbl
+# writexl::write_xlsx(deg_workbook,
+#   file.path(tables_dir, "DEG_summary.xlsx"))
 ```
+
 
 ```{r}
 #########################  PREPARE ENTREZ LISTS #########################
@@ -676,46 +683,26 @@ entrez_list <- lapply(deg_split, function(contrast_list) {
   )
 })
 
-# Flatten for 4-way comparison
-entrez_flat <- list(
-  IM_UP   = entrez_list$IM_vs_UM$UP,
-  H_UP    = entrez_list$H_vs_UM$UP,
+#########################  SPLIT INTO UP / DOWN #########################
+
+entrez_up <- list(
+  IM_UP = entrez_list$IM_vs_UM$UP,
+  H_UP  = entrez_list$H_vs_UM$UP
+)
+
+entrez_down <- list(
   IM_DOWN = entrez_list$IM_vs_UM$DOWN,
   H_DOWN  = entrez_list$H_vs_UM$DOWN
 )
 
-#########################  GO BP ENRICHMENT #########################
-ego_list <- lapply(names(entrez_flat), function(category){
-  genes <- entrez_flat[[category]]
-  if(length(genes) >= 10){
-    enrichGO(
-      gene = genes,
-      OrgDb = org.At.tair.db,
-      keyType = "ENTREZID",
-      ont = "BP",
-      pAdjustMethod = "BH",
-      pvalueCutoff = pad,
-      qvalueCutoff = pad,
-      minGSSize = 10,
-      maxGSSize = 500
-    )
-  } else NULL
-})
-names(ego_list) <- names(entrez_flat)
+#########################  GO BP ENRICHMENT (COMPARECLUSTER) #########################
 
-# Assign backward-compatible objects
-ego_IMup   <- ego_list$IM_UP
-ego_Hup    <- ego_list$H_UP
-ego_IMdown <- ego_list$IM_DOWN
-ego_Hdown  <- ego_list$H_DOWN
-
-#########################  GO DOTPLOT #########################
-go_compare <- compareCluster(
-  geneClusters = entrez_flat,
+go_up <- compareCluster(
+  geneClusters = entrez_up,
   fun = "enrichGO",
   OrgDb = org.At.tair.db,
   keyType = "ENTREZID",
-  ont = "BP",
+  ont = "ALL",
   pAdjustMethod = "BH",
   pvalueCutoff = pad,
   qvalueCutoff = pad,
@@ -723,20 +710,55 @@ go_compare <- compareCluster(
   maxGSSize = 500
 )
 
-p_go_dot <- dotplot(go_compare, showCategory = 10, font.size = 11, label_format = 60) +
-  ggtitle("GO BP Terms: 4-way Comparison (IM_UP/H_UP/IM_DOWN/H_DOWN)")
-ggsave(file.path(graphics_dir, "GO_BP_4way_combined_dotplot.png"), 
-       plot = p_go_dot, width = 12, height = 12, dpi = 300)
-cat("Saved GO BP 4-way combined dotplot\n")
-
-go_export <- c(
-  # GO
-  lapply(ego_list, function(x) if(!is.null(x)) x@result else data.frame())
+go_down <- compareCluster(
+  geneClusters = entrez_down,
+  fun = "enrichGO",
+  OrgDb = org.At.tair.db,
+  keyType = "ENTREZID",
+  ont = "ALL",
+  pAdjustMethod = "BH",
+  pvalueCutoff = pad,
+  qvalueCutoff = pad,
+  minGSSize = 10,
+  maxGSSize = 500
 )
 
-writexl::write_xlsx(go_export, file.path(tables_dir, "COMPLETE_GO.xlsx"))
-cat("GO results exported successfully\n")
+go_up<- simplify(go_up)
+go_down<-simplify(go_down)
 
+go_up<- pairwise_termsim(go_up)
+go_down<-pairwise_termsim(go_down)
+
+#########################  DOTPLOTS #########################
+
+p_go_up <- dotplot(go_up, showCategory = 12, font.size = 11, label_format = 60) +
+  ggtitle("GO (ALL) Terms: UP-regulated (IM vs UM, H vs UM)")
+
+p_go_down <- dotplot(go_down, showCategory = 12, font.size = 11, label_format = 60) +
+  ggtitle("GO (ALL) Terms: DOWN-regulated (IM vs UM, H vs UM)")
+
+#########################  SAVE PLOTS #########################
+
+#ggsave(file.path(graphics_dir, "GO_ALL_UP_dotplot.png"),
+#       plot = p_go_up, width = 10, height = 10, dpi = 300)
+
+#ggsave(file.path(graphics_dir, "GO_ALL_DOWN_dotplot.png"),
+#       plot = p_go_down, width = 10, height = 10, dpi = 300)
+
+#########################  OPTIONAL: COMBINED PANEL #########################
+
+library(patchwork)
+
+p_combined <- p_go_up / p_go_down  # vertical stack
+
+#ggsave(file.path(graphics_dir, "GO_ALL_UP_DOWN_combined.png"),
+#       plot = p_combined, width = 10, height = 16, dpi = 300)
+
+cat("Saved GO BP UP and DOWN dotplots (separate + combined)\n")
+```
+
+
+```{r}
 #########################  KEGG ENRICHMENT #########################
 kegg_list <- entrez_flat
 
@@ -772,8 +794,8 @@ kegg_compare <- compareCluster(
 
 p_kegg_dot <- dotplot(kegg_compare, showCategory = 10, font.size = 11, label_format = 60) +
   ggtitle("KEGG Pathways: 4-way Comparison (IM_UP/H_UP/IM_DOWN/H_DOWN)")
-ggsave(file.path(graphics_dir, "KEGG_4way_combined_dotplot.png"), 
-       plot = p_kegg_dot, width = 12, height = 12, dpi = 300)
+#ggsave(file.path(graphics_dir, "KEGG_4way_combined_dotplot.png"), 
+#       plot = p_kegg_dot, width = 12, height = 12, dpi = 300)
 cat("Saved KEGG 4-way combined dotplot\n")
 
 #########################  SUMMARY TABLE #########################
@@ -798,12 +820,13 @@ full_export <- c(
   list(Summary = go_kegg_summary)
 )
 
-writexl::write_xlsx(full_export, file.path(tables_dir, "COMPLETE_KEGG_4way.xlsx"))
+#writexl::write_xlsx(full_export, file.path(tables_dir, "COMPLETE_KEGG_4way.xlsx"))
 cat("KEGG results exported successfully\n")
 ```
 
 ```{r VIDGER}
 library(vidger)
+
 #########################  FOUR-WAY PLOT WITH CUSTOM COLORS #########################
 FW_df <- vsFourWay( x = "H", y = "IM", control = "UM", 
                     data = dds, 
@@ -822,59 +845,36 @@ print(FW_df$plot) # View plot
 ```
 
 ```{r}
-library(dplyr)
-library(ggplot2)
+library(vidger)
+library(ggrepel)
+library(DESeq2)
 
-# Categorize DEGs based on significance and LFC
-FW_df$plot$data <- FW_df$plot$data %>%
-  mutate(
-    DE_status = case_when(
-      padj_x < pad & abs(logFC_x) > lfc_thresh &
-      padj_y < pad & abs(logFC_y) > lfc_thresh ~ "H+IM",
-      
-      padj_x < pad & abs(logFC_x) > lfc_thresh &
-      (padj_y >= pad | abs(logFC_y) <= lfc_thresh) ~ "H_only",
-      
-      padj_x >= pad & padj_y >= pad ~ "NS",
-      
-      padj_y < pad & abs(logFC_y) > lfc_thresh &
-      (padj_x >= pad | abs(logFC_x) <= lfc_thresh) ~ "IM_only"
-    ),
-    # Scale point size based on combined magnitude of LFCs
-    LFC_magnitude = sqrt(logFC_x^2 + logFC_y^2)
-  )
+genes_of_interest <- c("AT3G09770", "AT4G31730", "AT2G36270", "AT2G40220") # order: LOG2, GDU1, ABI5, ABI4
 
-# Assign colors
-intersection_colors <- c(
-  "H+IM" = "purple",
-  "H_only" = "blue",
-  "NS" = "gray60",
-  "IM_only" = "hotpink"
+
+# Get log2FC directly (no filtering issues)
+res_H  <- results(dds, contrast = c("Groups", "H", "UM"))
+res_IM <- results(dds, contrast = c("Groups", "IM", "UM"))
+
+df <- data.frame(
+  gene = rownames(res_H),
+  x = res_H$log2FoldChange,
+  y = res_IM$log2FoldChange
 )
 
-# Update plot with color and size aesthetics
-FW_plot_intersect <- ggplot(FW_df$plot$data, aes(x = logFC_x, y = logFC_y)) +
-  geom_point(aes(color = DE_status, size = LFC_magnitude), alpha = 0.7) +
-  scale_color_manual(values = intersection_colors) +
-  scale_size_continuous(range = c(1, 5)) + # adjust min/max size
-  geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
-  geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
-  labs(
-    x = "log2FC H vs UM",
-    y = "log2FC IM vs UM",
-    color = "DE Category",
-    size = "Combined LFC"
-  ) +
-  theme_minimal() +
-  ggtitle("Four-Way DE Intersection with LFC Magnitude")
+subset_df <- df[df$gene %in% genes_of_interest, ]
 
-print(FW_plot_intersect)
+# Plot with highlighted genes
+p <- FW_df$plot +
+  geom_point(data = subset_df, aes(x = x, y = y),
+             color = "hotpink", size = 3) +
+  geom_text_repel(data = subset_df, aes(x = x, y = y, label = gene),
+                  color = "hotpink")
 
-# Optional save
-ggsave(
-  file.path(graphics_dir, "FourWay_H_vs_IM_vs_UM_intersection_LFCsize.png"),
-  plot = FW_plot_intersect, width = 10, height = 8, dpi = 300
-)
+print(p)
+
+# Save
+#ggsave(file.path(graphics_dir, "FourWay_H_vs_IM_vs_UM_LOG2_GDU1.png"), p, width = 10, height = 8, dpi = 300)
 ```
 
 
@@ -902,17 +902,134 @@ sig_genes <- df_four %>%
   pull(id)
 
 ## EXPORT
-H_green_res <- list(
+way4_export <- list(
   Green_H_UP   = green_H_up,
-  Green_H_DOWN = green_H_down
-)
-write_xlsx(H_green_res, file.path(tables_dir, "H_green_results.xlsx"))
-
-IM_red_res <- list(
+  Green_H_DOWN = green_H_down,
   RED_IM_UP   = red_IM_up,
   RED_IM_DOWN = red_IM_down
 )
-write_xlsx(H_green_res, file.path(tables_dir, "H_green_results.xlsx"))
+#write_xlsx(way4_export, file.path(tables_dir, "4WAY_ALL_results.xlsx"))
+```
+
+```{r}
+# H-specific UP (largest positive logFC_x)
+green_H_up_top10 <- green_H_up %>%
+  arrange(desc(logFC_x)) %>%
+  slice_head(n = 10)
+
+# H-specific DOWN (most negative logFC_x)
+green_H_down_top10 <- green_H_down %>%
+  arrange(logFC_x) %>%
+  slice_head(n = 10)
+
+# IM-specific UP (largest positive logFC_y)
+red_IM_up_top10 <- red_IM_up %>%
+  arrange(desc(logFC_y)) %>%
+  slice_head(n = 10)
+
+# IM-specific DOWN (most negative logFC_y)
+red_IM_down_top10 <- red_IM_down %>%
+  arrange(logFC_y) %>%
+  slice_head(n = 10)
+
+TOP10_way4_export <- list(
+  Green_H_UP   = green_H_up_top10,
+  Green_H_DOWN = green_H_down_top10,
+  RED_IM_UP   = red_IM_up_top10,
+  RED_IM_DOWN = red_IM_down_top10
+)
+#write_xlsx(TOP10_way4_export, file.path(tables_dir, "TOP10_4WAY_results.xlsx"))
+```
+
+
+```{r heatmap of top 10 green and red}
+top_genes_labeled <- bind_rows(
+  green_H_up_top10  %>% mutate(group = "H_Up"),
+  green_H_down_top10 %>% mutate(group = "H_Down"),
+  red_IM_up_top10   %>% mutate(group = "IM_Up"),
+  red_IM_down_top10 %>% mutate(group = "IM_Down")
+) %>%
+  distinct(id, .keep_all = TRUE)
+
+mat_subset <- vsd_mat[rownames(vsd_mat) %in% gene_list, ]
+
+mat_scaled <- t(scale(t(mat_subset))) # scale per gene
+
+# match order
+#top_genes_labeled <- top_genes_labeled %>%
+#  filter(id %in% rownames(mat_scaled))
+top_genes_labeled <- top_genes_labeled %>%
+  mutate(group = factor(group, levels = c(
+    "H_Up", "H_Down",
+    "IM_Up", "IM_Down"
+  )))
+
+mat_scaled <- mat_scaled[top_genes_labeled$id, ]
+metadata <- as.data.frame(colData(dds))
+
+# enforce order
+metadata$Groups <- factor(metadata$Groups, levels = c("UM", "IM", "H"))
+
+# reorder matrix columns
+mat_scaled <- mat_scaled[, rownames(metadata[order(metadata$Groups), ])]
+
+# reorder metadata
+metadata <- metadata[order(metadata$Groups), , drop = FALSE]
+library(ComplexHeatmap)
+library(circlize)
+
+# column annotation (samples)
+col_ha <- HeatmapAnnotation(
+  Groups = metadata$Groups,
+  col = list(
+    Groups = c(
+      "UM" = "black",
+      "IM" = "hotpink",
+      "H"  = "blue"
+    )
+  )
+)
+
+# row annotation (gene groups)
+row_ha <- rowAnnotation(
+  Group = top_genes_labeled$group,
+  col = list(
+    Group = c(
+      "H_Up"   = "#1b9e77",
+      "H_Down" = "#DFFF00",
+      "IM_Up"  = "#A52A2A",
+      "IM_Down"= "#BF40BF"
+    )
+  )
+)
+col_fun <- colorRamp2(
+  c(-2, 0, 2),
+  c("blue", "white", "red")
+)
+
+top10 <- Heatmap(
+  mat_scaled,
+  name = "Z-score",
+  col = col_fun,
+  top_annotation = col_ha,
+  left_annotation = row_ha,
+  
+  cluster_rows = FALSE,   # preserve bio grouping
+  cluster_columns = FALSE, # preserve UM, IM, H
+  show_row_names = TRUE,
+  show_column_names = TRUE,
+  
+  row_split = top_genes_labeled$group,
+  column_split = metadata$Groups,
+  column_title = "Sample: UM, IM, H",
+  row_title = "Gene Groups: Up & Down"
+)
+pdf(file.path(graphics_dir, "TOP10_Heatmap.pdf"),
+    width = 10, height = 10)
+
+draw(top10, heatmap_legend_side = "right", annotation_legend_side = "right")
+
+dev.off()
 ```
 
 
@@ -922,603 +1039,138 @@ ego_H_up <- enrichGO(
   gene = green_H_up$id,
   OrgDb = org.At.tair.db,
   keyType = "TAIR",
-  ont = "MF",
+  ont = "ALL",
   pAdjustMethod = "BH",
-  pvalueCutoff = pad,
-  qvalueCutoff = pad,
-  minGSSize = 5
-)
-ego_H_up
+  pvalueCutoff = 1,
+  qvalueCutoff = 1,
+  minGSSize = 1)
+
 ego_H_down <- enrichGO(
   gene = green_H_down$id,
   OrgDb = org.At.tair.db,
   keyType = "TAIR",
-  ont = "MF",
+  ont = "ALL",
   pAdjustMethod = "BH",
   pvalueCutoff = pad,
   qvalueCutoff = pad,
-  minGSSize = 5
-)
+  minGSSize = 3)
 
-ego_H_down
   ######################### RED GENES, INFECTED MESOPHYLL  ######################### 
 ego_IM_up <- enrichGO(
   gene = red_IM_up$id,
   OrgDb = org.At.tair.db,
   keyType = "TAIR",
-  ont = "MF",
+  ont = "ALL",
   pAdjustMethod = "BH",
   pvalueCutoff = pad,
   qvalueCutoff = pad,
-  minGSSize = 5
-)
-ego_IM_up
+  minGSSize = 3)
+
 ego_IM_down <- enrichGO(
   gene = red_IM_down$id,
   OrgDb = org.At.tair.db,
   keyType = "TAIR",
-  ont = "MF",
+  ont = "ALL",
   pAdjustMethod = "BH",
   pvalueCutoff = pad,
   qvalueCutoff = pad,
-  minGSSize = 5
-)
-ego_IM_down
+  minGSSize = 3)
+
+
+ego_H_up<- simplify(ego_H_up)
+ego_H_down<- simplify(ego_H_down)
+ego_IM_up<- simplify(ego_IM_up)
+ego_IM_down<- simplify(ego_IM_down)
+
+ego_H_up<- pairwise_termsim(ego_H_up)
+ego_H_down<- pairwise_termsim(ego_H_down)
+ego_IM_up<- pairwise_termsim(ego_IM_up)
+ego_IM_down<- pairwise_termsim(ego_IM_down)
 ```
 
 ```{r}
-library(clusterProfiler)
-library(org.At.tair.db)
-library(ggplot2)
-library(dplyr)
-
-#----------------------------
-# 1. Convert enrichGO → data.frame + add labels
-#----------------------------
-
-process_GO <- function(ego, label) {
-  if (is.null(ego)) return(NULL)
-  
-  df <- as.data.frame(ego)
-  
-  if (nrow(df) == 0) return(NULL)  # handles H_up case
-  
-  df$Group <- label
-  return(df)
-}
-
-H_up_df   <- process_GO(ego_H_up, "H Up")
-H_down_df <- process_GO(ego_H_down, "H Down")
-IM_up_df  <- process_GO(ego_IM_up, "IM Up")
-IM_down_df<- process_GO(ego_IM_down, "IM Down")
-
-#----------------------------
-# 2. Combine safely
-#----------------------------
-
-combined_GO <- bind_rows(
-  H_up_df,
-  H_down_df,
-  IM_up_df,
-  IM_down_df
-)
-
-#----------------------------
-# 3. Select top terms per group
-#----------------------------
-
-top_GO <- combined_GO %>%
-  group_by(Group) %>%
-  slice_min(p.adjust, n = 5) %>%
-  ungroup()
-
-#----------------------------
-# 4. Plot
-#----------------------------
-
-ggplot(top_GO, aes(x = Group, y = reorder(Description, -log10(p.adjust)))) +
-  geom_point(aes(size = Count, color = -log10(p.adjust))) +
-  facet_wrap(~Group, scales = "free_y") +
-  theme_minimal() +
-  labs(
-    title = "GO Molecular Function Enrichment",
-    x = "",
-    y = "GO Terms",
-    size = "Gene Count",
-    color = "-log10(adj p-value)"
-  )
-ggsave(file.path(graphics_dir, "GO_MF.png"), 
-       width = 20, 
-       height = 10, 
-       dpi = 300)
-
-```
-
-
-
-
-
-```{r}
-library(dplyr)
-
-extract_top_terms <- function(ego_obj, group_name, top_n = 8) {
-  df <- ego_obj@result
-  
-  if (nrow(df) == 0) return(NULL)
-  
-  df %>%
-    arrange(p.adjust) %>%
-    head(top_n) %>%
-    mutate(
-      Group = group_name,
-      GeneRatio_num = sapply(GeneRatio, function(x) eval(parse(text = x)))
-    )
-}
-
-H_up_df    <- extract_top_terms(ego_H_up, "Haustoria Up")
-H_down_df  <- extract_top_terms(ego_H_down, "Haustoria Down")
-IM_up_df   <- extract_top_terms(ego_IM_up, "Mesophyll Up")
-IM_down_df <- extract_top_terms(ego_IM_down, "Mesophyll Down")
-go_combined <- bind_rows(H_down_df, H_up_df, IM_down_df, IM_up_df)
+######################### VISUALIZE GO TERMS #########################
+library(enrichplot)
 library(ggplot2)
 
-ggplot(go_combined, aes(x = reorder(Description, GeneRatio_num), 
-                        y = GeneRatio_num, 
-                        fill = Group)) +
-  geom_bar(stat = "identity") +
-  coord_flip() +
-  facet_wrap(~Group, scales = "free") +
-  labs(
-    title = "GO Term Trends Across Conditions (Exploratory)",
-    subtitle = "No terms passed BH-adjusted significance threshold (p.adjust < 0.05)",
-    x = "GO Term",
-    y = "Gene Ratio"
-  ) +
-  theme_bw() +
-  theme(
-    strip.text = element_text(face = "bold"),
-    axis.text.y = element_text(size = 8),
-    plot.title = element_text(face = "bold")
-  )
-
-ggsave(file.path(graphics_dir, "combined_GO_terms_BP.png"),
-  width = 10,
-  height = 6,
-  dpi = 300
-)
-```
-
-
-
-```{r UP-Green-GO-genes}
-# Extract H results
-top_H_up <- ego_H_up@result %>% 
-  arrange(p.adjust) %>%
-  slice(1:10) %>%
-  select(ID, Description, GeneRatio, Count) %>%
-  mutate(Direction = "H-UP")
-
-# Extract same GO terms from H-DOWN
-H_down_same <- ego_H_down@result %>%
-  filter(Description %in% 
-           top_H_up$Description) %>%
-  select(ID, Description, GeneRatio, Count) %>%
-  mutate(Direction = "H-DOWN")
-
-#COMBINE
-go_mirror <- bind_rows(top_H_up, H_down_same)
-
-# Convert GeneRatio to numeric
-go_mirror <- go_mirror %>%
-  mutate(
-    GeneRatio_num = sapply(strsplit(GeneRatio, "/"),
-      function(x) as.numeric(x[1]) / as.numeric(x[2])
+# Haustoria upregulated
+p_H_up <- dotplot(ego_H_up,
+        showCategory = 8,
+        split = "ONTOLOGY") +
+  facet_grid(ONTOLOGY ~ ., scales = "free", switch = "y") +
+  ggtitle("GO Enrichment: Genes Upregulated in Haustoria") +
+    theme(
+      plot.title = element_text(face = "bold", size = 12, hjust = 0.5),
+      strip.text.y = element_text(face = "bold", size = 10),
+      axis.text = element_text(color = "black"),
+       axis.text.y = element_text(size = 8),
+      axis.text.x = element_text(size = 8), 
+      legend.position = "right",
+      strip.placement = "outside"
     )
-  )
-
-
-go_mirror <- go_mirror %>%
-  mutate(
-    GeneRatio_plot = ifelse(Direction == "H-UP",
-                            -GeneRatio_num, #the - switches the bar side
-                            GeneRatio_num)
-  )
-
-
-go_mirror <- go_mirror %>%
-  mutate(order_val = ifelse(Direction == "H-UP",
-                            -GeneRatio_num,
-                            GeneRatio_num))
-
-go_mirror$Description <- stringr::str_wrap(go_mirror$Description, width = 35)
-H_up   <- go_mirror %>% dplyr::filter(Direction == "H-UP")
-H_down <- go_mirror %>% dplyr::filter(Direction == "H-DOWN")
-
-# H UP REGULATED PLOT 
-p_tornado <- ggplot() +
-# H-UP bars
-  geom_col(
-    data = H_up,
-aes(x = GeneRatio_plot, y = reorder(Description, Count), fill = Count),
-    width = 0.7) +
-    scale_fill_gradient(
-    low = "lightpink",
-    high = "deeppink",
-    name = "H-UP Gene Count",
-  guide = guide_colorbar(order = 1)
-  ) +
-    ggnewscale::new_scale_fill() + # reset scale for second gradient
-  
- ## H DOWN
-geom_col(data = H_down, aes(x = GeneRatio_plot, y = Description, fill = Count), width = 0.7,) +
-    scale_fill_gradient(
-    low = "thistle",
-    high = "purple",
-    name = "H-DOWN Gene Count",
-  guide = guide_colorbar(order = 2)
-  ) +
-     # center reference line
-  geom_vline(xintercept = 0, linewidth = 0.6, color = "black") +
-  
-    #count labels on bars
-  geom_text(
-    data = go_mirror,
-    aes(x = GeneRatio_plot, y = Description, label = Count),
-    size = 3,
-      color = "black",
-    hjust = ifelse(go_mirror$Direction == "H-UP", 1.1, -0.1)
-  ) +
-    scale_x_continuous(
-    labels = abs,
-    name = "Gene Ratio"
-  ) +
-    labs(y = "GO Biological Process", 
-       title = "Top GO Terms Enriched in UP-Regulated Haustoriated Cells\nand Their Representation in Down-Regulated Genes") +
-  theme(
-  axis.text.y = element_text(size = 12, color = "black"),
-  axis.text.x = element_text(color = "black"),
-  legend.position = "bottom",
-  plot.title = element_text(face = "bold", hjust = 0.5),
-  panel.background = element_blank(),
-  panel.grid.major.x = element_line(color = "grey90"),
-  panel.grid.major.y = element_line(color = "grey90"),
-  panel.grid.minor = element_blank()
-) +
-   theme(axis.text.y = element_text(size = 12), legend.position = "bottom", plot.title = element_text(face = "bold", hjust = 0.5)
-  )
-print(p_tornado)
-
-ggsave(file.path(graphics_dir, "mirrored_GO_H_UP_comparison.png"),
-  p_tornado,
-  width = 10,
-  height = 6,
-  dpi = 300
-)
-```
-
-
-
-```{r}
-# Top GO terms from H-UP
-top_H_down <- ego_H_down@result %>% 
-  arrange(p.adjust) %>%
-  slice(1:10) %>%
-  select(ID, Description, GeneRatio, Count) %>%
-  mutate(Direction = "H-DOWN")
-
-# Extract same GO terms from H-DOWN
-H_up_same <- ego_H_up@result %>%
-  filter(Description %in% 
-           top_H_down$Description) %>%
-  select(ID, Description, GeneRatio, Count) %>%
-  mutate(Direction = "H-UP")
-
-# Combine
-go_mirror <- bind_rows(top_H_down, H_up_same)
-
-go_mirror <- go_mirror %>%
-  mutate(
-    GeneRatio_num = sapply(strsplit(GeneRatio, "/"),
-      function(x) as.numeric(x[1]) / as.numeric(x[2])
+p_H_up
+# Haustoria downregulated
+p_H_down <- dotplot(ego_H_down,
+        showCategory = 8,
+        split = "ONTOLOGY") +
+  facet_grid(ONTOLOGY ~ ., scales = "free", switch = "y") +
+  ggtitle("GO Enrichment: Genes Downregulated in Haustoria") +
+    theme(
+      plot.title = element_text(face = "bold", size = 12, hjust = 0.5),
+      strip.text.y = element_text(face = "bold", size = 10),
+      axis.text = element_text(color = "black"),
+             axis.text.y = element_text(size = 8),
+            axis.text.x = element_text(size = 8), 
+      legend.position = "right",
+      strip.placement = "outside"
     )
-  )
+p_H_down
 
-go_mirror <- go_mirror %>%
-  mutate(
-    GeneRatio_plot = ifelse(Direction == "H-DOWN",
-                            -GeneRatio_num, #the - switches the bar side
-                            GeneRatio_num)
-  )
-go_mirror <- go_mirror %>%
-  mutate(order_val = ifelse(Direction == "H-DOWN",
-                            -GeneRatio_num,
-                            GeneRatio_num))
-
-#go_mirror$Description <- reorder(go_mirror$Description, go_mirror$order_val)
-go_mirror$Description <- stringr::str_wrap(go_mirror$Description, width = 35)
-
-
-H_up   <- go_mirror %>% dplyr::filter(Direction == "H-UP")
-H_down <- go_mirror %>% dplyr::filter(Direction == "H-DOWN")
-
-library(ggnewscale)
-##PLOT
-p_tornado <- ggplot() +
-  
-    # H-DOWN bars
-  geom_col(
-    data = H_down,
-aes(x = GeneRatio_plot, y = reorder(Description, Count), fill = Count),
-    width = 0.7) +
-    scale_fill_gradient(
-    low = "thistle",
-    high = "purple",
-    name = "H-DOWN Gene Count",
-  guide = guide_colorbar(order = 1)
-  ) +
-    ggnewscale::new_scale_fill() + # reset scale for second gradient
-  
-  ## H UP
-geom_col(data = H_up, aes(x = GeneRatio_plot, y = Description, fill = Count), width = 0.7,) +
-    scale_fill_gradient(
-    low = "lightpink",
-    high = "deeppink",
-    name = "H-UP Gene Count",
-  guide = guide_colorbar(order = 2)
-  ) +
-    # center reference line
-  geom_vline(xintercept = 0, linewidth = 0.6, color = "black") +
-  #count labels on bars
-  geom_text(
-    data = go_mirror,
-    aes(x = GeneRatio_plot, y = Description, label = Count),
-    size = 3,
-      color = "black",
-    hjust = ifelse(go_mirror$Direction == "H-DOWN", 1.1, -0.1)
-  ) +
-  
-  scale_x_continuous(
-    labels = abs,
-    name = "Gene Ratio"
-  ) +
-  labs(y = "GO Biological Process", 
-       title = "Top GO Terms Enriched in Down-Regulated Haustoriated Cells\nand Their Representation in Up-Regulated Genes") +
-theme(
-  axis.text.y = element_text(size = 12, color = "black"),
-  axis.text.x = element_text(color = "black"),
-  legend.position = "bottom",
-  plot.title = element_text(face = "bold", hjust = 0.5),
-  panel.background = element_blank(),
-  panel.grid.major.x = element_line(color = "grey90"),
-  panel.grid.major.y = element_line(color = "grey90"),
-  panel.grid.minor = element_blank()
-)+
-  theme(axis.text.y = element_text(size = 12), legend.position = "bottom", plot.title = element_text(face = "bold", hjust = 0.5)
-  )
-print(p_tornado)
-
-ggsave(file.path(graphics_dir, "mirrored_GO_H_down_comparison.png"),
-  p_tornado,
-  width = 10,
-  height = 6,
-  dpi = 300
-)
-```
-
-
-```{r red-GO-UP-genes}
-# Extract IM results
-top_IM_up <- ego_IM_up@result %>% 
-  arrange(p.adjust) %>%
-  slice(1:10) %>%
-  select(ID, Description, GeneRatio, Count) %>%
-  mutate(Direction = "IM-UP")
-
-# Extract same GO terms from IM-DOWN
-IM_down_same <- ego_IM_down@result %>%
-  filter(Description %in% 
-           top_IM_up$Description) %>%
-  select(ID, Description, GeneRatio, Count) %>%
-  mutate(Direction = "IM-DOWN")
-
-#COMBINE
-go_mirror <- bind_rows(top_IM_up, IM_down_same)
-
-# Convert GeneRatio to numeric
-go_mirror <- go_mirror %>%
-  mutate(
-    GeneRatio_num = sapply(strsplit(GeneRatio, "/"),
-      function(x) as.numeric(x[1]) / as.numeric(x[2])
+# Infected mesophyll upregulated
+p_IM_up <- dotplot(ego_IM_up,
+        showCategory = 8,
+        split = "ONTOLOGY") +
+  facet_grid(ONTOLOGY ~ ., scales = "free", switch = "y") +
+  ggtitle("GO Enrichment: Genes Upregulated in Infected Mesophyll") +
+    theme(
+      plot.title = element_text(face = "bold", size = 12, hjust = 0.5),
+      strip.text.y = element_text(face = "bold", size = 10),
+      axis.text = element_text(color = "black"),
+             axis.text.y = element_text(size = 8),
+            axis.text.x = element_text(size = 8), 
+      legend.position = "right",
+      strip.placement = "outside"
     )
-  )
-
-go_mirror <- go_mirror %>%
-  mutate(
-    GeneRatio_plot = ifelse(Direction == "IM-UP",
-                            -GeneRatio_num, #the - switches the bar side
-                            GeneRatio_num)
-  )
-
-
-go_mirror <- go_mirror %>%
-  mutate(order_val = ifelse(Direction == "IM-UP",
-                            -GeneRatio_num,
-                            GeneRatio_num))
-
-go_mirror$Description <- stringr::str_wrap(go_mirror$Description, width = 35)
-IM_up   <- go_mirror %>% dplyr::filter(Direction == "IM-UP")
-IM_down <- go_mirror %>% dplyr::filter(Direction == "IM-DOWN")
-
-# IM UP REGULATED PLOT 
-p_tornado <- ggplot() +
-# IM-UP bars
-  geom_col(
-    data = IM_up,
-aes(x = GeneRatio_plot, y = reorder(Description, Count), fill = Count),
-    width = 0.7) +
-    scale_fill_gradient(
-    low = "#FFD6D6",
-    high = "#FF6B6B",
-    name = "IM-UP Gene Count",
-  guide = guide_colorbar(order = 1)
-  ) +
-    ggnewscale::new_scale_fill() + # reset scale for second gradient
- ## IM DOWN
-geom_col(data = IM_down, aes(x = GeneRatio_plot, y = Description, fill = Count), width = 0.7,) +
-    scale_fill_gradient(
-    low = "#CFF5F0",
-    high = "#2EC4B6",
-    name = "IM-DOWN Gene Count",
-  guide = guide_colorbar(order = 2)
-  ) +
-     # center reference line
-  geom_vline(xintercept = 0, linewidth = 0.6, color = "black") +
-  
-    #count labels on bars
-  geom_text(
-    data = go_mirror,
-    aes(x = GeneRatio_plot, y = Description, label = Count),
-    size = 3,
-      color = "black",
-    hjust = ifelse(go_mirror$Direction == "IM-UP", 1.1, -0.1)
-  ) +
-    scale_x_continuous(
-    labels = abs,
-    name = "Gene Ratio"
-  ) +
-    labs(y = "GO Biological Process", 
-       title = "Top GO Terms Enriched in UP-Regulated Mesphophyll \nand Their Representation in Down-Regulated Genes") +
-  theme(
-  axis.text.y = element_text(size = 12, color = "black"),
-  axis.text.x = element_text(color = "black"),
-  legend.position = "bottom",
-  plot.title = element_text(face = "bold", hjust = 0.5),
-  panel.background = element_blank(),
-  panel.grid.major.x = element_line(color = "grey90"),
-  panel.grid.major.y = element_line(color = "grey90"),
-  panel.grid.minor = element_blank()
-) +
-   theme(axis.text.y = element_text(size = 12), legend.position = "bottom", plot.title = element_text(face = "bold", hjust = 0.5)
-  )
-print(p_tornado)
-
-ggsave(file.path(graphics_dir, "mirrored_GO_IM_UP_comparison.png"),
-  p_tornado,
-  width = 10,
-  height = 6,
-  dpi = 300
-)
-```
-
-
-
-```{r}
-# Top GO terms from IM-DOWN
-top_IM_down <- ego_IM_down@result %>% 
-  arrange(p.adjust) %>%
-  slice(1:10) %>%
-  select(ID, Description, GeneRatio, Count) %>%
-  mutate(Direction = "IM-DOWN")
-
-# Extract same GO terms from IM-UP
-IM_up_same <- ego_IM_up@result %>%
-  filter(Description %in% 
-           top_IM_down$Description) %>%
-  select(ID, Description, GeneRatio, Count) %>%
-  mutate(Direction = "IM-UP")
-
-# Combine
-go_mirror <- bind_rows(top_IM_down, IM_up_same)
-
-go_mirror <- go_mirror %>%
-  mutate(
-    GeneRatio_num = sapply(strsplit(GeneRatio, "/"),
-      function(x) as.numeric(x[1]) / as.numeric(x[2])
+p_IM_up
+# Infected mesophyll downregulated
+p_IM_down <- dotplot(ego_IM_down,
+        showCategory = 8,
+        split = "ONTOLOGY") +
+  facet_grid(ONTOLOGY ~ ., scales = "free", switch = "y") +
+  ggtitle("GO Enrichment: Genes Downregulated in Infected Mesophyll") +
+    theme(
+      plot.title = element_text(face = "bold", size = 12, hjust = 0.5),
+      strip.text.y = element_text(face = "bold", size = 10),
+      axis.text = element_text(color = "black"),
+             axis.text.y = element_text(size = 8),
+            axis.text.x = element_text(size = 8), 
+      legend.position = "right",
+      strip.placement = "outside"
     )
-  )
+p_IM_down
+######################### SAVE GO PLOTS #########################
+plots <- list(
+ "GO_H_Up_green.png" = p_H_up,
+"GO_H_Down_green.png" = p_H_down,
+"GO_IM_Up_green.png" = p_IM_up,
+ "GO_IM_Down_green.png" = p_IM_down)
 
-go_mirror <- go_mirror %>%
-  mutate(
-    GeneRatio_plot = ifelse(Direction == "IM-DOWN",
-                            -GeneRatio_num, #the - switches the bar side
-                            GeneRatio_num)
-  )
-go_mirror <- go_mirror %>%
-  mutate(order_val = ifelse(Direction == "IM-DOWN",
-                            -GeneRatio_num,
-                            GeneRatio_num))
-
-go_mirror$Description <- stringr::str_wrap(go_mirror$Description, width = 35)
-
-
-IM_up   <- go_mirror %>% dplyr::filter(Direction == "IM-UP")
-IM_down <- go_mirror %>% dplyr::filter(Direction == "IM-DOWN")
-
-library(ggnewscale)
-##PLOT
-p_tornado <- ggplot() +
-  
-    # IM-DOWN bars
-  geom_col(
-    data = IM_down,
-aes(x = GeneRatio_plot, y = reorder(Description, Count), fill = Count),
-    width = 0.7) +
-    scale_fill_gradient(
-    low = "#CFF5F0",
-    high = "#2EC4B6",
-    name = "IM-DOWN Gene Count",
-  guide = guide_colorbar(order = 1)
-  ) +
-    ggnewscale::new_scale_fill() + # reset scale for second gradient
-  
-  ## IM UP
-geom_col(data = IM_up, aes(x = GeneRatio_plot, y = Description, fill = Count), width = 0.7,) +
-    scale_fill_gradient(
-    low = "#FFD6D6",
-    high = "#FF6B6B",
-    name = "IM-UP Gene Count",
-  guide = guide_colorbar(order = 2)
-  ) +
-    # center reference line
-  geom_vline(xintercept = 0, linewidth = 0.6, color = "black") +
-  #count labels on bars
-  geom_text(
-    data = go_mirror,
-    aes(x = GeneRatio_plot, y = Description, label = Count),
-    size = 3,
-      color = "black",
-    hjust = ifelse(go_mirror$Direction == "IM-DOWN", 1.1, -0.1)
-  ) +
-  
-  scale_x_continuous(
-    labels = abs,
-    name = "Gene Ratio"
-  ) +
-  labs(y = "GO Biological Process", 
-       title = "Top GO Terms Enriched in Down-Regulated Mesophyll\nand Their Representation in Up-Regulated Genes") +
-theme(
-  axis.text.y = element_text(size = 12, color = "black"),
-  axis.text.x = element_text(color = "black"),
-  legend.position = "bottom",
-  plot.title = element_text(face = "bold", hjust = 0.5),
-  panel.background = element_blank(),
-  panel.grid.major.x = element_line(color = "grey90"),
-  panel.grid.major.y = element_line(color = "grey90"),
-  panel.grid.minor = element_blank()
-)+
-  theme(axis.text.y = element_text(size = 12), legend.position = "bottom", plot.title = element_text(face = "bold", hjust = 0.5)
-  )
-print(p_tornado)
-
-ggsave(file.path(graphics_dir, "mirrored_GO_IM_down_comparison.png"),
-  p_tornado,
-  width = 10,
-  height = 6,
-  dpi = 300
-)
+for (file in names(plots)) {
+  if (!is.null(plots[[file]])) {
+    ggsave(file.path(graphics_dir, file), plots[[file]], width = 7, height = 8, dpi = 300)
+  }
+}
 ```
-
-
 
 
 ```{r}
@@ -1548,44 +1200,57 @@ kegg_downIM <- enrichKEGG(
   keyType = "kegg",
   pvalueCutoff = 0.05
 )
-
-kegg_downH
 ```
 
 
 ```{r}
-kegg_df <- kegg_downIM@result %>%
-  mutate(
-    GeneRatio_num = as.numeric(sub("/.*", "", GeneRatio)) /
-                    as.numeric(sub(".*/", "", GeneRatio))
-  ) %>% arrange(pvalue) %>% slice_head(n = 20)
+process_KEGG <- function(kk, label) {
+  if (is.null(kk)) return(NULL)
+  
+  df <- as.data.frame(kk)
+  
+  if (nrow(df) == 0) return(NULL)
+  
+  df$Group <- label
+  return(df)
+}
 
-stopifnot(nrow(kegg_df) > 0)
+H_up_kegg    <- process_KEGG(kegg_upH, "H Up")
+H_down_kegg  <- process_KEGG(kegg_downH, "H Down")
+IM_up_kegg   <- process_KEGG(kegg_upIM, "IM Up")
+IM_down_kegg <- process_KEGG(kegg_downIM, "IM Down")
 
-## PLOT
-ggplot(kegg_df,
-       aes(x = GeneRatio_num,
-           y = reorder(Description, GeneRatio_num),
-           size = Count,
-           color = p.adjust)) +
-  geom_point() +
-  scale_color_continuous(low = "red", high = "blue") +
+
+combined_KEGG <- bind_rows(
+  H_up_kegg,
+  H_down_kegg,
+  IM_up_kegg,
+  IM_down_kegg
+)
+top_KEGG <- combined_KEGG %>%
+  group_by(Group) %>%
+  slice_min(p.adjust, n = 5) %>%
+  ungroup()
+
+ggplot(top_KEGG, aes(x = Group,
+                     y = reorder(Description, -log10(p.adjust)))) +
+  geom_point(aes(size = Count, color = -log10(p.adjust))) +
+  theme_minimal() +
   labs(
-    title = "Pure Haustoria KEGG Pathways",
-    x = "Gene Ratio",
-    y = NULL
-  ) +
-  theme_bw()
+    title = "KEGG Pathway Comparison Across Conditions",
+    x = "",
+    y = "KEGG Pathways",
+    size = "Gene Count",
+    color = "-log10(adj p-value)"
+  )
 
-#ggsave(file.path(graphics_dir, "UPdown_KEGG_pvalue.png"), width=12, height=10)
+ggsave(file.path(graphics_dir, "KEGG.png"), width=12, height=10)
 ```
 
 ```{r}
 # TRANSPORTERS
 library(readxl)
-#Extract transporters 
 library(dplyr)
-library(readxl)
 
 transporter_genes <- read_excel("../HvIM/Data_Repository/6_transporter_df.xlsx") %>%
   rename(id = TAIR) %>%
@@ -1622,23 +1287,31 @@ H_up_transporters <- H_up_transporters %>%
     FC_label = round(logFC_x, 2)            # rounded fold change for table
   )
 
-# Save table for dissertation
-#write_csv(H_up_transporters, file.path(tables_dir, "H_up_transporter_candidates.csv"))
-#write_xlsx(H_up_transporters, file.path(tables_dir, "transporter_4way.xlsx"))
+TRANS_top10_H_up <- H_up_transporters %>%
+  slice_head(n = 10)
 
 #  Keep relevant columns and rank
 H_down_transporters <- H_down_transporters %>%
   select(id, logFC_x, padj_x, Family) %>%
-  arrange(desc(logFC_x)) %>%                # rank by log fold change
+  arrange(logFC_x) %>%                # rank by log fold change
   mutate(
     rank = row_number(),                     # add rank
     log10_padj = -log10(padj_x),            # significance for plotting
     FC_label = round(logFC_x, 2)            # rounded fold change for table
   )
 
+TRANS_top10_H_down <- H_down_transporters %>%
+  slice_head(n = 10)
+
+
+transporters_export <- list(
+  Green_H_UP   = H_up_transporters,
+  Green_H_DOWN = H_down_transporters
+)
+
 # Save table for dissertation
 #write_csv(H_up_transporters, file.path(tables_dir, "H_up_transporter_candidates.csv"))
-#write_xlsx(H_up_transporters, file.path(tables_dir, "transporter_4way.xlsx"))
+write_xlsx(transporters_export, file.path(tables_dir, "transporter_H_UP_DOWN.xlsx"))
 ```
 
 
@@ -1882,6 +1555,7 @@ ggsave(file.path(graphics_dir, "H_combined_families.png"),
        height = 6,
        dpi = 300)
 ```
+
 ```{r}
 summarize_families <- function(df, direction){
   df %>%
@@ -1947,18 +1621,17 @@ library(readxl)
 library(writexl)
 
 # -----------------------------
-# 1. Load transporter gene data
+# Load transporter gene data
 # -----------------------------
 transporter_genes <- read_excel("../HvIM/Data_Repository/6_transporter_df.xlsx") %>%
   rename(id = TAIR) %>%
   mutate(id = trimws(as.character(id)))
 
-# Assuming your H_up/H_down tables already exist
 green_H_up <- green_H_up %>% mutate(id = trimws(as.character(id)))
 green_H_down <- green_H_down %>% mutate(id = trimws(as.character(id)))
 
 # -----------------------------
-# 2. Extract transporters
+# Extract transporters
 # -----------------------------
 H_up_transporters <- green_H_up %>%
   semi_join(transporter_genes, by = "id") %>%
@@ -1983,7 +1656,7 @@ H_down_transporters <- green_H_down %>%
   )
 
 # -----------------------------
-# 3. Assign functional categories
+#  Assign functional categories
 # -----------------------------
 family_function <- data.frame(
   Family = c(
@@ -2003,7 +1676,7 @@ family_function <- data.frame(
 )
 
 # -----------------------------
-# 4. Combine up and down transporters
+# Combine up and down transporters
 # -----------------------------
 H_up_summary <- H_up_transporters %>%
   distinct(id, Family, logFC_x, log10_padj) %>%
@@ -2032,7 +1705,7 @@ combined_summary <- bind_rows(H_up_summary, H_down_summary) %>%
   mutate(Direction = factor(Direction, levels = c("Up", "Down")))
 
 # -----------------------------
-# 5. Plot transporter families
+# Plot transporter families
 # -----------------------------
 fam_plot <- ggplot(combined_summary,
                    aes(x = gene_count,
@@ -2071,16 +1744,14 @@ fam_plot <- ggplot(combined_summary,
 print(fam_plot)
 
 # -----------------------------
-# 6. Save outputs
+# Save outputs
 # -----------------------------
-graphics_dir <- "../HvIM/Graphics"
-tables_dir <- "../HvIM/Tables"
 
 ggsave(file.path(graphics_dir, "H_combined_families_function.png"),
        fam_plot, width = 10, height = 6, dpi = 300)
 
-write.csv(combined_summary, file.path(tables_dir, "H_combined_families_function.csv"),
-          row.names = FALSE)
+#write.csv(combined_summary, file.path(tables_dir, "H_combined_families_function.csv"),
+#          row.names = FALSE)
 write_xlsx(combined_summary, file.path(tables_dir, "H_combined_families_function.xlsx"))
 ```
 
