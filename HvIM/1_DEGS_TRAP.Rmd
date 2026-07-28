@@ -13,96 +13,111 @@ output:
     df_print: paged
 ---
 
-## 1. CLEAR ENVIRONMENT
+# 1. CLEAR ENVIRONMENT & SET PROJECT INFO
 ```{r CLEAR-ENVIRONMENT}
-  ######################### CLEAN ENVIRONMENT   ######################### 
-rm(list = ls(all.names = TRUE)) # Remove all objects from the work space
-gc()  # Garbage collection to free memory
+#------------------------ 1.1 CLEAN ENVIRONMENT ------------------------#
+rm(list = ls(envir = .GlobalEnv, all.names = TRUE)) # Clear wrkspace objects
+invisible(gc())  # Garbage collection to free memory
 
+# Global options for consistent behavior
 options(
-  max.print = 1e5,  #Reasonable cap to avoid massive console dumps
-  scipen = 0, # Use scientific notation
-  stringsAsFactors = FALSE, # Keep strings as character by default
-  dplyr.summarise.inform = FALSE, # Suppress dplyr's summaries
-  digits = 3 # Number of digits when printing
+  max.print              = 50000, # Cap console output
+  scipen                 = 999,   # Avoid scientific notation, 0 if yes
+  stringsAsFactors       = FALSE, # Keep strings as character
+  dplyr.summarise.inform = FALSE, # Suppress dplyr's messages
+  digits                 = 4      # Number of digits to print
   )
 
-  ######################### PROJECT INFO  ######################### 
+set.seed(1234)
+#------------------------ 1.2 PROJECT INFO ------------------------# 
 info <- list(
-  Title = "SPLIT-GFP TRAP ANALYSIS",
-  R_Version = R.version$version.string,
+  Title             = "SPLIT GFP TRAP ANALYSIS",
+  R_Version         = R.version$version.string,
   Working_Directory = getwd(),
-  Timestamp = format(Sys.time(), "%Y-%m-%d %H:%M:%S"))
+  Timestamp         = format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+  )
 
-separator <- strrep("=", 80)
-cat("\n", separator, "\n", info$Title, "\n", separator, "\n")
+separator <- paste0("\n", strrep("=", 80), "\n")
+
+cat(separator)
+cat("PROJECT:", info$Title, "\n")
+cat(separator)
+
 cat("R Version:", info$R_Version, "\n")
 cat("Working Directory:", info$Working_Directory, "\n")
-cat("Timestamp:", info$Timestamp, "\n\n")
+cat("Timestamp:", info$Timestamp, "\n")
+cat(separator)
 
-## Optional: show session info for reproducibility
-# sessionInfo()
+info$renv_active <- renv::project()
+cat("renv Project:", info$renv_active, "\n")
+
+info$Git_Commit <- system("git rev-parse --short HEAD", intern = TRUE)
+cat("Git Commit:", info$Git_Commit, "\n")
+
+if (interactive()) {
+  message("Run sessionInfo() for reproducibility.")
+}
+#sessionInfo()
+
+#first time use to make an environment with the packages
+#install.packages("renv")
+#renv::init()
 ```
 
-## 2. INSTALL PACKAGES
-```{r INSTALL-PACKAGES, include=FALSE}
-#could have added message=false
-  ######################### LOAD REQ PACKAGES  ######################### 
-required_packages <- c(
+# 2. INSTALL PACKAGES
+```{r INSTALL-PACKAGES, include=TRUE}
+#------------------------ 2.1 LOAD PACKAGES ------------------------#
+cran_packages <- c(
   "tidyverse", # dplyr, ggplot2, tidyr, purrr, stringr, readr, forcats
-  "DESeq2", # Differential expression analysis
   "patchwork", # Combine multiple ggplot objects
   "ggrepel", # Add non-overlapping text labels to ggplot2
   "pheatmap", # Clustered heat maps
-  "AnnotationDbi", # Gene annotation framework
-  "org.At.tair.db", # Arabidopsis thaliana annotations
-  "clusterProfiler", # GO/KEGG enrichment analysis and GSEA
-  "enrichplot", # Visualization of enrichment results
-  "vidger", # RNA-seq viz helpers         
-  "apeglm", # LFC shrinkage  
   "RColorBrewer", # Color palettes
   "reshape2", # Data reshaping
   "dendextend", # Dendrogram
   "writexl", # Excel export
   "tibble", # Tibbles
   "ggdendro",
-  "EnhancedVolcano",
   "knitr",
+  "circlize",
+  "rmarkdown"
+  )
+bioc_packages <- c(
+  "DESeq2", # Differential expression analysis
+  "AnnotationDbi", # Gene annotation framework
+  "org.At.tair.db", # Arabidopsis thaliana annotations
+  "clusterProfiler", # GO/KEGG enrichment analysis and GSEA
+  "enrichplot", # Visualization of enrichment results
+  "vidger", # RNA-seq viz helpers         
+  "apeglm", # LFC shrinkage  
+  "EnhancedVolcano",
   "ComplexHeatmap",
-  "circlize"
+  "BiocManager"
 )
 
-  ######################### INSTALL MISSING PACKAGES  ######################### 
- new_packages <- required_packages[!(required_packages %in% installed.packages()[, "Package"])]
- if (length(new_packages)) {
-#   install.packages(new_packages)
- }
+#------------------------ INSTALL CRAN PACKAGES ------------------------#
+new_cran <- cran_packages[!sapply(cran_packages, requireNamespace, quietly = TRUE)]
+if (length(new_cran) > 0) install.packages(new_cran)
 
-#if (!requireNamespace("BiocManager", quietly = TRUE))
-#    install.packages("BiocManager")
-#BiocManager::install("circlize")
-
-# Load packages quietly
-load_ok <- sapply(
-  required_packages,
-  function(pkg) {
-    suppressPackageStartupMessages(
-      require(pkg, character.only = TRUE, quietly = TRUE)
-    )
-  }
-)
-if (!all(load_ok)) {
-  warning("Failed to load packages: ",
-          paste(required_packages[!load_ok], collapse = ", "))
+#------------------------ INSTALL BIOCONDUCTOR ------------------------#
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+  install.packages("BiocManager")
 }
 
-  ######################### SET WORKING DIRECTORY  ######################### 
-cat("Working directory:", getwd(), "\n")
+new_bioc <- bioc_packages[!sapply(bioc_packages, requireNamespace, quietly = TRUE)]
+if (length(new_bioc) > 0) BiocManager::install(new_bioc, ask = FALSE)
+
+#------------------------ LOAD PACKAGES ------------------------#
+invisible(lapply(cran_packages, library, character.only = TRUE))
+invisible(lapply(bioc_packages, library, character.only = TRUE))
+
+#renv::status()
+#renv::snapshot() 
 ```
 
-## 3. SET DIRECTORIES
+# 3. SET DIRECTORIES
 ```{r SET-paths, include=FALSE}
-  ######################### SET OUTPUT DIRECTORY  ######################### 
+#------------------------ 3.1 SET DIRECTORIES ------------------------# 
 graphics_dir <- file.path("Results/Graphics")
 tables_dir   <- file.path("Results/Tables") 
 procdata_dir <- file.path("Results/Processed_data")
@@ -122,11 +137,12 @@ invisible(
 )
 ```
 
-## 4. READ IN FILES
+# 4. READ IN FILES
 ```{r READ-COUNTS, message=FALSE}
-  ######################### LOAD featureCounts WHOLE GENOME ALIGNMENT ######################### 
+#------------------------ LOAD FEATURECOUNTS ------------------------# 
 featcount <- read_tsv("../HvIM/Data_Repository/featcount.txt", skip = 1)
 count_cols <- colnames(featcount)[7:ncol(featcount)]
+
 read.count <- featcount %>%
   dplyr::select(all_of(count_cols)) %>%
   as.matrix()
@@ -137,9 +153,9 @@ stopifnot(!anyDuplicated(rownames(read.count)))
 stopifnot(is.numeric(read.count[1, ]))
 ```
 
-## 5. META DATA
+# 5. META DATA
 ```{r ALL-META-DATA, message=FALSE}
-## Standardize colnames
+#------------------------ STANDARDIZE NAMES ------------------------# 
 sample_names <- c("IT-107", "IT-108", "IT-109", "IT-110", 
                   "H-107", "H-108", "H-109", "H-110", "H-111",
                   "UT-106", "UT-108", "UT-114", 
@@ -149,10 +165,10 @@ sample_names <- c("IT-107", "IT-108", "IT-109", "IT-110",
                   "UM-204", "UM-208", "UM-213", "UM-214", "UM-215")
 colnames(read.count) <- sample_names #save naming system
 
-## Verify structure
-cat("📊 Counts loaded:", nrow(read.count), "genes x", ncol(read.count), "samples\n")
+## Verify
+cat("Counts loaded:", nrow(read.count), "genes x", ncol(read.count), "samples\n")
 
-## Convert matrix → data frame with gene IDs
+## Convert matrix to data frame with gene IDs
 raw_counts_df <- as.data.frame(read.count)
 raw_counts_df <- tibble::rownames_to_column(raw_counts_df, "GeneID")
 
@@ -161,13 +177,13 @@ raw_counts_df <- tibble::rownames_to_column(raw_counts_df, "GeneID")
 #writexl::write_xlsx(raw_counts_df, file.path(tables_dir, "raw_counts_clean.xlsx"))
 ```
 
-## 6. EXTRACT H IM UM
+# 6. EXTRACT H IM UM
 ```{r EXTRACT-count-data}
-## Columns to DROP: IT(1:4,13:16), UT(10:12,22:25) → KEEP 5-9,17-21,26-30
+## Columns to DROP: IT(1:4,13:16), UT(10:12,22:25) -> KEEP 5-9,17-21,26-30
 keep_cols <- c(5:9, 17:21, 26:30)
 ImvHvUM <- read.count[, keep_cols]
 colnames(ImvHvUM)  # Confirm order
-cat("📊 Counts loaded:", nrow(ImvHvUM), "genes x", ncol(ImvHvUM), "samples\n")
+cat("Counts loaded:", nrow(ImvHvUM), "genes x", ncol(ImvHvUM), "samples\n")
 
 sample_info<- data.frame(
   row.names = c("H-107", "H-108", "H-109", "H-110", "H-111", 
@@ -183,20 +199,19 @@ ImvHvUM_df <- tibble::rownames_to_column(as.data.frame(as.matrix(ImvHvUM)), "Gen
 #write_csv(ImvHvUM_df, file.path(tables_dir, "counts_IM_H_UM_cleansubset.csv"))
 #writexl::write_xlsx(ImvHvUM_df, file.path(tables_dir, "counts_IM_H_UM_cleansubset.xlsx"))
 
-cat("IM/H/UM subset ready:", ncol(ImvHvUM), "samples\n")
 table(sample_info$Groups)
 ```
 
-## 7. SET COLORS AND THRESHOLDS
+# 7. SET COLORS AND THRESHOLDS
 ```{r Colors}
 colors <- c("H"="blue", "IM"="hotpink", "UM"="black", "UT"="lightgreen", "IT"="purple")
 pad <- 0.05
 lfc_thresh <- 1.0
 ```
 
-## 8. RUN DESeq
-```{r DESeq-run, message=FALSE}
-  ######################### RUN DESEQ  ######################### 
+# 8. RUN DESeq
+```{r DESeq-run, message = FALSE}
+#------------------------ SETUP DESEQ2 ------------------------#
 dds <- DESeqDataSetFromMatrix(
   countData = ImvHvUM,
   colData = sample_info,
@@ -207,45 +222,35 @@ keep <- rowSums(counts(dds)) >= 10
 dds <- dds[keep, ]
 ## UM reference
 dds$Groups <- relevel(dds$Groups, ref = "UM")
-cat("📊 Counts loaded:", nrow(dds), "genes x", ncol(dds), "samples\n")
+cat("Counts loaded:", nrow(dds), "genes x", ncol(dds), "samples\n")
 
-## Run DESeq2
+#------------------------ RUN DESEQ2 ------------------------#
 dds <- DESeq(dds)
 
-## Save full DESeq object
-#saveRDS(dds, file.path(procdata_dir, "dds_IM_H_UM.rds"))
-sf <- round(sizeFactors(dds), 3)
-kable(data.frame(Sample=names(sf), SizeFactor=sf), caption="Size Factors")
+#------------------------ SAVE OBJECT ------------------------#
+## Save DESeq object
+#saveRDS(dds, file.path("~/Desktop/Lab/Haust_TRAP_proj/TRAP_Results", "dds_IM_H_UM.rds"))
+
+#------------------------ VIEW SIZE FACTORS ------------------------#
+#sf <- round(sizeFactors(dds), 3)
+#kable(data.frame(Sample=names(sf), SizeFactor=sf), caption="Size Factors")
 ```
 
-## 9. DESEQ Results
+# 9. DESEQ Results
 ```{r DESeq-results-summary}
-  ######################### RESULTS   ######################### 
+#------------------------ RESULTS ------------------------#
 res_IM_UM <- results(dds, name = "Groups_IM_vs_UM", alpha = 0.05)
 res_H_UM  <- results(dds, name = "Groups_H_vs_UM", alpha = 0.05)
 
-# Define your comparisons in a list
-comparisons <- list(
-  "IM vs UM" = res_IM_UM,
-  "H vs UM"  = res_H_UM
-)
-cat("Differentially Expressed Genes (padj < 0.05):\n", separator, "\n")
-
-for (cmp_name in names(comparisons)) {
-  res <- comparisons[[cmp_name]]
-  
-  total <- sum(res$padj < 0.05, na.rm = TRUE)
-  up    <- sum(res$padj < 0.05 & res$log2FoldChange > 1, na.rm = TRUE)
-  down  <- sum(res$padj < 0.05 & res$log2FoldChange < 1, na.rm = TRUE)
-  
-  cat(sprintf("%-10s: Total = %4d | Up = %4d | Down = %4d\n",
-              cmp_name, total, up, down))
-}
+#------------------------ SAVE OBJECT ------------------------#
+# Save DESeq object
+#saveRDS(res_IM_UM, file.path("~/Desktop/Lab/Haust_TRAP_proj/TRAP_Results", "results_IM_v_UM.rds"))
+#saveRDS(res_H_UM, file.path("~/Desktop/Lab/Haust_TRAP_proj/TRAP_Results", "results_H_v_UM.rds"))
 ```
 
-## 10. VOLCANO PLOTS
+# 10. VOLCANO PLOTS
 ```{r VOLCANO-PLOTS}
- #########################  VOLCANO PLOTS   #########################  
+#------------------------ VOLCANO PLOTS ------------------------#
 res_H_UM_df <- res_H_UM %>% as.data.frame() %>% rownames_to_column(var = "Gene") %>% filter(!is.na(padj)) %>% arrange(padj)
 res_IM_UM_df <- res_IM_UM %>% as.data.frame() %>% rownames_to_column(var = "Gene") %>% filter(!is.na(padj)) %>% arrange(padj)
 ## Write Results
@@ -288,9 +293,9 @@ EnhancedVolcano(
 #ggsave(file.path(graphics_dir, "Volcano_IM_vs_UM.png"), width = 10, height = 8, dpi = 300)
 ```
 
-## 11. VST NORMALIZATION
+# 11. VST NORMALIZATION
 ```{r VST-NORMALIZATION}
-  #########################  VST   #########################  
+#------------------------ VST NORM ------------------------#
 ## Variance stabilizing transformation
 vsd <- vst(dds, blind = FALSE)  # blind ignores design; subsample for speed
 
@@ -305,26 +310,32 @@ norm_counts <- counts(dds, normalized = TRUE)
 vsd_mat <- assay(vsd)  # Extract VST matrix
 total_counts <- colSums(vsd_mat)
 
-cat("VST Matrix Summary\n", separator, "\n")
-cat(sprintf("Dimensions       : %d genes × %d samples\n", nrow(vsd_mat), ncol(vsd_mat)), separator, "\n")
-cat("Column sums (total counts per sample):\n")
 #print(summary(total_counts))
-cat(sprintf("Mean total counts: %.2f\n", mean(total_counts)))
-cat(sprintf("Median total counts: %.2f\n", median(total_counts)))
 
-## EXPORT
-#write_csv(as.data.frame(norm_counts), 
-#          file.path(tables_dir, "normalized_counts_H_IM_UM.csv"))
+#------------------------ SAVE & EXPORT ------------------------#
+#saveRDS(norm_counts, file.path("~/Desktop/Lab/Haust_TRAP_proj/TRAP_Results", "NORMcounts_H_v_UM.rds"))
+
+#saveRDS(vsd_mat, file.path("~/Desktop/Lab/Haust_TRAP_proj/TRAP_Results", "VSTcounts_H_v_UM.rds"))
+
+#EXPORT
+#norm_counts_out <- norm_counts %>%
+ # tibble::as_tibble(rownames = "id")
+#VST_counts_out <- vsd_mat %>%
+#  tibble::as_tibble(rownames = "id")
+
+#write_csv(norm_counts_out,
+ #         file.path(tables_dir, "normalized_counts_H_IM_UM.csv"))
+
 
 #writexl::write_xlsx(
 #  list(
-#    Normalized = as.data.frame(round(norm_counts, 2)),  # Round for readability
-#    VST = as.data.frame(assay(vsd))), 
+#    Normalized = as.data.frame(norm_counts_out),  # Round for readability
+#    VST = as.data.frame(VST_counts_out)), 
 #  path = file.path(tables_dir, "H_IM_UM_normalized_VST.xlsx"))
 #cat("✅ Exported Normalized + VST matrices to Tables/\n")
 ```
 
-## 12. CLUSTERING & CORR
+# 12. CLUSTERING & CORR
 ```{r clustering}
   ######################### Sample correlation heatmap (Spearman, raw counts >=1)  #########################
 sim_mat <- ImvHvUM[rowSums(ImvHvUM) >= 1, ]
@@ -388,7 +399,7 @@ p_dist <- pheatmap(dist_mat,
 
 ## 13. PCA & PLOT
 ```{r PCA}
-#########################  PCA PLOT   #########################  
+#------------------------ PCA PLOT ------------------------#
 pca_data <- DESeq2::plotPCA(vsd, 
                            intgroup = c("Groups", "Condition"), 
                            returnData = TRUE)
@@ -427,7 +438,21 @@ print(p_pca)
 
 ## 14. LFC SHRINKAGE + ARRANGEMENT + CLEAN
 ```{r DESeq-results-lfc, message=FALSE}
-#########################  DESeq2 LFC Shrinkage & Cleaning  #########################
+#------------------------ CONTRASTS ------------------------#
+contrasts <- list(
+  H_vs_UM  = list(coef = "Groups_H_vs_UM",  contrast = c("Groups", "H", "UM")),
+  IM_vs_UM = list(coef = "Groups_IM_vs_UM", contrast = c("Groups", "IM", "UM"))
+)
+#------------------------ Raw Results ------------------------#
+#technically already did this
+res_raw_list <- lapply(contrasts, function(x) {
+  results(dds, contrast = x$contrast)
+})
+#------------------------ RUN RESULTS  ------------------------#
+res_raw_list <- lapply(contrasts, function(x) {
+  results(dds, contrast = x$contrast)
+})
+#------------------------ LFC Shrinkage  ------------------------#
 # function to safely run lfcShrink with fallback
 safe_lfcShrink <- function(dds, coef_name, contrast_vec) {
   tryCatch({
@@ -437,29 +462,38 @@ safe_lfcShrink <- function(dds, coef_name, contrast_vec) {
     lfcShrink(dds, contrast = contrast_vec, type = "normal")
   })
 }
-
-######################### CONTRASTS #########################
-contrasts <- list(
-  H_vs_UM  = list(coef = "Groups_H_vs_UM",  contrast = c("Groups", "H", "UM")),
-  IM_vs_UM = list(coef = "Groups_IM_vs_UM", contrast = c("Groups", "IM", "UM"))
-)
-
-######################### RUN SHRINKAGE #########################
+#------------------------ RUN Shrinkage  ------------------------#
 lfc_list <- lapply(contrasts, function(x) {
   safe_lfcShrink(dds, x$coef, x$contrast)
 })
 
-######################### CLEAN RESULTS #########################
-clean_res <- function(lfc_obj) {
-  as.data.frame(lfc_obj) %>%
-    rownames_to_column("TAIR") %>%
+#------------------------ SAVE OBJECT ------------------------#
+# Save DESeq object
+#saveRDS(lfc_list, file.path("~/Desktop/Lab/Haust_TRAP_proj/TRAP_Results", "deseq_shrunken_lfc.rds"))
+
+
+#------------------------ CLEAN RESULTS  ------------------------#
+#This section uses raw padj and shrunk LFC
+clean_res <- function(raw_res, shrink_res) {
+  df <- as.data.frame(shrink_res)
+  df$padj <- raw_res$padj
+  df$pvalue <- raw_res$pvalue
+  df$TAIR <- rownames(df)
+
+  df %>%
     filter(!is.na(padj)) %>%
     arrange(padj)
 }
+#apply
+res_list <- mapply(clean_res, res_raw_list, lfc_list, SIMPLIFY = FALSE)
 
-res_list <- lapply(lfc_list, clean_res)
+#------------------------ SAVE OBJECT ------------------------#
+#saveRDS(res_list, file.path("~/Desktop/Lab/Haust_TRAP_proj/TRAP_Results", "deseq_clean_results.rds"))
+```
 
-#########################  Split DEGs #########################  
+
+```{r SPLIT DEGS, message=FALSE}
+#------------------------ SPLIT DEGs ------------------------#
 annotate_DEGs <- function(df, lfc_thresh, pad) {
   df %>%
    mutate(
@@ -469,11 +503,10 @@ annotate_DEGs <- function(df, lfc_thresh, pad) {
         DEG & log2FoldChange <= -lfc_thresh ~ "DOWN",
         TRUE ~ "NS"
       )
-    )
-}
+    )}
 res_list <- lapply(res_list, annotate_DEGs, lfc_thresh, pad)
 
-#########################  ADD ANNOTATION #########################
+#------------------------ ADD ANNOTATION ------------------------#
 add_annotations <- function(df) {
   df %>%
     mutate(
@@ -481,15 +514,14 @@ add_annotations <- function(df) {
                       keytype = "TAIR", multiVals = "first"),
       entrez = mapIds(org.At.tair.db, keys = TAIR, column = "ENTREZID",
                       keytype = "TAIR", multiVals = "first")
-    )
-}
-
+    )}
 res_list <- lapply(res_list, add_annotations)
-#########################  EXTRACT DEG SUBSETS #########################
+
+#------------------------ EXTRACT DEG SUBSETS ------------------------#
 deg_list <- lapply(res_list, function(df) df %>% filter(DEG))
 deg_split <- lapply(deg_list, function(df) split(df, df$direction))
 
-#########################  SUMMARY TABLE #########################
+#------------------------ SUMMARY TABLE ------------------------#
 summary_tbl <- bind_rows(lapply(names(res_list), function(name) {
   df <- res_list[[name]]
   tibble(
@@ -501,7 +533,10 @@ summary_tbl <- bind_rows(lapply(names(res_list), function(name) {
 }))
 
 summary_tbl
+```
 
+
+```{r MA PLOTS, message=FALSE}
 #########################  MA PLOTS #########################
 plot_DEGs_MA <- function(lfc_obj, df, title) {
   plotMA(lfc_obj, ylim = c(-5,5), main = title)
@@ -1162,8 +1197,8 @@ p_IM_down
 plots <- list(
  "GO_H_Up_green.png" = p_H_up,
 "GO_H_Down_green.png" = p_H_down,
-"GO_IM_Up_green.png" = p_IM_up,
- "GO_IM_Down_green.png" = p_IM_down)
+"GO_IM_Up_red.png" = p_IM_up,
+ "GO_IM_Down_red.png" = p_IM_down) #got saved as green
 
 for (file in names(plots)) {
   if (!is.null(plots[[file]])) {
@@ -1287,9 +1322,6 @@ H_up_transporters <- H_up_transporters %>%
     FC_label = round(logFC_x, 2)            # rounded fold change for table
   )
 
-TRANS_top10_H_up <- H_up_transporters %>%
-  slice_head(n = 10)
-
 #  Keep relevant columns and rank
 H_down_transporters <- H_down_transporters %>%
   select(id, logFC_x, padj_x, Family) %>%
@@ -1299,9 +1331,6 @@ H_down_transporters <- H_down_transporters %>%
     log10_padj = -log10(padj_x),            # significance for plotting
     FC_label = round(logFC_x, 2)            # rounded fold change for table
   )
-
-TRANS_top10_H_down <- H_down_transporters %>%
-  slice_head(n = 10)
 
 
 transporters_export <- list(
@@ -1317,19 +1346,9 @@ write_xlsx(transporters_export, file.path(tables_dir, "transporter_H_UP_DOWN.xls
 
 
 ```{r}
-# ===============================================
-# Transporter Family Summary and Bubble Barplot
-# ===============================================
-
 # Load packages
-library(dplyr)
-library(ggplot2)
 library(forcats)
 library(stringr)
-
-# -----------------------------
-# Summarize family-level stats
-# -----------------------------
 
 # Ensure one row per gene
 family_summary <- H_up_transporters %>%
@@ -1343,12 +1362,10 @@ family_summary <- H_up_transporters %>%
   ) %>%
   arrange(desc(gene_count))
 
-# Optional: filter out very small families (e.g., 1 gene)
-# family_summary <- family_summary %>% filter(gene_count >= 2)
+# filter out very small families (e.g., 1 gene)
+family_summary <- family_summary %>% filter(gene_count >= 2)
 
-# -----------------------------
 # Plot bubble barplot
-# -----------------------------
 
 fam_plot <- ggplot(family_summary,
                    aes(x = fct_reorder(Family, gene_count),
@@ -1366,7 +1383,7 @@ fam_plot <- ggplot(family_summary,
   
   # Color gradient: blue = down, white = neutral, red = up
   scale_color_gradient2(
-    low = "#4575b4",   # lower induction
+    low = "purple",   # lower induction
     mid = "white",
     high = "hotpink",  # stronger induction
     midpoint = 0
@@ -1391,9 +1408,7 @@ fam_plot <- ggplot(family_summary,
 # Display plot
 print(fam_plot)
 
-# -----------------------------
 # Save the plot
-# -----------------------------
 
 #ggsave(file.path(graphics_dir, "H_up_transporter_family_plot.png"),
 #       fam_plot,
@@ -1401,9 +1416,8 @@ print(fam_plot)
 #       height = 6,
 #       dpi = 300)
 
-# -----------------------------
 # save the family summary table
-# -----------------------------
+
 #write.csv(family_summary,
 #          file.path(tables_dir, "H_up_transporter_family_summary.csv"),
 #          row.names = FALSE)
@@ -1423,6 +1437,8 @@ family_summary2 <- H_down_transporters %>%
     .groups = "drop"
   ) %>%
   arrange(desc(gene_count))
+# filter out very small families (e.g., 1 gene)
+family_summary2 <- family_summary2 %>% filter(gene_count >= 2)
 
 fam_plot <- ggplot(family_summary2,
                    aes(x = fct_reorder(Family, gene_count),
@@ -1465,30 +1481,25 @@ fam_plot <- ggplot(family_summary2,
 # Display plot
 print(fam_plot)
 
-# -----------------------------
+
 # Save the plot
-# -----------------------------
 
-ggsave(file.path(graphics_dir, "H_down_transporter_family_plot.png"),
-       fam_plot,
-       width = 10,
-       height = 6,
-       dpi = 300)
 
-# -----------------------------
-# save the family summary table
-# -----------------------------
-write.csv(family_summary2,
-          file.path(tables_dir, "H_down_transporter_family_summary.csv"),
-          row.names = FALSE)
-
-write_xlsx(family_summary2, file.path(tables_dir, "H_down_transporter_family_summary.xlsx"))
-
-#ggsave(file.path(graphics_dir, "H_down_family_summary.png"),
-#       famplot,
-#      width = 10,
+#ggsave(file.path(graphics_dir, "H_down_transporter_family_plot.png"),
+#       fam_plot,
+#       width = 10,
 #       height = 6,
 #       dpi = 300)
+
+
+# save the family summary table
+
+#write.csv(family_summary2,
+#          file.path(tables_dir, "H_down_transporter_family_summary.csv"),
+#          row.names = FALSE)
+
+#write_xlsx(family_summary2, file.path(tables_dir, "H_down_transporter_family_summary.xlsx"))
+
 ```
 
 ```{r}
@@ -1518,6 +1529,7 @@ H_down_summary <- H_down_transporters %>%
   )
 
 combined_summary <- bind_rows(H_up_summary, H_down_summary)
+combined_summary <- combined_summary %>% filter(gene_count >= 2)
 
 # Make Direction a factor so Up is on top
 combined_summary$Direction <- factor(combined_summary$Direction, levels = c("Up", "Down"))
@@ -1546,12 +1558,18 @@ ggplot(combined_summary,
   ) +
   theme_minimal(base_size = 12) +
   theme(
-    plot.title = element_text(face = "bold", hjust = 0.5),
-    axis.text.y = element_text(size = 8)
-  )
+    plot.title = element_text(face = "bold", size = 12, hjust = 0.5),
+     strip.text.y = element_text(face = "bold", size = 8),
+      axis.text = element_text(color = "black"),
+             axis.text.y = element_text(size = 8),
+            axis.text.x = element_text(size = 8), 
+      legend.position = "right",
+      strip.placement = "outside"
+    )
+
 
 ggsave(file.path(graphics_dir, "H_combined_families.png"),
-      width = 10,
+      width = 8,
        height = 6,
        dpi = 300)
 ```
@@ -1608,21 +1626,17 @@ ggsave(file.path(graphics_dir, "H_combined_families.png"),
        height = 6,
        dpi = 300)
 ```
+
+
 ```{r}
-##############################
 # TRANSPORTER FAMILY PLOT
-##############################
 
 # Load packages
-library(dplyr)
-library(ggplot2)
 library(forcats)
 library(readxl)
 library(writexl)
 
-# -----------------------------
 # Load transporter gene data
-# -----------------------------
 transporter_genes <- read_excel("../HvIM/Data_Repository/6_transporter_df.xlsx") %>%
   rename(id = TAIR) %>%
   mutate(id = trimws(as.character(id)))
@@ -1630,9 +1644,7 @@ transporter_genes <- read_excel("../HvIM/Data_Repository/6_transporter_df.xlsx")
 green_H_up <- green_H_up %>% mutate(id = trimws(as.character(id)))
 green_H_down <- green_H_down %>% mutate(id = trimws(as.character(id)))
 
-# -----------------------------
 # Extract transporters
-# -----------------------------
 H_up_transporters <- green_H_up %>%
   semi_join(transporter_genes, by = "id") %>%
   left_join(transporter_genes, by = "id") %>%
@@ -1654,94 +1666,6 @@ H_down_transporters <- green_H_down %>%
     log10_padj = -log10(padj_x),
     FC_label = round(logFC_x, 2)
   )
-
-# -----------------------------
-#  Assign functional categories
-# -----------------------------
-family_function <- data.frame(
-  Family = c(
-    "ABC Superfamily", "DMT Superfamily", "MOP Flippase Superfamily",
-    "CPA2 Family", "MIP Family", "VIT Family", "MPT Family",
-    "MFS", "ENT Family", "AAAP Family", "ZIP Family", "P-ATPase Superfamily",
-    "OPT Family", "MC Family", "KUP Family", "HCC Family",
-    "FBT Family", "CDF Family", "ArAE Family", "Annexin Family", "AE Family"
-  ),
-  Function = c(
-    rep("Detox/Drug Export", 3),   # 3
-    rep("Ion Transport", 3),       # 3 → total 6
-    "Metabolite Transport",        # 1 → total 7
-    rep("Nutrient Transport", 8),  # 8 → total 15
-    rep("Other/Unknown", 6)        # 6 → total 21
-  )
-)
-
-# -----------------------------
-# Combine up and down transporters
-# -----------------------------
-H_up_summary <- H_up_transporters %>%
-  distinct(id, Family, logFC_x, log10_padj) %>%
-  mutate(Direction = "Up") %>%
-  group_by(Family, Direction) %>%
-  summarise(
-    gene_count = n(),
-    median_logFC = median(logFC_x),
-    median_log10_padj = median(log10_padj),
-    .groups = "drop"
-  )
-
-H_down_summary <- H_down_transporters %>%
-  distinct(id, Family, logFC_x, log10_padj) %>%
-  mutate(Direction = "Down") %>%
-  group_by(Family, Direction) %>%
-  summarise(
-    gene_count = n(),
-    median_logFC = median(logFC_x),
-    median_log10_padj = median(log10_padj),
-    .groups = "drop"
-  )
-
-combined_summary <- bind_rows(H_up_summary, H_down_summary) %>%
-  left_join(family_function, by = "Family") %>%
-  mutate(Direction = factor(Direction, levels = c("Up", "Down")))
-
-# -----------------------------
-# Plot transporter families
-# -----------------------------
-fam_plot <- ggplot(combined_summary,
-                   aes(x = gene_count,
-                       y = fct_reorder(Family, gene_count))) +
-  
-  # Bars = number of genes
-  geom_col(aes(fill = Function), color = "grey50") +
-  
-  # Overlay points = median logFC significance
-  geom_point(aes(size = median_log10_padj, color = median_logFC)) +
-  
-  # Facet Up vs Down
-  facet_wrap(~Direction, ncol = 1, scales = "free_y") +
-  
-  # Color scale for logFC
-  scale_color_gradient2(low = "purple", mid = "white", high = "hotpink", midpoint = 0) +
-  
-  # Labels
-  labs(
-    title = "Transporter Family-Level Response in Haustoriated Cells",
-    x = "Number of Genes",
-    y = "Transporter Family",
-    fill = "Functional Category",
-    color = "Median log2FC",
-    size = "Median -log10(padj)"
-  ) +
-  
-  theme_minimal(base_size = 12) +
-  theme(
-    plot.title = element_text(face = "bold", hjust = 0.5),
-    axis.text.y = element_text(size = 8),
-    legend.position = "right"
-  )
-
-# Display plot
-print(fam_plot)
 
 # -----------------------------
 # Save outputs
