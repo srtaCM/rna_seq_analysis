@@ -22,7 +22,7 @@ invisible(gc())  # Garbage collection to free memory
 # Global options for consistent behavior
 options(
   max.print              = 50000, # Cap console output
-  scipen                 = 999,   # Avoid scientific notation, 0 if yes
+  scipen                 = 0,   # 999 to Avoid scientific notation, 0 if yes sci note
   stringsAsFactors       = FALSE, # Keep strings as character
   dplyr.summarise.inform = FALSE, # Suppress dplyr's messages
   digits                 = 4      # Number of digits to print
@@ -65,7 +65,7 @@ if (interactive()) {
 ```
 
 # 2. INSTALL PACKAGES
-```{r INSTALL-PACKAGES, include=TRUE}
+```{r INSTALL-PACKAGES, include=TRUE, message=FALSE}
 #------------------------ 2.1 LOAD PACKAGES ------------------------#
 cran_packages <- c(
   "tidyverse", # dplyr, ggplot2, tidyr, purrr, stringr, readr, forcats
@@ -92,7 +92,8 @@ bioc_packages <- c(
   "apeglm", # LFC shrinkage  
   "EnhancedVolcano",
   "ComplexHeatmap",
-  "BiocManager"
+  "BiocManager",
+  "GOSemSim"
 )
 
 #------------------------ INSTALL CRAN PACKAGES ------------------------#
@@ -313,9 +314,9 @@ total_counts <- colSums(vsd_mat)
 #print(summary(total_counts))
 
 #------------------------ SAVE & EXPORT ------------------------#
-#saveRDS(norm_counts, file.path("~/Desktop/Lab/Haust_TRAP_proj/TRAP_Results", "NORMcounts_H_v_UM.rds"))
+#saveRDS(norm_counts, file.path("~/Desktop/Lab/Haust_TRAP_proj/TRAP_Results", "NORMcounts_dds.rds"))
 
-#saveRDS(vsd_mat, file.path("~/Desktop/Lab/Haust_TRAP_proj/TRAP_Results", "VSTcounts_H_v_UM.rds"))
+#saveRDS(vsd_mat, file.path("~/Desktop/Lab/Haust_TRAP_proj/TRAP_Results", "VSTcounts_dds.rds"))
 
 #EXPORT
 #norm_counts_out <- norm_counts %>%
@@ -397,7 +398,7 @@ p_dist <- pheatmap(dist_mat,
 )
 ```
 
-## 13. PCA & PLOT
+# 13. PCA & PLOT
 ```{r PCA}
 #------------------------ PCA PLOT ------------------------#
 pca_data <- DESeq2::plotPCA(vsd, 
@@ -436,7 +437,7 @@ print(p_pca)
 #       p_pca, width = 8, height = 8, dpi = 300, bg = "white")
 ```
 
-## 14. LFC SHRINKAGE + ARRANGEMENT + CLEAN
+# 14. LFC SHRINKAGE + ARRANGEMENT + CLEAN
 ```{r DESeq-results-lfc, message=FALSE}
 #------------------------ CONTRASTS ------------------------#
 contrasts <- list(
@@ -466,11 +467,9 @@ safe_lfcShrink <- function(dds, coef_name, contrast_vec) {
 lfc_list <- lapply(contrasts, function(x) {
   safe_lfcShrink(dds, x$coef, x$contrast)
 })
-
 #------------------------ SAVE OBJECT ------------------------#
 # Save DESeq object
 #saveRDS(lfc_list, file.path("~/Desktop/Lab/Haust_TRAP_proj/TRAP_Results", "deseq_shrunken_lfc.rds"))
-
 
 #------------------------ CLEAN RESULTS  ------------------------#
 #This section uses raw padj and shrunk LFC
@@ -491,7 +490,7 @@ res_list <- mapply(clean_res, res_raw_list, lfc_list, SIMPLIFY = FALSE)
 #saveRDS(res_list, file.path("~/Desktop/Lab/Haust_TRAP_proj/TRAP_Results", "deseq_clean_results.rds"))
 ```
 
-
+# 15. DEGs and THRESHOLD application
 ```{r SPLIT DEGS, message=FALSE}
 #------------------------ SPLIT DEGs ------------------------#
 annotate_DEGs <- function(df, lfc_thresh, pad) {
@@ -568,7 +567,7 @@ purrr::pwalk(
 #writexl::write_xlsx(export_list, file.path(tables_dir, "DESeq2_results_shrink.xlsx"))
 ```
 
-## 15. TOP 100 GENES & HEATMAP
+##  TOP 100 GENES & HEATMAP
 ```{r deg-heatmap}
 set.seed(123)
 ######################### TOP 100 DEGs HEATMAP #########################
@@ -707,162 +706,246 @@ deg_workbook <- list(
 #   file.path(tables_dir, "DEG_summary.xlsx"))
 ```
 
+# 16. UP/DOWN splits for Hvs UM and IM vs UM
+```{r SPLITS}
+#------------------------ FUNTION: SPLIT ENTREZ ------------------------#
 
-```{r}
-#########################  PREPARE ENTREZ LISTS #########################
-# Flatten DEG splits into clean Entrez ID lists
 entrez_list <- lapply(deg_split, function(contrast_list) {
   list(
     UP   = unique(contrast_list$UP$entrez[!is.na(contrast_list$UP$entrez)]),
     DOWN = unique(contrast_list$DOWN$entrez[!is.na(contrast_list$DOWN$entrez)])
   )
 })
+#------------------------ APPLY SPLIT ------------------------#
+# Haustoria vs UM
+entrez_H_up   <- entrez_list$H_vs_UM$UP
+entrez_H_down <- entrez_list$H_vs_UM$DOWN
 
-#########################  SPLIT INTO UP / DOWN #########################
+# Infected Mesophyll vs UM
+entrez_IM_up   <- entrez_list$IM_vs_UM$UP
+entrez_IM_down <- entrez_list$IM_vs_UM$DOWN
+```
 
-entrez_up <- list(
-  IM_UP = entrez_list$IM_vs_UM$UP,
-  H_UP  = entrez_list$H_vs_UM$UP
-)
 
-entrez_down <- list(
-  IM_DOWN = entrez_list$IM_vs_UM$DOWN,
-  H_DOWN  = entrez_list$H_vs_UM$DOWN
-)
+```{r GO }
+#########################  GO ENRICHMENT #########################
 
-#########################  GO BP ENRICHMENT (COMPARECLUSTER) #########################
-
-go_up <- compareCluster(
-  geneClusters = entrez_up,
-  fun = "enrichGO",
-  OrgDb = org.At.tair.db,
-  keyType = "ENTREZID",
-  ont = "ALL",
+ego_H_up    <- enrichGO(
+  gene          = entrez_H_up,
+  OrgDb         = org.At.tair.db,
+  keyType       = "ENTREZID",
+  ont           = "BP",
   pAdjustMethod = "BH",
-  pvalueCutoff = pad,
-  qvalueCutoff = pad,
-  minGSSize = 10,
-  maxGSSize = 500
+  pvalueCutoff  = pad,
+  qvalueCutoff  = pad,
+  minGSSize     = 10,
+  maxGSSize     = 500
 )
 
-go_down <- compareCluster(
-  geneClusters = entrez_down,
-  fun = "enrichGO",
-  OrgDb = org.At.tair.db,
-  keyType = "ENTREZID",
-  ont = "ALL",
+ego_H_down  <- enrichGO(
+  gene          = entrez_H_down,
+  OrgDb         = org.At.tair.db,
+  keyType       = "ENTREZID",
+  ont           = "BP",
   pAdjustMethod = "BH",
-  pvalueCutoff = pad,
-  qvalueCutoff = pad,
-  minGSSize = 10,
-  maxGSSize = 500
+  pvalueCutoff  = pad,
+  qvalueCutoff  = pad,
+  minGSSize     = 10,
+  maxGSSize     = 500
 )
 
-go_up<- simplify(go_up)
-go_down<-simplify(go_down)
+ego_IM_up   <- enrichGO(
+  gene          = entrez_IM_up,
+  OrgDb         = org.At.tair.db,
+  keyType       = "ENTREZID",
+  ont           = "BP",
+  pAdjustMethod = "BH",
+  pvalueCutoff  = pad,
+  qvalueCutoff  = pad,
+  minGSSize     = 10,
+  maxGSSize     = 500
+)
 
-go_up<- pairwise_termsim(go_up)
-go_down<-pairwise_termsim(go_down)
+ego_IM_down   <- enrichGO(
+  gene          = entrez_IM_down,
+  OrgDb         = org.At.tair.db,
+  keyType       = "ENTREZID",
+  ont           = "BP",
+  pAdjustMethod = "BH",
+  pvalueCutoff  = pad,
+  qvalueCutoff  = pad,
+  minGSSize     = 10,
+  maxGSSize     = 500
+)
+
+#########################  SIMPLIFY + TERM SIMILARITY #########################
+go_H_up   <- pairwise_termsim(simplify(ego_H_up))
+go_H_down <- pairwise_termsim(simplify(ego_H_down))
+go_IM_up  <- pairwise_termsim(simplify(ego_IM_up))
+go_IM_down<- pairwise_termsim(simplify(ego_IM_down))
 
 #########################  DOTPLOTS #########################
 
-p_go_up <- dotplot(go_up, showCategory = 12, font.size = 11, label_format = 60) +
-  ggtitle("GO (ALL) Terms: UP-regulated (IM vs UM, H vs UM)")
+p_H_up <- dotplot(go_H_up, showCategory = 12) +
+  ggtitle("GO Enrichment: Haustoria UP") +
+  theme(plot.title = element_text(face="bold", size=12, hjust=0.5))
 
-p_go_down <- dotplot(go_down, showCategory = 12, font.size = 11, label_format = 60) +
-  ggtitle("GO (ALL) Terms: DOWN-regulated (IM vs UM, H vs UM)")
+p_H_down <- dotplot(go_H_down, showCategory = 12) +
+  ggtitle("GO Enrichment: Haustoria DOWN") +
+  theme(plot.title = element_text(face="bold", size=12, hjust=0.5))
 
-#########################  SAVE PLOTS #########################
+p_IM_up <- dotplot(go_IM_up, showCategory = 12) +
+  ggtitle("GO Enrichment: Infected Mesophyll UP") +
+  theme(plot.title = element_text(face="bold", size=12, hjust=0.5))
 
-#ggsave(file.path(graphics_dir, "GO_ALL_UP_dotplot.png"),
-#       plot = p_go_up, width = 10, height = 10, dpi = 300)
+p_IM_down <- dotplot(go_IM_down, showCategory = 12) +
+  ggtitle("GO Enrichment: Infected Mesophyll DOWN") +
+  theme(plot.title = element_text(face="bold", size=12, hjust=0.5))
 
-#ggsave(file.path(graphics_dir, "GO_ALL_DOWN_dotplot.png"),
-#       plot = p_go_down, width = 10, height = 10, dpi = 300)
+#########################  SAVE (Individual) PLOTS #########################
 
-#########################  OPTIONAL: COMBINED PANEL #########################
+plots <- list(
+  "GO_H_Up.png"   = p_H_up,
+  "GO_H_Down.png" = p_H_down,
+  "GO_IM_Up.png"  = p_IM_up,
+  "GO_IM_Down.png"= p_IM_down
+)
 
-library(patchwork)
+#for (file in names(plots)) {
+#  ggsave(file.path(graphics_dir, file), plots[[file]], width = 7, height = 8, dpi = 300)}
 
-p_combined <- p_go_up / p_go_down  # vertical stack
+#########################  COMBINED PANEL #########################
+
+#p_combined <- p_H_up / p_IM_up  # vertical stack
+#go_H_up@result$Description <- factor(go_H_up@result$Description,
+                 #                    levels = unique(go_H_up@result$Description))
+
+#go_IM_up@result$Description <- factor(go_IM_up@result$Description,
+#                                      levels = unique(go_H_up@result$Description))
+#p_up_compare <- p_H_up | p_IM_up
+
+
+#p_grid <- (p_H_up | p_IM_up) /
+#          (p_H_down | p_IM_down)
+
 
 #ggsave(file.path(graphics_dir, "GO_ALL_UP_DOWN_combined.png"),
-#       plot = p_combined, width = 10, height = 16, dpi = 300)
+#       plot = p_up_compare, width = 15, height = 14, dpi = 300)
 
-cat("Saved GO BP UP and DOWN dotplots (separate + combined)\n")
+
+# Collect all p.adjust values
+all_padj <- c(go_H_up@result$p.adjust,
+              go_IM_up@result$p.adjust,
+              go_H_down@result$p.adjust,
+              go_IM_down@result$p.adjust)
+
+padj_min <- min(all_padj, na.rm = TRUE)
+padj_max <- max(all_padj, na.rm = TRUE)
+
+# Unified color scale
+unified_scale <- scale_color_gradient(
+  limits = c(padj_min, padj_max),
+  low = "#2166ac",   # blue
+  high = "#b2182b"   # red
+)
+
+
+# Order by Haustoria UP (reference)
+ref_terms <- go_H_up@result$Description
+
+go_H_up@result$Description   <- factor(go_H_up@result$Description,   levels = ref_terms)
+go_IM_up@result$Description  <- factor(go_IM_up@result$Description,  levels = ref_terms)
+go_H_down@result$Description <- factor(go_H_down@result$Description, levels = ref_terms)
+go_IM_down@result$Description<- factor(go_IM_down@result$Description,levels = ref_terms)
+
+label_theme <- theme(
+  plot.tag = element_text(face = "bold", size = 18)
+)
+
+p_H_up_l    <- p_H_up    + unified_scale + label_theme + labs(tag = "A")
+p_IM_up_l   <- p_IM_up   + unified_scale + label_theme + labs(tag = "B")
+p_H_down_l  <- p_H_down  + unified_scale + label_theme + labs(tag = "C")
+p_IM_down_l <- p_IM_down + unified_scale + label_theme + labs(tag = "D")
+
+
+stripe_up <- theme(
+  plot.background = element_rect(fill = "#F5E3E2", color = NA), #Delicacy
+  panel.background = element_rect(fill = "#F5E3E2", color = NA)
+)
+
+stripe_down <- theme(
+  plot.background = element_rect(fill = "#E7F4F2", color = NA),
+  panel.background = element_rect(fill = "#E7F4F2", color = NA)#diaphonous
+)
+
+p_H_up_s    <- p_H_up_l    + stripe_up
+p_IM_up_s   <- p_IM_up_l   + stripe_up
+p_H_down_s  <- p_H_down_l  + stripe_down
+p_IM_down_s <- p_IM_down_l + stripe_down
+
+
+final_GO_panel <- (p_H_up_s | p_IM_up_s) /
+                  (p_H_down_s | p_IM_down_s) &
+                  theme(legend.position = "right")
+
+
+#ggsave(file.path(graphics_dir, "GO_BP_H_vs_IM_publication_ready.png"),
+#       final_GO_panel, width = 14, height = 12, dpi = 300)
 ```
 
+# 17. GO COMPARE CLUSTERS PLOT
+```{r GO Cluster Plot}
+#------------------------ ENTREZ LIST ------------------------#
+cluster_list <- list(
+  H_UP    = entrez_H_up,
+  IM_UP   = entrez_IM_up,
+  H_DOWN  = entrez_H_down,
+  IM_DOWN = entrez_IM_down)
 
-```{r}
-#########################  KEGG ENRICHMENT #########################
-kegg_list <- entrez_flat
+#------------------------ RUN GO ------------------------#
+cc <- compareCluster(
+  geneCluster   = cluster_list,
+  fun           = "enrichGO",
+  OrgDb         = org.At.tair.db,
+  keyType       = "ENTREZID",
+  ont           = "BP",
+  pAdjustMethod = "BH",
+  pvalueCutoff  = pad,
+  qvalueCutoff  = pad,
+  minGSSize     = 10,
+  maxGSSize     = 500)
 
-kegg_results <- lapply(names(kegg_list), function(category){
-  genes <- kegg_list[[category]]
-  if(length(genes) >= 10){
-    enrichKEGG(
-      gene = genes,
-      organism = "ath",
-      keyType = "ncbi-geneid",
-      pvalueCutoff = pad,
-      qvalueCutoff = pad,
-      minGSSize = 10,
-      maxGSSize = 500,
-      use_internal_data = FALSE
-    )
-  } else NULL
-})
-names(kegg_results) <- names(kegg_list)
+all_padj <- cc@compareClusterResult$p.adjust #Extract adjusted p‑values from cc
+#Find min & max p.adj for color scale range
+padj_min <- min(all_padj, na.rm = TRUE)
+padj_max <- max(all_padj, na.rm = TRUE)
 
-# KEGG 4-way compareCluster
-kegg_compare <- compareCluster(
-  geneClusters = kegg_list,
-  fun = "enrichKEGG",
-  organism = "ath",
-  keyType = "ncbi-geneid",
-  pvalueCutoff = pad,
-  qvalueCutoff = pad,
-  minGSSize = 10,
-  maxGSSize = 500,
-  use_internal_data = FALSE
-)
+# color gradient
+unified_scale <- scale_color_gradient(
+  limits = c(padj_min, padj_max),
+  low    = "#2166ac",
+  high   = "#b2182b",
+  name   = "Adjusted p-value")
 
-p_kegg_dot <- dotplot(kegg_compare, showCategory = 10, font.size = 11, label_format = 60) +
-  ggtitle("KEGG Pathways: 4-way Comparison (IM_UP/H_UP/IM_DOWN/H_DOWN)")
-#ggsave(file.path(graphics_dir, "KEGG_4way_combined_dotplot.png"), 
-#       plot = p_kegg_dot, width = 12, height = 12, dpi = 300)
-cat("Saved KEGG 4-way combined dotplot\n")
+#------------------------ DOTPLOT ------------------------#
+p_combined <- dotplot(cc, showCategory = 14) +
+  unified_scale +
+  ggtitle("GO BP Enrichment: Haustoria vs Mesophyll (UP & DOWN)") +
+  theme(
+    plot.title  = element_text(face="bold", size=16, hjust=0.5),
+    axis.text.y = element_text(size=10),
+    strip.text  = element_text(size=8, face="bold")
+  )
 
-#########################  SUMMARY TABLE #########################
-go_kegg_summary <- tibble(
-  Category = names(entrez_flat),
-  n_genes = sapply(entrez_flat, length),
-  n_GO_terms = sapply(ego_list, function(x) if(!is.null(x)) nrow(x@result) else 0),
-  n_KEGG_terms = sapply(kegg_results, function(x) if(!is.null(x)) nrow(x@result) else 0)
-)
-print(go_kegg_summary)
+p_combined
+#------------------------ SAVE ------------------------#
+#ggsave(file.path(graphics_dir, "GO_BP_unified_compareCluster.png"), p_combined, width = 8, height = 10, dpi = 300)
 
-#########################  EXPORT RESULTS #########################
-full_export <- c(
-  
-  # KEGG individual
-  lapply(kegg_results, function(x) if(!is.null(x)) x@result else data.frame()),
-  
-  # KEGG combined
-  list(KEGG_4way_compare = as.data.frame(kegg_compare@compareClusterResult)),
-  
-  # Summary
-  list(Summary = go_kegg_summary)
-)
-
-#writexl::write_xlsx(full_export, file.path(tables_dir, "COMPLETE_KEGG_4way.xlsx"))
-cat("KEGG results exported successfully\n")
 ```
 
+# 18. FOURWAY PLOT
 ```{r VIDGER}
-library(vidger)
-
-#########################  FOUR-WAY PLOT WITH CUSTOM COLORS #########################
+#------------------------ FOUR-WAY PLOT ------------------------#
 FW_df <- vsFourWay( x = "H", y = "IM", control = "UM", 
                     data = dds, 
                     d.factor = "Groups", 
@@ -873,17 +956,15 @@ FW_df <- vsFourWay( x = "H", y = "IM", control = "UM",
                     grid = TRUE, 
                     legend = TRUE, 
                     data.return = TRUE, 
-                    xaxis.text.size = 10, 
-                    yaxis.text.size = 10, ) 
+                    xaxis.text.size = 14, 
+                    yaxis.text.size = 14, ) 
 print(FW_df$plot) # View plot 
-#ggsave(file.path(graphics_dir, "FourWay_H_vs_IM_vs_UM.png"), # FW_df$plot, width = 10, height = 8, dpi = 300)
+
+#------------------------ SAVE ------------------------#
+#ggsave(file.path(graphics_dir, "FourWay_plot.png"), FW_df$plot, width = 8, height = 6, dpi = 300)
 ```
 
 ```{r}
-library(vidger)
-library(ggrepel)
-library(DESeq2)
-
 genes_of_interest <- c("AT3G09770", "AT4G31730", "AT2G36270", "AT2G40220") # order: LOG2, GDU1, ABI5, ABI4
 
 
@@ -913,37 +994,29 @@ print(p)
 ```
 
 
-```{r extract-genes}
+
+```{r}
+#------------------------ FOUR-WAY DATA EXTRACTION ------------------------#
 ## Extract data
 df_four <- FW_df$data
 
-# H-specific UP
-green_H_up <- df_four %>%
-  filter(color == "green", padj_x < pad,logFC_x > 1)
-# H-specific DOWN
-green_H_down <- df_four %>%
-  filter(color == "green", padj_x < pad, logFC_x < -1)
+#------------------------ THRESHOLD APPLICATION ------------------------#
+H_sig  <- df_four$padj_x < pad
+IM_sig <- df_four$padj_y < pad
 
-# IM-specific UP
-red_IM_up <- df_four %>%
-  filter(color == "red", padj_y < pad,logFC_y > 1)
-# IM-specific DOWN
-red_IM_down <- df_four %>%
-  filter(color == "red", padj_y < pad, logFC_y < -1)
+H_up   <- H_sig & df_four$logFC_x > 1
+H_down <- H_sig & df_four$logFC_x < -1
 
-# All sig DEGs (blue + green)
-sig_genes <- df_four %>%
-  filter(isDE_all == TRUE) %>%
-  pull(id)
+IM_up   <- IM_sig & df_four$logFC_y > 1
+IM_down <- IM_sig & df_four$logFC_y < -1
 
-## EXPORT
-way4_export <- list(
-  Green_H_UP   = green_H_up,
-  Green_H_DOWN = green_H_down,
-  RED_IM_UP   = red_IM_up,
-  RED_IM_DOWN = red_IM_down
-)
-#write_xlsx(way4_export, file.path(tables_dir, "4WAY_ALL_results.xlsx"))
+# H-specific = significant in H but NOT IM
+H_specific_up   <- df_four[H_up   & !IM_sig, ]
+H_specific_down <- df_four[H_down & !IM_sig, ]
+
+# IM-specific = significant in IM but NOT H
+IM_specific_up   <- df_four[IM_up   & !H_sig, ]
+IM_specific_down <- df_four[IM_down & !H_sig, ]
 ```
 
 ```{r}
